@@ -1,0 +1,79 @@
+name: 🐛 Bug report
+description: Report something that isn't working as documented.
+title: "bug: "
+labels: ["bug", "needs triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report! Please search [existing issues](https://github.com/TahaNabavi/typewire/issues) first to avoid duplicates.
+
+  - type: dropdown
+    id: package
+    attributes:
+      label: Affected package
+      description: Which package does this bug affect?
+      options:
+        - "@tahanabavi/typefetch"
+        - "@tahanabavi/typesocket"
+        - "@tahanabavi/typewire-nestjs"
+        - "@tahanabavi/typefetch-query-core"
+        - "@tahanabavi/typefetch-react"
+        - "@tahanabavi/type-devtools-core"
+        - "@tahanabavi/type-devtools"
+        - "Monorepo tooling / not sure"
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Package version
+      description: The version of the affected package (from your lockfile or `package.json`).
+      placeholder: "e.g. 1.7.0"
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug, including what you expected instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: A minimal code snippet or repo link that reproduces the issue. Include the relevant Zod contract if applicable.
+      placeholder: |
+        1. Define contract '...'
+        2. Call '...'
+        3. See error
+      render: ts
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Node version (`node -v`), package manager, OS, and framework versions if relevant.
+      placeholder: |
+        - Node: 22.13.0
+        - pnpm: 11.6.0
+        - OS: Windows 11
+        - Zod: 4.x
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues and this is not a duplicate.
+          required: true
+        - label: I can reproduce this on the latest published version.
+          required: false

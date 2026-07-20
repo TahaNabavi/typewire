@@ -6,7 +6,9 @@
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "files": [
-    "/dist"
+    "dist",
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "build": "tsup",
@@ -15,8 +17,12 @@
     "test:coverage": "jest --coverage",
     "typecheck": "tsc --noEmit"
   },
-  "author": "Taha Nabavi",
-  "license": "ISC",
+  "author": {
+    "name": "Taha Nabavi",
+    "email": "sayyedtahanabavi@gmail.com",
+    "url": "https://www.tahanabavi.ir"
+  },
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/TahaNabavi/typewire.git",
@@ -25,6 +31,7 @@
   "bugs": {
     "url": "https://github.com/TahaNabavi/typewire/issues"
   },
+  "homepage": "https://www.tahanabavi.ir/docs/typesocket",
   "keywords": [
     "socket",
     "typescript",

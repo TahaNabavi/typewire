@@ -79,7 +79,11 @@
   "engines": {
     "node": ">=18"
   },
-  "author": "Taha Nabavi",
+  "author": {
+    "name": "Taha Nabavi",
+    "email": "sayyedtahanabavi@gmail.com",
+    "url": "https://www.tahanabavi.ir"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",

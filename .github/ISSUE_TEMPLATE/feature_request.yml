@@ -1,0 +1,60 @@
+name: 💡 Feature request
+description: Suggest a new capability or improvement.
+title: "feat: "
+labels: ["enhancement", "needs triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the idea! Please check the [roadmap](https://github.com/TahaNabavi/typewire#roadmap) and [existing issues](https://github.com/TahaNabavi/typewire/issues) first.
+
+  - type: dropdown
+    id: package
+    attributes:
+      label: Target package
+      description: Which package (or a new one) does this relate to?
+      options:
+        - "@tahanabavi/typefetch"
+        - "@tahanabavi/typesocket"
+        - "@tahanabavi/typewire-nestjs"
+        - "@tahanabavi/typefetch-query-core"
+        - "@tahanabavi/typefetch-react"
+        - "@tahanabavi/type-devtools-core"
+        - "@tahanabavi/type-devtools"
+        - "A new package / the ecosystem overall"
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the use case or pain point. What are you trying to do that's hard today?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: How would you like it to work? A rough API sketch is very helpful.
+      render: ts
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Any workarounds you're using now, or other approaches you've weighed.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: contract-law
+    attributes:
+      label: Design fit
+      description: TypeWire keeps the contract untouched and the daily API tiny (see docs/ARCHITECTURE.md).
+      options:
+        - label: This can be added as an additive module without changing the contract shape.
+          required: false
