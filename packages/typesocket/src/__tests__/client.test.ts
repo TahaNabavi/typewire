@@ -1,7 +1,6 @@
 import { SocketService } from "../client";
 import { io as mockIo, Socket } from "socket.io-client";
 import z from "zod";
-import { jest } from "@jest/globals";
 
 jest.mock("socket.io-client");
 
