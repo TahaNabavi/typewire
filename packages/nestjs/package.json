@@ -1,6 +1,6 @@
 {
   "name": "@tahanabavi/typewire-nestjs",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "NestJS integration for the TypeWire ecosystem — bind routes and validate request/response on the backend using the exact same Zod contracts your frontend consumes (typefetch HTTP today; typesocket gateways planned).",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -49,7 +49,7 @@
     "@nestjs/common": "^10.0.0 || ^11.0.0",
     "@nestjs/core": "^10.0.0 || ^11.0.0",
     "@nestjs/swagger": "^7.0.0 || ^8.0.0 || ^11.0.0",
-    "@tahanabavi/typefetch": ">=1.6.0",
+    "@tahanabavi/typefetch": ">=1.7.1",
     "crypto-js": "^4.0.0",
     "node-forge": "^1.0.0",
     "reflect-metadata": "^0.1.13 || ^0.2.0",
