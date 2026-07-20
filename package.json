@@ -3,7 +3,11 @@
   "version": "0.0.0",
   "private": true,
   "description": "TypeWire — a family of strongly-typed, contract-first packages (typed HTTP/WS/OpenGraph clients, a query layer, and transport-agnostic devtools). Packages ship under the @tahanabavi/* npm scope.",
-  "author": "Taha Nabavi",
+  "author": {
+    "name": "Taha Nabavi",
+    "email": "sayyedtahanabavi@gmail.com",
+    "url": "https://www.tahanabavi.ir"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",

@@ -3,8 +3,22 @@
   "version": "0.0.0",
   "private": true,
   "description": "Transport-agnostic inspector bridge for the TypeFetch ecosystem (timeline, overrides, generic Source protocol).",
-  "author": "Taha Nabavi",
+  "author": {
+    "name": "Taha Nabavi",
+    "email": "sayyedtahanabavi@gmail.com",
+    "url": "https://www.tahanabavi.ir"
+  },
   "license": "MIT",
+  "keywords": [
+    "typewire",
+    "typefetch",
+    "devtools",
+    "inspector",
+    "timeline",
+    "debugging",
+    "zod",
+    "type-safe"
+  ],
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -30,6 +44,7 @@
   "bugs": {
     "url": "https://github.com/TahaNabavi/typewire/issues"
   },
+  "homepage": "https://www.tahanabavi.ir/docs/type-devtools-core",
   "publishConfig": {
     "access": "public"
   }
