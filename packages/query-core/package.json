@@ -32,7 +32,9 @@
       "require": "./dist/index.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "sideEffects": false,
   "scripts": {
     "build": "tsup",
@@ -40,7 +42,7 @@
     "test": "echo \"(query-core: no tests yet)\""
   },
   "peerDependencies": {
-    "@tahanabavi/typefetch": ">=1.7.0",
+    "@tahanabavi/typefetch": ">=1.7.1",
     "zod": "^4.0.0"
   },
   "devDependencies": {
