@@ -1,0 +1,47 @@
+name: CI
+
+# Cross-package integrity gate: a change that breaks a dependent package fails
+# here (red PR check) before it can merge. `main` is covered by release.yml.
+on:
+  pull_request:
+  push:
+    branches-ignore:
+      - main
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Build in topological order — dependents build against their dependency's
+      # freshly emitted types, so a breaking change surfaces immediately.
+      - name: Build all (cross-package integrity)
+        run: pnpm -r build
+
+      - name: Typecheck all
+        run: pnpm -r typecheck
+
+      - name: Test all
+        run: pnpm -r test
+
+      # Informational: shows the release plan / whether a changeset is present.
+      - name: Changeset status
+        run: pnpm changeset status --since=origin/main
+        continue-on-error: true

@@ -1,0 +1,44 @@
+{
+  "name": "@tahanabavi/typefetch-query-core",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Framework-agnostic query engine for TypeFetch contracts (cache, dedup, staleness, mutations, invalidation).",
+  "author": "Taha Nabavi",
+  "license": "MIT",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "echo \"(query-core: no tests yet)\""
+  },
+  "peerDependencies": {
+    "@tahanabavi/typefetch": ">=1.7.0",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@tahanabavi/typefetch": "workspace:*",
+    "zod": "^4.1.5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TahaNabavi/typewire.git",
+    "directory": "packages/query-core"
+  },
+  "bugs": {
+    "url": "https://github.com/TahaNabavi/typewire/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

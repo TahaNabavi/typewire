@@ -1,0 +1,96 @@
+{
+  "name": "@tahanabavi/typefetch",
+  "version": "1.7.0",
+  "description": "A strongly typed TypeScript HTTP client powered by Zod contracts, middleware, retries, mock data, contract testing, CLI tooling, and report generation.",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "typefetch": "./dist/cli/index.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./middlewares": {
+      "types": "./dist/middlewares/index.d.ts",
+      "import": "./dist/middlewares/index.mjs",
+      "require": "./dist/middlewares/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "clean": "rimraf dist",
+    "build": "tsup",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run typecheck && npm test && npm run build"
+  },
+  "keywords": [
+    "http",
+    "fetch",
+    "api-client",
+    "typescript",
+    "zod",
+    "zod-contracts",
+    "type-safe",
+    "middleware",
+    "sdk",
+    "rest",
+    "validation",
+    "contract-testing",
+    "api-testing",
+    "test-runner",
+    "cli",
+    "developer-tools"
+  ],
+  "peerDependencies": {
+    "zod": "^4.0.0"
+  },
+  "dependencies": {
+    "crypto-js": "^4.2.0",
+    "node-forge": "^1.4.0",
+    "jiti": "^2.7.0"
+  },
+  "devDependencies": {
+    "@types/crypto-js": "^4.2.2",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.0.0",
+    "@types/node-forge": "^1.3.14",
+    "jest": "^30.1.3",
+    "jest-fetch-mock": "^3.0.3",
+    "rimraf": "^6.0.1",
+    "ts-jest": "^29.4.1",
+    "ts-node": "^10.9.2",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.2",
+    "zod": "^4.1.5"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "author": "Taha Nabavi",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TahaNabavi/typewire.git",
+    "directory": "packages/typefetch"
+  },
+  "bugs": {
+    "url": "https://github.com/TahaNabavi/typewire/issues"
+  },
+  "homepage": "https://www.tahanabavi.ir/docs/typefetch",
+  "publishConfig": {
+    "access": "public"
+  }
+}

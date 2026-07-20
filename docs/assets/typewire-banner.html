@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<style>
+  :root{
+    --bg0:#060a14;--bg1:#0a1120;--bg2:#0b1424;
+    --panel:#0d1626;--panel2:#0b1322;
+    --border:rgba(148,163,184,.12);--border2:rgba(148,163,184,.2);
+    --text:#e8eef8;--muted:#94a3b8;--dim:#5a6b83;
+    --blue:#60a5fa;--blue2:#3b82f6;--purple:#a78bfa;--purple2:#8b5cf6;
+    --green:#4ade80;--cyan:#22d3ee;--amber:#fbbf24;--red:#f87171;
+    --mono:"JetBrains Mono","Cascadia Code",Consolas,"SF Mono",Menlo,monospace;
+    --sans:-apple-system,"Segoe UI",Roboto,system-ui,"Helvetica Neue",Arial,sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:1600px;height:850px;overflow:hidden}
+  body{font-family:var(--sans);color:var(--text);position:relative;
+    background:
+      radial-gradient(1200px 720px at 80% -10%,rgba(34,211,238,.14),transparent 60%),
+      radial-gradient(1000px 640px at 8% 110%,rgba(139,92,246,.16),transparent 60%),
+      radial-gradient(760px 520px at 98% 96%,rgba(59,130,246,.10),transparent 60%),
+      linear-gradient(160deg,var(--bg0),var(--bg1) 55%,var(--bg2));}
+  .grid{position:absolute;inset:0;
+    background-image:linear-gradient(rgba(148,163,184,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(148,163,184,.04) 1px,transparent 1px);
+    background-size:44px 44px;mask:radial-gradient(1500px 850px at 55% 40%,#000 30%,transparent 85%);}
+  .wrap{position:relative;width:100%;height:100%;padding:54px 56px;display:flex;gap:44px}
+  .left{width:520px;flex:none;display:flex;flex-direction:column}
+  .right{flex:1;display:flex;flex-direction:column}
+
+  /* brand lockup */
+  .brand{display:flex;align-items:center;gap:18px}
+  .brand img{width:88px;height:88px;filter:drop-shadow(0 12px 30px rgba(59,130,246,.35))}
+  .wordmark{font-size:60px;font-weight:800;letter-spacing:-.03em;line-height:1}
+  .wordmark .t{color:#f2f6fc}
+  .wordmark .w{background:linear-gradient(96deg,#63a4ff,#8b5cf6 60%,#b06ff2);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+  .pill{margin-top:26px;display:inline-flex;align-self:flex-start;align-items:center;gap:10px;
+    padding:8px 15px 8px 13px;border:1px solid rgba(96,165,250,.35);border-radius:999px;
+    background:rgba(59,130,246,.08);font-size:13.5px;font-weight:700;letter-spacing:.14em;color:#cfe0f7}
+  .pill .bar{width:4px;height:14px;border-radius:2px;background:linear-gradient(var(--cyan),var(--purple))}
+
+  h1{margin-top:24px;font-size:46px;line-height:1.05;font-weight:800;letter-spacing:-.02em;color:#eef4fd}
+  h1 .g{background:linear-gradient(96deg,#63a4ff,#22d3ee);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lede{margin-top:16px;font-size:18px;line-height:1.55;color:var(--muted);max-width:470px}
+  .lede code{font-family:var(--mono);font-size:15px;color:#bcd0ea;background:rgba(148,163,184,.1);padding:1px 7px;border-radius:6px}
+
+  .feats{margin-top:auto;display:flex;flex-direction:column;gap:14px}
+  .feat{display:flex;gap:13px;align-items:center}
+  .feat .ic{width:38px;height:38px;flex:none;border-radius:10px;display:grid;place-items:center;border:1px solid var(--border2)}
+  .feat .ic svg{width:19px;height:19px}
+  .feat .tx b{font-size:16.5px;font-weight:700;color:#eef4fd;display:block}
+  .feat .tx span{font-size:13.5px;color:var(--muted)}
+  .ic.b{background:rgba(59,130,246,.12)} .ic.c{background:rgba(34,211,238,.12)}
+  .ic.p{background:rgba(139,92,246,.12)} .ic.g{background:rgba(34,197,94,.12)}
+
+  /* right: one contract -> many transports */
+  .card{border:1px solid var(--border);border-radius:16px;background:linear-gradient(180deg,var(--panel),var(--panel2));
+    box-shadow:0 30px 70px -34px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.04)}
+  .contract{padding:16px 20px}
+  .chead{display:flex;align-items:center;gap:9px;font-family:var(--mono);font-size:13.5px;color:var(--dim)}
+  .chead .dot{width:11px;height:11px;border-radius:50%}
+  .chead b{color:#9fb0c7;font-weight:600}
+  .chead .tagz{margin-left:auto;font-size:11.5px;font-weight:700;letter-spacing:.04em;color:#c4b5fd;
+    padding:4px 10px;border-radius:999px;background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.24)}
+  .code{font-family:var(--mono);font-size:14px;line-height:1.6;margin-top:11px;color:#cdd8e8}
+  .code .kw{color:#c792ea}.code .fn{color:#82aaff}.code .pr{color:#7fdbca}.code .st{color:#c3e88d}.code .cm{color:#5a6b83}
+
+  .wires{width:924px;height:74px}
+  .cards3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+  .mini{border:1px solid var(--border);border-radius:14px;padding:14px 15px;background:linear-gradient(180deg,var(--panel),var(--panel2))}
+  .mini .h{display:flex;align-items:center;gap:8px}
+  .mini .h .nm{font-size:15px;font-weight:700;color:#eef4fd}
+  .mini .h .tg{margin-left:auto;font-size:11px;font-weight:700;letter-spacing:.05em;color:#8aa0bd;
+    padding:3px 8px;border-radius:6px;background:rgba(148,163,184,.1)}
+  .mini .snip{font-family:var(--mono);font-size:12.5px;color:#aab8cd;margin-top:11px;line-height:1.5}
+  .mini .snip .fn{color:#82aaff}.mini .snip .pr{color:#7fdbca}.mini .snip .st{color:#c3e88d}
+  .role{margin-top:10px;font-size:11.5px;color:var(--dim)}
+
+  .bottomgroup{margin-top:auto;display:flex;flex-direction:column;gap:14px}
+  .install{font-family:var(--mono);font-size:14.5px;color:#d3dded;border:1px solid var(--border);border-radius:12px;
+    padding:14px 17px;background:linear-gradient(180deg,rgba(255,255,255,.025),rgba(255,255,255,0));display:flex;align-items:center;gap:10px}
+  .install .p{color:var(--green);font-weight:700}
+  .install .pkg{color:#82aaff}
+  .foot{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .foot .lbl{font-size:12.5px;color:var(--dim);margin-right:2px}
+  .chip{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:#cdd8e8;
+    padding:6px 11px;border-radius:8px;border:1px solid var(--border2);background:rgba(255,255,255,.02)}
+  .chip .d{width:7px;height:7px;border-radius:50%}
+  .d.b{background:var(--blue)}.d.c{background:var(--cyan)}.d.p{background:var(--purple)}.d.g{background:var(--green)}.d.a{background:var(--amber)}
+  .chip.soon{opacity:.7;border-style:dashed}
+</style>
+</head>
+<body>
+<div class="grid"></div>
+<div class="wrap">
+
+  <!-- LEFT -->
+  <div class="left">
+    <div class="brand">
+      <img src="logo.svg" alt="TypeWire"/>
+      <div class="wordmark"><span class="t">Type</span><span class="w">Wire</span></div>
+    </div>
+
+    <span class="pill"><span class="bar"></span>THE&nbsp;@tahanabavi/*&nbsp;ECOSYSTEM</span>
+
+    <h1>Typed contracts.<br/><span class="g">Any transport.</span></h1>
+    <div class="lede">
+      Define your API once as a <code>Zod</code> contract — then validate it
+      end-to-end across HTTP, WebSocket, and the server. One source of truth,
+      wired to everything.
+    </div>
+
+    <div class="feats">
+      <div class="feat">
+        <div class="ic b"><svg viewBox="0 0 24 24" fill="none" stroke="#7dd3fc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+        <div class="tx"><b>One contract, end-to-end</b><span>Client &amp; server can't drift — same schema both sides</span></div>
+      </div>
+      <div class="feat">
+        <div class="ic g"><svg viewBox="0 0 24 24" fill="none" stroke="#86efac" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 3 6v6c0 5 3.8 8.5 9 10 5.2-1.5 9-5 9-10V6l-9-4Z"/></svg></div>
+        <div class="tx"><b>Runtime-validated</b><span>Every request &amp; response checked with Zod</span></div>
+      </div>
+      <div class="feat">
+        <div class="ic p"><svg viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 21h8M12 18v3"/></svg></div>
+        <div class="tx"><b>Transport-agnostic devtools</b><span>Inspect HTTP &amp; WS in one live timeline</span></div>
+      </div>
+      <div class="feat">
+        <div class="ic c"><svg viewBox="0 0 24 24" fill="none" stroke="#67e8f9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg></div>
+        <div class="tx"><b>Framework-agnostic query</b><span>React today; Vue &amp; Angular by design</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: one contract -> many transports -->
+  <div class="right">
+    <div class="card contract">
+      <div class="chead">
+        <span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span>
+        <span style="margin-left:6px">contract.<b>ts</b></span>
+        <span class="tagz">single source of truth</span>
+      </div>
+      <div class="code">
+<span class="kw">export const</span> <span class="fn">getUser</span> = {<br/>
+&nbsp;&nbsp;<span class="pr">method</span>: <span class="st">"GET"</span>, <span class="pr">path</span>: <span class="st">"/users/:id"</span>,<br/>
+&nbsp;&nbsp;<span class="pr">request</span>:&nbsp; z.<span class="fn">object</span>({ path: z.<span class="fn">object</span>({ id: z.<span class="fn">string</span>() }) }),<br/>
+&nbsp;&nbsp;<span class="pr">response</span>: z.<span class="fn">object</span>({ id: z.<span class="fn">string</span>(), name: z.<span class="fn">string</span>() }),<br/>
+} <span class="kw">as const</span>;
+      </div>
+    </div>
+
+    <svg class="wires" viewBox="0 0 924 74" fill="none" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="wg" x1="0" y1="0" x2="0" y2="74" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#3b82f6" stop-opacity=".9"/><stop offset="1" stop-color="#8b5cf6" stop-opacity=".55"/>
+        </linearGradient>
+      </defs>
+      <path d="M462 0 C 462 44, 148 26, 148 74" stroke="url(#wg)" stroke-width="2.5"/>
+      <path d="M462 0 L 462 74" stroke="url(#wg)" stroke-width="2.5"/>
+      <path d="M462 0 C 462 44, 776 26, 776 74" stroke="url(#wg)" stroke-width="2.5"/>
+      <circle cx="230" cy="34" r="4" fill="#22d3ee"/>
+      <circle cx="462" cy="38" r="4" fill="#60a5fa"/>
+      <circle cx="694" cy="34" r="4" fill="#a78bfa"/>
+    </svg>
+
+    <div class="cards3">
+      <div class="mini">
+        <div class="h"><span class="nm">typefetch</span><span class="tg">HTTP</span></div>
+        <div class="snip"><span class="fn">api</span>.user.<span class="fn">getUser</span>({<br/>&nbsp;&nbsp;path:{ id }<br/>})</div>
+        <div class="role">typed client · retries · mock</div>
+      </div>
+      <div class="mini">
+        <div class="h"><span class="nm">typesocket</span><span class="tg">WS</span></div>
+        <div class="snip"><span class="fn">socket</span>.<span class="fn">emit</span>(<br/>&nbsp;&nbsp;<span class="st">"sendMessage"</span>, { text }<br/>)</div>
+        <div class="role">Socket.IO · event validation</div>
+      </div>
+      <div class="mini">
+        <div class="h"><span class="nm">typewire-nestjs</span><span class="tg">server</span></div>
+        <div class="snip">@<span class="fn">Endpoint</span>(getUser)<br/><span class="fn">getUser</span>(@<span class="fn">Input</span>() i)</div>
+        <div class="role">same contract, backend</div>
+      </div>
+    </div>
+
+    <div class="bottomgroup">
+      <div class="install"><span class="p">$</span>&nbsp;pnpm add <span class="pkg">@tahanabavi/typefetch</span> <span class="pkg">@tahanabavi/typesocket</span> zod</div>
+      <div class="foot">
+        <span class="lbl">also in the ecosystem</span>
+        <span class="chip"><span class="d c"></span>query-core</span>
+        <span class="chip"><span class="d b"></span>react</span>
+        <span class="chip"><span class="d p"></span>devtools</span>
+        <span class="chip soon"><span class="d a"></span>type-opengraph · soon</span>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,51 @@
+{
+  "name": "@tahanabavi/type-devtools",
+  "version": "0.0.0",
+  "private": true,
+  "description": "React inspector panel for the TypeFetch ecosystem — renders any devtools bridge (HTTP today, WS later).",
+  "author": "Taha Nabavi",
+  "license": "MIT",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "echo \"(devtools: no tests yet)\""
+  },
+  "peerDependencies": {
+    "@tahanabavi/typefetch": ">=1.7.0",
+    "react": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "@tahanabavi/typefetch": { "optional": true }
+  },
+  "dependencies": {
+    "@tahanabavi/type-devtools-core": "workspace:*"
+  },
+  "devDependencies": {
+    "@tahanabavi/typefetch": "workspace:*",
+    "@types/react": "^18.3.0",
+    "react": "^18.3.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TahaNabavi/typewire.git",
+    "directory": "packages/devtools"
+  },
+  "bugs": {
+    "url": "https://github.com/TahaNabavi/typewire/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

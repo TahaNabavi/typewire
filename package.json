@@ -1,0 +1,30 @@
+{
+  "name": "typewire",
+  "version": "0.0.0",
+  "private": true,
+  "description": "TypeWire — a family of strongly-typed, contract-first packages (typed HTTP/WS/OpenGraph clients, a query layer, and transport-agnostic devtools). Packages ship under the @tahanabavi/* npm scope.",
+  "author": "Taha Nabavi",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TahaNabavi/typewire.git"
+  },
+  "homepage": "https://github.com/TahaNabavi/typewire#readme",
+  "packageManager": "pnpm@11.6.0",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "pnpm -r build && changeset publish"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.27.9",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.2"
+  }
+}

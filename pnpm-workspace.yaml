@@ -1,0 +1,18 @@
+packages:
+  - "packages/*"
+  - "examples/*"
+
+# Post-install build scripts are blocked by default (pnpm). Allow the trusted
+# build-time tools; explicitly skip @scarf/scarf (NestJS telemetry — no real
+# build, we don't want it phoning home).
+onlyBuiltDependencies:
+  - esbuild
+  - unrs-resolver
+
+ignoredBuiltDependencies:
+  - "@scarf/scarf"
+
+allowBuilds:
+  esbuild: true
+  unrs-resolver: true
+  "@scarf/scarf": false
