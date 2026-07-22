@@ -29,7 +29,9 @@
       "require": "./dist/index.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "sideEffects": false,
   "scripts": {
     "build": "tsup",
@@ -37,11 +39,13 @@
     "test": "echo \"(devtools: no tests yet)\""
   },
   "peerDependencies": {
-    "@tahanabavi/typefetch": ">=1.7.0",
+    "@tahanabavi/typefetch": ">=1.7.1",
     "react": ">=18"
   },
   "peerDependenciesMeta": {
-    "@tahanabavi/typefetch": { "optional": true }
+    "@tahanabavi/typefetch": {
+      "optional": true
+    }
   },
   "dependencies": {
     "@tahanabavi/type-devtools-core": "workspace:*"
