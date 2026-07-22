@@ -1,47 +1,34 @@
 # @tahanabavi/typesocket
 
-![npm version](https://img.shields.io/badge/socket.io-informational?style=flat&logo=npm&logoColor=white)
-![npm version](https://img.shields.io/badge/-Zod-3E67B1?style=flat&logo=zod&logoColor=white)
+[![npm](https://img.shields.io/npm/v/%40tahanabavi%2Ftypesocket?color=8b5cf6)](https://www.npmjs.com/package/@tahanabavi/typesocket)
+[![Zod](https://img.shields.io/badge/contracts-Zod%204-3e67b1?logo=zod&logoColor=white)](https://zod.dev)
+[![license](https://img.shields.io/badge/license-MIT-22d3ee)](./LICENSE)
 
-A **Type-safe Socket.IO wrapper** for JavaScript/TypeScript. It provides Zod-based event validation, middleware support, queued emits, environment-aware configuration, and React-friendly hooks — all designed to make real-time development safer and easier.
+**Contract-driven Socket.IO for TypeScript.** Declare each event once — with its
+direction and its Zod schemas — and the client generates itself. Every frame is
+validated on the way out *and* on the way in, acknowledgements included.
+
+Part of [TypeWire](https://github.com/TahaNabavi/typewire), so it shares
+`typefetch`'s `"module.event"` identifier scheme and its `instrument()` seam:
+HTTP and WebSocket traffic land in one devtools timeline with no adapter glue.
 
 ---
 
 ## Table of contents
 
-- [Why use this](#why-use-this)
-- [Features](#features)
 - [Install](#install)
 - [Quick start](#quick-start)
-- [Configuration / `.env`](#configuration--env)
-- [Full example](#full-example)
-- [React hooks (quick preview)](#react-hooks-quick-preview)
+- [Why direction belongs in the contract](#why-direction-belongs-in-the-contract)
+- [Emitting](#emitting)
+- [Listening](#listening)
+- [Errors](#errors)
+- [Middleware](#middleware)
+- [Instrumentation & overrides](#instrumentation--overrides)
+- [Configuration](#configuration)
 - [API reference](#api-reference)
-- [Testing / Development](#testing--development)
-- [Contributing](#contributing)
-- [Changelog](#changelog)
+- [Migrating from v1](#migrating-from-v1)
+- [Examples & release notes](#examples--release-notes)
 - [License](#license)
-- [Maintainers & Support](#maintainers--support)
-
----
-
-## Why use this
-
-If you build apps that rely on real-time communication (chat, collaborative tools, live dashboards, games), you want strong typing and runtime validation for socket events so mistakes are caught early. This package combines **compile-time types** with **runtime validation (Zod)**, helping prevent mismatched events, accidental payload changes, and hard-to-debug runtime errors.
-
----
-
-## Features
-
-- ✅ Type-safe emits & listeners using Zod
-- ✅ Runtime validation for all incoming/outgoing payloads
-- ✅ `emit`, `emitAsync`, `emitQueued` (queue emits while disconnected)
-- ✅ `on`, `once`, `off`, `waitFor` helpers
-- ✅ Middleware hook for logging/auth/metrics
-- ✅ Automatic reconnection with backoff
-- ✅ Environment-aware configuration via `getSocketConfig()`
-- ✅ Debug mode for verbose logs
-- ✅ React hooks compatibility
 
 ---
 
@@ -49,168 +36,384 @@ If you build apps that rely on real-time communication (chat, collaborative tool
 
 ```bash
 npm install @tahanabavi/typesocket zod socket.io-client
-# or
-yarn add @tahanabavi/typesocket zod socket.io-client
 ```
 
-> `zod` and `socket.io-client` are peer dependencies in many setups — ensure they are installed in your project.
+`zod` and `socket.io-client` are **peer dependencies** — schemas only compare
+correctly when every package shares one `zod` instance.
 
 ---
 
 ## Quick start
 
-```ts
-import { z } from "zod";
-import { SocketService } from "@tahanabavi/typesocket";
-
-const onEvents = {
-  message: { response: z.object({ text: z.string(), user: z.string() }) },
-};
-
-const emitEvents = {
-  sendMessage: {
-    request: z.object({ text: z.string() }),
-    callback: z.object({ success: z.boolean() }),
-  },
-};
-
-const socket = new SocketService(
-  {
-    // custom config
-  },
-  onEvents,
-  emitEvents,
-  {
-    onConnect: () => console.log("connected"),
-    onDisconnect: (r) => console.log("disconnect", r),
-    onConnectError: (e) => console.error(e),
-  }
-).init();
-
-socket.on("message", (msg) => console.log(msg.user, msg.text));
-socket.emit("sendMessage", { text: "hello" });
-```
-
----
-
-## Configuration / `.env`
-
-The package includes a helper `getSocketConfig()` to read environment variables. Example `.env` entries:
-
-```env
-NEXT_PUBLIC_SOCKET_URL=http://localhost:3001
-NEXT_PUBLIC_SOCKET_AUTO_CONNECT=true
-NEXT_PUBLIC_SOCKET_RECONNECTION=true
-NEXT_PUBLIC_SOCKET_RECONNECTION_ATTEMPTS=5
-NEXT_PUBLIC_SOCKET_RECONNECTION_DELAY=1000
-NEXT_PUBLIC_SOCKET_AUTH_TOKEN=your-token-here
-NEXT_PUBLIC_SOCKET_QUERY_PARAMS={"role":"user"}
-```
-
-See `utils/socket-config.ts` for exact behavior (it falls back to sensible defaults for development vs. production).
-
----
-
-## Full example
-
-A more complete example that demonstrates common flows:
+**1. Declare the contract.** This file is imported by the frontend *and* the
+backend:
 
 ```ts
-import { SocketService } from "@tahanabavi/typesocket";
+// ws-contracts.ts
 import { z } from "zod";
+import { defineSocketContracts } from "@tahanabavi/typesocket";
 
-export const onEvents = {
-  message: { response: z.object({ text: z.string(), user: z.string() }) },
-  userJoined: { response: z.object({ username: z.string() }) },
-};
-
-export const emitEvents = {
-  sendMessage: {
-    request: z.object({ text: z.string() }),
-    callback: z.object({ success: z.boolean() }),
+export const wsContracts = defineSocketContracts({
+  chat: {
+    sendMessage: {
+      direction: "client->server",
+      request: z.object({ roomId: z.string(), text: z.string().min(1) }),
+      ack: z.object({ id: z.string(), sentAt: z.number() }),
+    },
+    typing: {
+      direction: "client->server",
+      request: z.object({ roomId: z.string(), isTyping: z.boolean() }),
+    },
+    message: {
+      direction: "server->client",
+      payload: z.object({ id: z.string(), text: z.string(), user: z.string() }),
+    },
   },
-};
-
-const socket = new SocketService({}, onEvents, emitEvents, {
-  onConnect: () => console.log("connected"),
-  onDisconnect: (r) => console.log("disconnect", r),
-  onConnectError: (e) => console.error(e),
-}).init();
-
-socket.use((event, data) => {
-  // global logging / telemetry
-  console.debug("socket:event", event, data);
 });
-
-socket.on("message", (m) => console.log("msg", m));
-
-(async () => {
-  const ack = await socket.emitAsync("sendMessage", { text: "hi" });
-  console.log("ack", ack);
-})();
 ```
+
+**2. Use it.** The client is generated from the contract — there is no event
+name to mistype and no payload shape to keep in sync:
+
+```ts
+import { createSocketClient } from "@tahanabavi/typesocket";
+import { wsContracts } from "./ws-contracts";
+
+const client = createSocketClient({ url: "http://localhost:3001" }, wsContracts);
+
+// server -> client: listening. `m` is fully typed.
+const off = client.modules.chat.message.on((m) => console.log(m.user, m.text));
+
+// client -> server with an ack: returns a Promise of the *validated* ack.
+const { id } = await client.modules.chat.sendMessage({ roomId: "r1", text: "hi" });
+
+// client -> server without an ack: fire-and-forget, returns void.
+client.modules.chat.typing({ roomId: "r1", isTyping: true });
+
+off(); // unsubscribe
+```
+
+Whether an emit returns `Promise<Ack>` or `void` is decided by the contract:
+declare `ack` and awaiting is meaningful, omit it and the return type is `void`.
+
+---
+
+## Why direction belongs in the contract
+
+v1 took two maps — `onEvents` and `emitEvents` — named from the client's point
+of view. That works for a client and only a client: a server gateway consuming
+the same object needs them swapped, so it had to declare a mirrored copy that
+could drift.
+
+Tagging each event with `direction` makes the contract readable from both ends.
+The client emits `client->server` events and listens to `server->client` ones;
+a server adapter does exactly the reverse, from the same object. It also gives
+every event a stable `eventId` (`"chat.sendMessage"`) — the same
+`"module.endpoint"` shape `typefetch` uses — so a cache or a devtools panel can
+key both transports the same way.
+
+```ts
+client.modules.chat.sendMessage.eventId; // "chat.sendMessage"
+client.modules.chat.sendMessage.def;     // the contract definition
+client.events;                           // every event, flattened, for tooling
+```
+
+---
+
+## Emitting
+
+```ts
+// Ack declared → Promise, rejecting on validation failure or timeout.
+const ack = await client.modules.chat.sendMessage(
+  { roomId: "r1", text: "hi" },
+  { timeoutMs: 3_000, signal: controller.signal },
+);
+
+// No ack declared → void, throwing synchronously on an invalid payload.
+client.modules.chat.typing({ roomId: "r1", isTyping: true });
+
+// Validate now, send on the next connect.
+client.modules.chat.typing.queue({ roomId: "r1", isTyping: false });
+```
+
+`queue()` validates **at call time**, so a malformed payload fails where you
+wrote it instead of going out unvalidated minutes later. Buffered frames flush
+in order on connect; the buffer is bounded by `maxQueueSize` (default 100) and
+evicts oldest-first.
+
+**Acks are validated.** If the server answers `sendMessage` with something that
+doesn't match the `ack` schema, the promise rejects with a
+`SocketValidationError` rather than resolving a value whose type is a lie.
+
+---
+
+## Listening
+
+```ts
+const off = client.modules.chat.message.on((m) => render(m));
+off();                                      // or .off(handler) / .offAll()
+
+client.modules.chat.message.once((m) => greet(m));
+
+// Resolve on the next matching payload.
+const mine = await client.modules.chat.message.wait({
+  timeoutMs: 5_000,
+  filter: (m) => m.user === "taha",
+});
+```
+
+Every subscribe call returns its own unsubscribe function. Subscriptions live
+in the client, not on the socket, so they survive `reconnect()` — and exactly
+one socket listener is bound per event no matter how many handlers you attach,
+so nothing double-fires across reconnects.
+
+Inbound payloads that fail validation never reach handlers. They go to
+`onValidationError` instead (default: `console.error`), because throwing into
+an unrelated handler's call stack helps nobody.
+
+---
+
+## Errors
+
+Every error extends `SocketError` and carries a stable `code` plus the
+`eventId` it belongs to.
+
+| Class | Code | Raised when |
+| --- | --- | --- |
+| `SocketValidationError` | `ERR_SOCKET_VALIDATION` | A frame fails its schema. `phase` is `"request"`, `"ack"` or `"payload"`; `issues` holds the Zod issues. |
+| `SocketAckTimeoutError` | `ERR_SOCKET_ACK_TIMEOUT` | No acknowledgement arrived in time. |
+| `SocketNotConnectedError` | `ERR_SOCKET_NOT_CONNECTED` | An emit was attempted with no live connection. |
+| `SocketWaitTimeoutError` | `ERR_SOCKET_WAIT_TIMEOUT` | `.wait()` expired. |
+| `SocketOverrideError` | `ERR_SOCKET_OVERRIDE` | An instrumentation override forced a failure. |
+
+```ts
+import { SocketValidationError } from "@tahanabavi/typesocket";
+
+try {
+  await client.modules.chat.sendMessage({ roomId: "r1", text: "" });
+} catch (error) {
+  if (error instanceof SocketValidationError) console.error(error.issues);
+}
+```
+
+---
+
+## Middleware
+
+Middleware sees **both** directions and can observe, rewrite, or drop a frame.
+
+```ts
+const remove = client.use((frame) => {
+  console.debug(frame.direction, frame.eventId, frame.payload);
+
+  if (frame.direction === "outbound" && isRateLimited(frame.eventId)) {
+    return false; // drop it
+  }
+  if (frame.direction === "outbound") {
+    return { payload: { ...(frame.payload as object), ts: Date.now() } };
+  }
+});
+```
+
+Returning `undefined` passes the frame through, `false` drops it, and
+`{ payload }` replaces it. Rewrites happen **before** validation, so a
+middleware can't smuggle a payload past the contract. A middleware that throws
+is logged and skipped — it never takes the frame down with it.
+
+---
+
+## Instrumentation & overrides
+
+The seam higher layers build on, mirroring `typefetch`'s `client.instrument()`.
+Attaching a hook is the only thing that turns event construction on — with no
+hook, the path is identical to the un-instrumented one.
+
+```ts
+const detach = client.instrument({
+  on(event) {
+    // "connect" | "disconnect" | "connect_error"
+    // "outbound" | "ack" | "inbound" | "dropped" | "frame_error"
+    timeline.push(event);
+  },
+  resolveOverride(eventId, payload) {
+    if (eventId === "chat.sendMessage") {
+      return { latencyMs: 800, ack: { id: "mocked", sentAt: Date.now() } };
+    }
+  },
+});
+```
+
+`outbound` and its `ack`/`frame_error` share a `frameId`, so a panel can pair
+them. Overrides let a devtools panel change one frame **without touching the
+contract**:
+
+| Field | Effect |
+| --- | --- |
+| `drop` | Discard the frame. An emit awaiting an ack then times out, as a lost packet would. |
+| `latencyMs` | Delay the frame. |
+| `payload` | Replace the payload (value or deriving function). |
+| `ack` | Answer locally, bypassing the network. Still validated. |
+| `error` | Force a failure. |
+| `request` / `response` | Swap a schema at runtime to test a structural change. |
+
+The first hook that returns an override wins for that frame.
+
+---
+
+## Configuration
+
+```ts
+const client = new SocketClient(
+  {
+    url: "http://localhost:3001",
+    auth: () => ({ token: getToken() }), // re-invoked on every reconnect
+    ackTimeoutMs: 10_000,
+    maxQueueSize: 100,
+    debug: false,
+    onValidationError: (error) => reportToSentry(error),
+  },
+  wsContracts,
+  {
+    onConnect: ({ socketId, attempt }) => console.log(socketId, attempt),
+    onDisconnect: (reason) => console.log(reason),
+    onConnectError: (error) => console.error(error.message),
+    middlewares: [logger],
+  },
+);
+
+client.connect();
+```
+
+Reading config from the environment is prefix-driven rather than hardcoded to
+Next.js, and only produces keys for variables that are actually set — so it
+layers cleanly over explicit config:
+
+```ts
+import { socketConfigFromEnv } from "@tahanabavi/typesocket";
+
+const client = new SocketClient(
+  { url: "/", ...socketConfigFromEnv("NEXT_PUBLIC_SOCKET_") },
+  wsContracts,
+);
+```
+
+Recognised suffixes: `URL`, `PATH`, `AUTO_CONNECT`, `RECONNECTION`,
+`RECONNECTION_ATTEMPTS`, `RECONNECTION_DELAY`, `ACK_TIMEOUT`, `AUTH_TOKEN`,
+`QUERY_PARAMS` (JSON), `TRANSPORTS` (comma-separated), `DEBUG`.
 
 ---
 
 ## API reference
 
-| Method                             | Description                                                   |
-| ---------------------------------- | ------------------------------------------------------------- |
-| `init()`                           | Initializes the socket connection with automatic config.      |
-| `emit(event, data, callback?)`     | Emits an event with data. Validates against schema.           |
-| `emitAsync(event, data)`           | Emits an event and returns a Promise resolving with callback. |
-| `emitQueued(event, data)`          | Queues events if socket is not connected.                     |
-| `on(event, handler)`               | Registers a listener for an event with validation.            |
-| `once(event, handler)`             | Registers a listener that fires only once.                    |
-| `off(event, handler)`              | Removes a listener.                                           |
-| `waitFor(event, timeout?)`         | Waits for an event with optional timeout.                     |
-| `disconnect()`                     | Disconnects the socket.                                       |
-| `reconnect()`                      | Reconnects immediately.                                       |
-| `reconnectWithBackoff()`           | Reconnects with exponential backoff.                          |
-| `isConnected()`                    | Returns `true` if socket is connected.                        |
-| `getSocketId()`                    | Returns the socket ID.                                        |
-| `use(middleware)`                  | Adds middleware that runs before listeners.                   |
-| `enableDebug()` / `disableDebug()` | Enable or disable debug logs.                                 |
+### Client
+
+| Member | Description |
+| --- | --- |
+| `new SocketClient(config, contracts, options?)` | Builds the client. Throws on an invalid contract. |
+| `createSocketClient(config, contracts, options?)` | Same, and connects unless `autoConnect: false`. |
+| `.modules` | The generated surface — `modules.<module>.<event>`. |
+| `.connect()` / `.disconnect()` / `.reconnect()` | Connection control. `connect()` is idempotent. |
+| `.destroy()` | Disconnect and drop every handler, middleware and hook. |
+| `.use(middleware)` | Attach middleware. Returns a remover. |
+| `.instrument(hook)` | Attach an instrumentation hook. Returns a detacher. |
+| `.onConnect/.onDisconnect/.onConnectError(fn)` | Lifecycle subscriptions. Each returns an unsubscribe. |
+| `.connected` · `.id` · `.raw` · `.queueSize` · `.events` | Introspection. |
+
+### `client->server` events
+
+| Member | Description |
+| --- | --- |
+| `(input, options?)` | Validate and emit. `Promise<Ack>` when `ack` is declared, else `void`. |
+| `.queue(input)` | Validate now, send on the next connect. |
+| `.eventId` · `.event` · `.def` | Metadata for tooling. |
+
+### `server->client` events
+
+| Member | Description |
+| --- | --- |
+| `.on(handler)` / `.once(handler)` | Subscribe. Returns an unsubscribe. |
+| `.off(handler)` / `.offAll()` | Detach. |
+| `.wait(options?)` | Resolve on the next valid (optionally filtered) payload. |
+| `.listenerCount` | Live handler count. |
+| `.eventId` · `.event` · `.def` | Metadata for tooling. |
+
+### Contract helpers
+
+`defineSocketContracts` · `listSocketEvents` · `validateSocketContracts` ·
+`isClientToServer` · `isServerToClient` · `makeEventId` · `resolveEventName`
 
 ---
 
-## Testing & development
+## Migrating from v1
 
-- Run unit tests (Jest):
+v2 replaces `SocketService` with `SocketClient`. The rewrite also fixes
+correctness bugs that were not fixable without changing behaviour, so upgrading
+is worth doing deliberately rather than mechanically.
 
-```bash
-npm test
+**Contract:** merge the two maps into one, tagging each event's direction and
+grouping into modules. `response` becomes `payload`, `callback` becomes `ack`.
+
+```ts
+// v1
+const onEvents   = { message:     { response: MessageSchema } };
+const emitEvents = { sendMessage: { request: ReqSchema, callback: AckSchema } };
+
+// v2
+const wsContracts = defineSocketContracts({
+  chat: {
+    message:     { direction: "server->client", payload: MessageSchema },
+    sendMessage: { direction: "client->server", request: ReqSchema, ack: AckSchema },
+  },
+});
 ```
 
-- Build TypeScript:
+**Call sites:**
+
+| v1 | v2 |
+| --- | --- |
+| `new SocketService(cfg, on, emit, handlers).init()` | `new SocketClient(cfg, contracts, options).connect()` |
+| `socket.on("message", fn)` | `client.modules.chat.message.on(fn)` |
+| `socket.off("message", fn)` | `client.modules.chat.message.off(fn)` — now actually detaches |
+| `socket.emit("sendMessage", d)` | `client.modules.chat.sendMessage(d)` |
+| `socket.emitAsync("sendMessage", d)` | `client.modules.chat.sendMessage(d)` — ack now validated, and it times out |
+| `socket.emitQueued("sendMessage", d)` | `client.modules.chat.sendMessage.queue(d)` |
+| `socket.waitFor("message", ms)` | `client.modules.chat.message.wait({ timeoutMs: ms })` |
+| `socket.enableDebug()` | `debug: true` in config |
+| `socket.reconnectWithBackoff()` | removed — socket.io's own backoff is configured via `reconnectionDelay` / `reconnectionDelayMax` |
+| `getSocketConfig()` | `socketConfigFromEnv(prefix)` |
+
+**Behaviour changes to plan for:**
+
+- Handlers used to fire **twice** on the first connection (and once more per
+  reconnect) because listeners were registered on the socket *and* re-registered
+  on `connect`. They now fire once. Code that compensated for the duplicate
+  needs the workaround removed.
+- `off()` never removed anything in v1. It does now — check nothing relied on a
+  handler surviving its own removal.
+- Invalid outbound payloads used to be logged and dropped. They now **throw**
+  (or reject). Wrap emits that can receive user input.
+- Emits with no connection used to be silently discarded. They now throw
+  `SocketNotConnectedError`; use `.queue()` where buffering was the intent.
+- `emitAsync` had no timeout and never validated the ack. Both are enforced now,
+  so a previously-hanging call fails loudly and a non-conforming ack rejects.
+
+---
+
+## Examples & release notes
+
+| | |
+| --- | --- |
+| [`examples/basic`](../../examples/basic) | typesocket in four files — contract, server, client, run. |
+| [`examples/chat`](../../examples/chat) | Multi-room chat with presence, typing and a live frame inspector. |
+| [`docs/releases/v2.0.0.md`](./docs/releases/v2.0.0.md) | The full 2.0 release note, with rationale and the complete migration table. |
 
 ```bash
-npm run build
+pnpm --filter @typewire-examples/basic start   # runs and exits
+pnpm --filter @typewire-examples/chat dev      # server + UI
 ```
 
-- Local develop/test with another app using `npm link` or `yalc`.
-
 ---
 
-## Contributing
+## License
 
-Contributions are welcome! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feat/my-feature`
-3. Run tests and linters locally
-4. Open a PR with a clear description and changelog entry (if applicable)
-
-Please include tests for new features and follow the established code style. Add a short description for the change in the PR and link any relevant issues.
-
----
-
-## Maintainers & Support
-
-Maintained by `@tahanabavi`.
-
-For issues, please open a GitHub issue in this repository. For questions or suggestions, create an issue or reach out on GitHub Discussions.
-
----
-
-_Thank you for using `@tahanabavi/typesocket` — contributions and feedback are highly appreciated!_
+[MIT](./LICENSE) © Taha Nabavi

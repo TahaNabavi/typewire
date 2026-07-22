@@ -1,16 +1,17 @@
 {
   "compilerOptions": {
     "target": "es2024",
+    "lib": ["ES2024", "DOM"],
     "module": "commonjs",
     "outDir": "./dist",
     "sourceMap": true,
     "declaration": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "paths": {
-      "@/*": ["./src/*"]
-    }
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "forceConsistentCasingInFileNames": true
   },
   "include": ["src"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "dist"]
 }

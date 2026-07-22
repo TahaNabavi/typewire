@@ -12,7 +12,7 @@
 [![pnpm](https://img.shields.io/badge/maintained%20with-pnpm-f69220?logo=pnpm&logoColor=white)](https://pnpm.io)
 [![Zod](https://img.shields.io/badge/contracts-Zod%204-3e67b1?logo=zod&logoColor=white)](https://zod.dev)
 
-[Packages](#packages) · [Quick start](#quick-start) · [Why TypeWire](#why-typewire) · [Architecture](#architecture) · [Development](#development) · [Roadmap](#roadmap)
+[Packages](#packages) · [Quick start](#quick-start) · [Examples](#examples) · [Why TypeWire](#why-typewire) · [Architecture](#architecture) · [Development](#development) · [Roadmap](#roadmap)
 
 </div>
 
@@ -39,7 +39,7 @@ the types can't drift from what's validated at runtime. Everything ships under t
 | Package | Status | What it does |
 | --- | --- | --- |
 | [`@tahanabavi/typefetch`](./packages/typefetch) | ✅ published | Strongly-typed **HTTP** client — middleware, retries, mock mode, typed errors, contract testing, CLI. |
-| [`@tahanabavi/typesocket`](./packages/typesocket) | ✅ published | Type-safe **Socket.IO / WebSocket** wrapper — Zod event validation, middleware, queued emits. |
+| [`@tahanabavi/typesocket`](./packages/typesocket) | ✅ published | Contract-driven **Socket.IO / WebSocket** client — direction-tagged events, validated acks, middleware, queued emits, instrumentation. |
 | [`@tahanabavi/typewire-nestjs`](./packages/nestjs) | 🔁 migrated | **NestJS** backend — bind routes & validate request/response from the same contracts (was `typefetch-nestjs`). |
 | [`@tahanabavi/typefetch-query-core`](./packages/query-core) | 🚧 in dev | Framework-agnostic **query engine** — cache, dedup, staleness, mutations, auto-invalidation. |
 | [`@tahanabavi/typefetch-react`](./packages/react) | 🚧 in dev | Thin **React** adapter — `useQuery` / `useMutation` / `TypeFetchProvider`. |
@@ -99,21 +99,47 @@ export class UserController {
 }
 ```
 
-**Realtime?** The same idea, over Socket.IO with `typesocket`:
+**Realtime?** The same idea, over Socket.IO with `typesocket` — one contract,
+each event tagged with the direction it travels, so the *same object* drives the
+client and the server:
 
 ```ts
-import { SocketService } from "@tahanabavi/typesocket";
+import { createSocketClient, defineSocketContracts } from "@tahanabavi/typesocket";
 import { z } from "zod";
 
-const socket = new SocketService(
-  {},
-  { message: { response: z.object({ text: z.string(), user: z.string() }) } },
-  { sendMessage: { request: z.object({ text: z.string() }) } },
-  { onConnect: () => {}, onDisconnect: () => {}, onConnectError: () => {} },
-).init();
+const wsContracts = defineSocketContracts({
+  chat: {
+    sendMessage: {
+      direction: "client->server",
+      request: z.object({ text: z.string() }),
+      ack: z.object({ id: z.string() }),
+    },
+    message: {
+      direction: "server->client",
+      payload: z.object({ text: z.string(), user: z.string() }),
+    },
+  },
+});
 
-socket.on("message", (m) => console.log(m.user, m.text)); // m is fully typed
-socket.emit("sendMessage", { text: "hello" });            // payload validated
+const socket = createSocketClient({ url: "http://localhost:3001" }, wsContracts);
+
+socket.modules.chat.message.on((m) => console.log(m.user, m.text)); // m is typed
+const { id } = await socket.modules.chat.sendMessage({ text: "hello" }); // ack validated
+```
+
+## Examples
+
+Runnable demos live in [`examples/`](./examples) and build against the local
+packages, so they can't drift from the source.
+
+| Example | What it shows |
+| --- | --- |
+| [`basic`](./examples/basic) | typesocket in four files — contract, server, client, run. Prints an annotated frame log and exits. |
+| [`chat`](./examples/chat) | A real app: multi-room chat with presence, typing, history, and a live frame inspector built purely on `instrument()`. |
+
+```bash
+pnpm --filter @typewire-examples/basic start
+pnpm --filter @typewire-examples/chat dev
 ```
 
 ## Why TypeWire?
