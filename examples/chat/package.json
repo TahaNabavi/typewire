@@ -1,6 +1,6 @@
 {
   "name": "@typewire-examples/chat",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "private": true,
   "description": "Real-time chat built on one typesocket contract — socket.io server, React UI, live frame inspector.",
   "type": "module",

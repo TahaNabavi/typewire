@@ -1,7 +1,7 @@
 {
   "name": "@tahanabavi/typesocket",
   "description": "Contract-driven, type-safe Socket.IO client — one Zod contract validated in both directions, with acks, middleware, queueing and a devtools instrumentation seam.",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
