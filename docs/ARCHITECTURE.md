@@ -32,18 +32,32 @@ typesocket  (WS)   ──┘         (fetch data layer)      (React adapter)
                           (generic bridge)        (React panel)
 ```
 
-### Upstream seam (already in `typefetch` v1.7.0)
+### Upstream seam (`typefetch` v1.7.0 · `typesocket` v2.0.0)
 
-The query and devtools layers build on two additive hooks the base client ships:
+The query and devtools layers build on two additive hooks **both** transport
+clients ship, deliberately shaped the same way:
 
-- **Endpoint metadata** — every generated method carries `.endpointId`
-  (`"module.endpoint"`) and `.endpoint` (the contract def).
+- **Endpoint metadata** — every generated member carries a stable
+  `"module.endpoint"` id (`.endpointId` in typefetch, `.eventId` in typesocket)
+  plus the contract def (`.endpoint` / `.def`).
 - **Instrumentation** — `client.instrument({ on, resolveOverride })` emits
-  structured `start`/`success`/`error` events (with parsed I/O) and resolves
-  per-request `Override`s (mock/error/latency/schema swap). Zero-cost when unused.
+  structured lifecycle events with parsed I/O and resolves per-frame overrides.
+  Zero-cost when unused.
 
-The query engine keys its cache by `endpointId` + input. The devtools bridge
-attaches one instrumentation hook per source.
+| | `typefetch` | `typesocket` |
+| --- | --- | --- |
+| Id | `.endpointId` | `.eventId` |
+| Events | `start` · `success` · `error` | `outbound` · `ack` · `inbound` · `dropped` · `frame_error` (+ connect/disconnect) |
+| Correlation | `requestId` | `frameId` |
+| Overrides | mock · error · latency · schema swap | ack · drop · error · latency · payload · schema swap |
+
+The query engine keys its cache by that id + input. The devtools bridge attaches
+one instrumentation hook per source.
+
+Because typesocket events declare their `direction` rather than inheriting it
+from which map they were passed in, one contract object also serves the server:
+`@tahanabavi/typewire-nestjs` reads `client->server` as inbound handlers and
+`server->client` as outbound emits, from the same file the client imports.
 
 ## Transport-agnostic devtools (why the split)
 

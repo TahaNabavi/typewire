@@ -1,0 +1,22 @@
+{
+  "name": "@typewire-examples/basic",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Smallest possible typesocket example — contract, server, client, in three files.",
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/main.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@tahanabavi/typesocket": "workspace:*",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
+    "zod": "^4.1.5"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.9.2"
+  }
+}
