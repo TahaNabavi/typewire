@@ -1,7 +1,7 @@
 {
   "name": "@tahanabavi/typefetch-query-core",
   "version": "0.0.0",
-  "private": true,
+  "private": false,
   "description": "Framework-agnostic query engine for TypeFetch contracts (cache, dedup, staleness, mutations, invalidation).",
   "author": {
     "name": "Taha Nabavi",
