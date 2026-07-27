@@ -1,28 +1,50 @@
 /**
  * @tahanabavi/type-devtools-core
  * ==============================
- * Transport-agnostic inspector bridge. Knows nothing about HTTP or WS — each
- * transport plugs in as a Source (e.g. connectTypeFetch, connectTypeSocket).
+ * Transport-agnostic inspector bridge.
  *
- * Scaffold — see ../../docs/ARCHITECTURE.md for the full bridge design.
+ * Knows nothing about HTTP or WS: it stores generic `InspectorEvent`s and an
+ * override registry, and each transport plugs in as a connector. Both
+ * connectors type their client structurally, so this package imports neither
+ * typefetch nor typesocket and has no dependencies at all.
+ *
+ * See ../../docs/ARCHITECTURE.md.
  */
 
-/** Which transport produced an event. Open string so new sources can be added. */
-export type InspectorSource = "http" | "ws" | (string & {});
+export { InspectorBridge } from "./bridge";
+export type { InspectorBridgeOptions } from "./bridge";
 
-/**
- * A generic, source-tagged inspector event. Each transport maps its own events
- * (typefetch `RequestEvent`, typesocket frames, …) into this shape so the panel
- * can render one unified, source-tagged timeline.
- */
-export interface InspectorEvent {
-  source: InspectorSource;
-  kind: string;
-  /** Correlates related events (e.g. a request's start/success/error). */
-  id: string;
-  /** Timestamp (ms). */
-  ts: number;
-  payload: unknown;
-}
+export { selectEntries } from "./entries";
 
-export const version = "0.0.0";
+export { connectTypeFetch } from "./connect-typefetch";
+export type { TypeFetchLike } from "./connect-typefetch";
+
+export { connectTypeSocket } from "./connect-typesocket";
+export type { TypeSocketLike } from "./connect-typesocket";
+
+export { QueryInspector } from "./query-inspector";
+export type { QueryInspectorOptions } from "./query-inspector";
+
+export { connectQueryClient } from "./connect-query";
+
+export type {
+  InspectorEntry,
+  InspectorEvent,
+  InspectorOverride,
+  InspectorSource,
+  Instrumentable,
+  MutationSnapshot,
+  MutationStatusLike,
+  Observable,
+  QueryCacheEntryLike,
+  QueryCacheEventLike,
+  QueryClientLike,
+  QueryFiltersLike,
+  QueryInspectorSnapshot,
+  QuerySnapshot,
+  QueryStateLike,
+  TypeFetchOverride,
+  TypeFetchRequestEvent,
+  TypeSocketEvent,
+  TypeSocketOverride,
+} from "./types";

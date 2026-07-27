@@ -5,7 +5,8 @@
   "description": "Real-time chat built on one typesocket contract — socket.io server, React UI, live frame inspector.",
   "type": "module",
   "scripts": {
-    "dev": "concurrently -n server,client -c magenta,cyan \"pnpm dev:server\" \"pnpm dev:client\"",
+    "build:deps": "pnpm --filter \"@typewire-examples/chat^...\" build",
+    "dev": "pnpm build:deps && concurrently -n server,client -c magenta,cyan \"pnpm dev:server\" \"pnpm dev:client\"",
     "dev:server": "tsx watch server/index.ts",
     "dev:client": "vite",
     "typecheck": "tsc --noEmit"

@@ -9,7 +9,7 @@ pnpm install
 pnpm --filter @typewire-examples/chat dev
 ```
 
-- UI → <http://localhost:5273>
+- UI → <http://127.0.0.1:5273>
 - socket.io server → <http://localhost:3102>
 
 Open it in **two tabs** with different names and watch frames flow both ways in
