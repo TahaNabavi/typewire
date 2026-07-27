@@ -1,6 +1,6 @@
 {
   "name": "@tahanabavi/type-devtools-core",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "private": false,
   "description": "Transport-agnostic inspector bridge for the TypeFetch ecosystem (timeline, overrides, generic Source protocol).",
   "author": {
@@ -29,7 +29,9 @@
       "require": "./dist/index.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "sideEffects": false,
   "scripts": {
     "build": "tsup",
