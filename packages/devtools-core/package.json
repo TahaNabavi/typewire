@@ -1,7 +1,7 @@
 {
   "name": "@tahanabavi/type-devtools-core",
   "version": "0.0.0",
-  "private": true,
+  "private": false,
   "description": "Transport-agnostic inspector bridge for the TypeFetch ecosystem (timeline, overrides, generic Source protocol).",
   "author": {
     "name": "Taha Nabavi",

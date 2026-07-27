@@ -41,10 +41,10 @@ the types can't drift from what's validated at runtime. Everything ships under t
 | [`@tahanabavi/typefetch`](./packages/typefetch) | ✅ published | Strongly-typed **HTTP** client — middleware, retries, mock mode, typed errors, contract testing, CLI. |
 | [`@tahanabavi/typesocket`](./packages/typesocket) | ✅ published | Contract-driven **Socket.IO / WebSocket** client — direction-tagged events, validated acks, middleware, queued emits, instrumentation. |
 | [`@tahanabavi/typewire-nestjs`](./packages/nestjs) | 🔁 migrated | **NestJS** backend — bind routes & validate request/response from the same contracts (was `typefetch-nestjs`). |
-| [`@tahanabavi/typefetch-query-core`](./packages/query-core) | 🚧 in dev | Framework-agnostic **query engine** — cache, dedup, staleness, mutations, auto-invalidation. |
-| [`@tahanabavi/typefetch-react`](./packages/react) | 🚧 in dev | Thin **React** adapter — `useQuery` / `useMutation` / `TypeFetchProvider`. |
-| [`@tahanabavi/type-devtools-core`](./packages/devtools-core) | 🚧 in dev | **Transport-agnostic** inspector bridge + query-cache mirror — one timeline for HTTP **and** WS, plus a `QueryClient` view, with runtime overrides. |
-| [`@tahanabavi/type-devtools`](./packages/devtools) | 🚧 in dev | **React inspector panel** — timeline, query cache, override editor, colored JSON tree, and theme/sound settings. Renders any bridge. |
+| [`@tahanabavi/typefetch-query-core`](./packages/query-core) | ✅ published | Framework-agnostic **query engine** — cache, dedup, staleness, mutations, auto-invalidation. |
+| [`@tahanabavi/typefetch-react`](./packages/react) | ✅ published | Thin **React** adapter — `useQuery` / `useMutation` / `TypeFetchProvider`. |
+| [`@tahanabavi/type-devtools-core`](./packages/devtools-core) | ✅ published | **Transport-agnostic** inspector bridge + query-cache mirror — one timeline for HTTP **and** WS, plus a `QueryClient` view, with runtime overrides. |
+| [`@tahanabavi/type-devtools`](./packages/devtools) | ✅ published | **React inspector panel** — timeline, query cache, override editor, colored JSON tree, and theme/sound settings. Renders any bridge. |
 
 > `type-opengraph` and more are on the [roadmap](#roadmap).
 
@@ -216,8 +216,8 @@ Every PR that changes a package's source must include a changeset.
 
 - [x] Monorepo + shared tooling (pnpm · Changesets · CI gates)
 - [x] `typefetch` runtime instrumentation & overrides (the devtools seam)
-- [ ] `typefetch-query-core` + `typefetch-react` — the React-Query-like layer
-- [ ] `type-devtools-core` + `type-devtools` — the cross-transport inspector
+- [x] `typefetch-query-core` + `typefetch-react` — the React-Query-like layer
+- [x] `type-devtools-core` + `type-devtools` — the cross-transport inspector
 - [ ] `typewire-nestjs` — extend beyond HTTP to `typesocket` WS gateways
 - [ ] `type-opengraph` — typed OpenGraph/metadata client
 - [ ] `typewire-vue` / `typewire-angular` query adapters
