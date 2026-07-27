@@ -1,0 +1,35 @@
+{
+  "name": "@typewire-examples/query",
+  "version": "0.0.1",
+  "private": true,
+  "description": "The query layer and the cross-transport inspector on one contract — useQuery/useMutation over HTTP and WS, in a single cache and a single timeline.",
+  "type": "module",
+  "scripts": {
+    "build:deps": "pnpm --filter \"@typewire-examples/query^...\" build",
+    "dev": "pnpm build:deps && vite",
+    "start": "pnpm build:deps && tsx headless/main.ts",
+    "test": "tsx headless/main.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@tahanabavi/type-devtools": "workspace:*",
+    "@tahanabavi/type-devtools-core": "workspace:*",
+    "@tahanabavi/typefetch": "workspace:*",
+    "@tahanabavi/typefetch-query-core": "workspace:*",
+    "@tahanabavi/typefetch-react": "workspace:*",
+    "@tahanabavi/typesocket": "workspace:*",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "socket.io-client": "^4.8.1",
+    "zod": "^4.1.5"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "tsx": "^4.19.2",
+    "typescript": "^5.9.2",
+    "vite": "^6.0.0"
+  }
+}

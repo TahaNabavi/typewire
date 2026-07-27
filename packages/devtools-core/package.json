@@ -1,7 +1,7 @@
 {
   "name": "@tahanabavi/type-devtools-core",
   "version": "0.0.0",
-  "private": true,
+  "private": false,
   "description": "Transport-agnostic inspector bridge for the TypeFetch ecosystem (timeline, overrides, generic Source protocol).",
   "author": {
     "name": "Taha Nabavi",
@@ -34,7 +34,22 @@
   "scripts": {
     "build": "tsup",
     "typecheck": "tsc --noEmit",
-    "test": "echo \"(devtools-core: no tests yet)\""
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "devDependencies": {
+    "@tahanabavi/typefetch": "workspace:*",
+    "@tahanabavi/typesocket": "workspace:*",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.3.0",
+    "jest": "^30.1.3",
+    "socket.io-client": "^4.8.1",
+    "ts-jest": "^29.4.1",
+    "ts-node": "^10.9.2",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.2",
+    "zod": "^4.1.5"
   },
   "repository": {
     "type": "git",
