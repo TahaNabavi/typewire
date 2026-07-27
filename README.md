@@ -43,8 +43,8 @@ the types can't drift from what's validated at runtime. Everything ships under t
 | [`@tahanabavi/typewire-nestjs`](./packages/nestjs) | 🔁 migrated | **NestJS** backend — bind routes & validate request/response from the same contracts (was `typefetch-nestjs`). |
 | [`@tahanabavi/typefetch-query-core`](./packages/query-core) | 🚧 in dev | Framework-agnostic **query engine** — cache, dedup, staleness, mutations, auto-invalidation. |
 | [`@tahanabavi/typefetch-react`](./packages/react) | 🚧 in dev | Thin **React** adapter — `useQuery` / `useMutation` / `TypeFetchProvider`. |
-| [`@tahanabavi/type-devtools-core`](./packages/devtools-core) | 🚧 in dev | **Transport-agnostic** inspector bridge — one timeline for HTTP **and** WS, runtime overrides. |
-| [`@tahanabavi/type-devtools`](./packages/devtools) | 🚧 in dev | **React inspector panel** that renders any bridge. |
+| [`@tahanabavi/type-devtools-core`](./packages/devtools-core) | 🚧 in dev | **Transport-agnostic** inspector bridge + query-cache mirror — one timeline for HTTP **and** WS, plus a `QueryClient` view, with runtime overrides. |
+| [`@tahanabavi/type-devtools`](./packages/devtools) | 🚧 in dev | **React inspector panel** — timeline, query cache, override editor, colored JSON tree, and theme/sound settings. Renders any bridge. |
 
 > `type-opengraph` and more are on the [roadmap](#roadmap).
 
@@ -136,11 +136,17 @@ packages, so they can't drift from the source.
 | --- | --- |
 | [`basic`](./examples/basic) | typesocket in four files — contract, server, client, run. Prints an annotated frame log and exits. |
 | [`chat`](./examples/chat) | A real app: multi-room chat with presence, typing, history, and a live frame inspector built purely on `instrument()`. |
+| [`query`](./examples/query) | The query layer end to end — `useQuery` / `useMutation` over HTTP **and** WebSocket, declared invalidation, and the devtools panel showing both transports in one timeline. |
 
 ```bash
 pnpm --filter @typewire-examples/basic start
 pnpm --filter @typewire-examples/chat dev
+pnpm --filter @typewire-examples/query dev     # React app + devtools panel
+pnpm --filter @typewire-examples/query start   # headless, asserts and exits
 ```
+
+Each command builds the example's workspace dependencies first, so a fresh
+clone needs nothing but `pnpm install`.
 
 ## Why TypeWire?
 

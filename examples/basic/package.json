@@ -5,7 +5,8 @@
   "description": "Smallest possible typesocket example — contract, server, client, in three files.",
   "type": "module",
   "scripts": {
-    "start": "tsx src/main.ts",
+    "build:deps": "pnpm --filter \"@typewire-examples/basic^...\" build",
+    "start": "pnpm build:deps && tsx src/main.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

@@ -1,40 +1,59 @@
 /**
  * @tahanabavi/typefetch-query-core
  * ================================
- * Framework-agnostic query engine for TypeFetch contracts.
+ * Framework-agnostic query engine for TypeWire contracts.
  *
- * Scaffold — the full engine (QueryClient, QueryCache, QueryObserver,
- * MutationObserver, relations/invalidation) is built on the primitives below.
+ * Cache, dedup, staleness, mutations and declared invalidation, all behind the
+ * `Observable` contract so framework adapters bind it natively. The engine
+ * never imports a framework, and never imports a transport — it needs only a
+ * callable endpoint carrying a stable `endpointId`.
+ *
  * See ../../docs/ARCHITECTURE.md.
  */
 
-/**
- * The universal reactivity contract. Everything the UI reads implements this;
- * framework adapters bind it natively (React `useSyncExternalStore`, Vue
- * `shallowRef`, Angular signals). The core never imports a framework.
- */
-export interface Observable<T> {
-  getSnapshot(): T;
-  subscribe(listener: () => void): () => void;
-}
+export { hashKey, buildQueryKey } from "./hash-key";
+export type { QueryKey } from "./hash-key";
 
-/**
- * Deterministic serialization with sorted object keys, so two inputs that differ
- * only in key order hash to the same cache key. Used to derive query keys as
- * `[endpointId, hashKey(input)]`.
- */
-export function hashKey(value: unknown): string {
-  return JSON.stringify(value, (_key, val) => {
-    if (val && typeof val === "object" && !Array.isArray(val)) {
-      return Object.keys(val)
-        .sort()
-        .reduce<Record<string, unknown>>((acc, k) => {
-          acc[k] = (val as Record<string, unknown>)[k];
-          return acc;
-        }, {});
-    }
-    return val;
-  });
-}
+export { Notifier } from "./observable";
+export type { Observable } from "./observable";
 
-export const version = "0.0.0";
+export { CancelledError, isCancelledError } from "./errors";
+export { resolveSourceId } from "./source";
+
+export { Query } from "./query";
+export type { QueryConfig } from "./query";
+
+export { QueryCache } from "./query-cache";
+export { QueryObserver } from "./query-observer";
+export { MutationObserver } from "./mutation-observer";
+export type { MutationHooks } from "./mutation-observer";
+
+export { QueryClient, createQueryClient } from "./query-client";
+export type { QueryClientOptions } from "./query-client";
+
+export type {
+  AnyQuerySource,
+  AnyQueryState,
+  CallableContract,
+  EndpointCallOptions,
+  FetchStatus,
+  InferInput,
+  InferOutput,
+  MutationObserverOptions,
+  MutationObserverResult,
+  MutationState,
+  MutationStatus,
+  QueryCacheEvent,
+  QueryEndpoint,
+  QueryEvent,
+  QuerySource,
+  QueryFilters,
+  QueryObserverOptions,
+  QueryObserverResult,
+  QueryOptions,
+  QueryState,
+  QueryStatus,
+  RelationsConfig,
+  RetryDelayValue,
+  RetryValue,
+} from "./types";
