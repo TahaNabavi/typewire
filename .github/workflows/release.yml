@@ -4,15 +4,20 @@ on:
   push:
     branches:
       - main
+  # Manual trigger for the one-time (idempotent) backfill of every package's
+  # CURRENT version to GitHub Packages. Run it from the `main` branch.
+  workflow_dispatch:
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
   release:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
+      packages: write
     steps:
       - uses: actions/checkout@v4
 
@@ -38,7 +43,8 @@ jobs:
       - name: Test
         run: pnpm -r test
 
-      - name: Create Release Pull Request or Publish
+      - name: Create Release Pull Request or Publish to npm
+        id: changesets
         uses: changesets/action@v1
         with:
           publish: pnpm changeset publish
@@ -46,3 +52,62 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # Mirror the just-published versions to GitHub Packages so they appear in
+      # the repo's "Packages" sidebar. Only the packages changesets actually
+      # released this run are re-published, so reruns never hit "version exists".
+      - name: Publish to GitHub Packages
+        if: steps.changesets.outputs.published == 'true'
+        run: |
+          # The scope→registry mapping in .npmrc is what actually routes the
+          # publish target (the `pnpm publish --registry` flag does NOT — it only
+          # affects metadata reads). This matches GitHub's documented setup.
+          {
+            echo "@tahanabavi:registry=https://npm.pkg.github.com"
+            echo "//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}"
+          } >> .npmrc
+          echo '${{ steps.changesets.outputs.publishedPackages }}' \
+            | jq -r '.[].name' \
+            | while read -r name; do
+                echo "→ Publishing $name to GitHub Packages"
+                pnpm --filter "$name" publish --no-git-checks
+              done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # One-time (repeatable) backfill: publish every package's CURRENT version to
+  # GitHub Packages, so all packages appear in the repo's "Packages" sidebar
+  # without waiting for their next release. `pnpm -r publish` checks the registry
+  # first and skips versions already there, so this is safe to re-run.
+  # Trigger via the Actions tab → Release → "Run workflow" (on the main branch).
+  backfill-github-packages:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm -r build
+
+      - name: Publish all current versions to GitHub Packages
+        run: |
+          {
+            echo "@tahanabavi:registry=https://npm.pkg.github.com"
+            echo "//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}"
+          } >> .npmrc
+          pnpm -r publish --no-git-checks
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -222,6 +222,38 @@ Every PR that changes a package's source must include a changeset.
 - [ ] `type-opengraph` — typed OpenGraph/metadata client
 - [ ] `typewire-vue` / `typewire-angular` query adapters
 
+## Installing from GitHub Packages
+
+Every package is published to **npm** — the default source, no setup required:
+
+```bash
+pnpm add @tahanabavi/typefetch
+```
+
+The same versions are also mirrored to
+[**GitHub Packages**](https://github.com/TahaNabavi/typewire/packages). GitHub's
+npm registry requires authentication *even for public packages*, so to install
+from it you need a [personal access token](https://github.com/settings/tokens)
+with the `read:packages` scope and an `.npmrc` that routes the `@tahanabavi`
+scope to GitHub:
+
+```ini
+# .npmrc
+@tahanabavi:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
+```
+
+Then export the token and install as usual:
+
+```bash
+export GITHUB_TOKEN=<your PAT with read:packages>
+pnpm add @tahanabavi/typefetch
+```
+
+> For most users, plain `pnpm add @tahanabavi/*` from npm is the easiest path —
+> GitHub Packages is here for teams that prefer to consume everything through
+> GitHub.
+
 ## License
 
 [MIT](./LICENSE) © Taha Nabavi
