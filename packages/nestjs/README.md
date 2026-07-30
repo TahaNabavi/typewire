@@ -1,5 +1,7 @@
 # @tahanabavi/typewire-nestjs
 
+![typewire-nestjs — same contracts on the server: contract-bound routes, request/response validation, permission guard](./docs/assets/typewire-nestjs-banner.png)
+
 NestJS integration for [`@tahanabavi/typefetch`](https://www.npmjs.com/package/@tahanabavi/typefetch) — bind routes and validate **request input** and **response output** on the backend using the **exact same Zod contracts** your frontend consumes.
 
 One contract file. The typefetch client validates on the way out; typewire-nestjs validates on the way in — and guarantees your handlers return exactly what the contract promises.

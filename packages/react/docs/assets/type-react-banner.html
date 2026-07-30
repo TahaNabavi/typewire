@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<style>
+  :root {
+    --bg0:#060a14; --bg1:#0a1120; --bg2:#0b1424;
+    --panel:#0d1626; --panel2:#0b1322;
+    --border:rgba(148,163,184,.12); --border2:rgba(148,163,184,.18);
+    --text:#e8eef8; --muted:#94a3b8; --dim:#5a6b83;
+    --accent:#38bdf8; --accent2:#0ea5e9; --accentDim:#7dd3fc;
+    --blue:#60a5fa; --purple:#a78bfa; --green:#4ade80; --red:#f87171; --amber:#fbbf24;
+    --mono:"JetBrains Mono","Cascadia Code",Consolas,"SF Mono",Menlo,monospace;
+    --sans:-apple-system,"Segoe UI",Roboto,system-ui,"Helvetica Neue",Arial,sans-serif;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:1600px; height:850px; overflow:hidden; }
+  body {
+    font-family:var(--sans); color:var(--text); position:relative;
+    background:
+      radial-gradient(1200px 700px at 82% -8%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 60%),
+      radial-gradient(900px 600px at 10% 108%, rgba(96,165,250,.13), transparent 60%),
+      radial-gradient(700px 500px at 96% 96%, color-mix(in srgb, var(--accent2) 9%, transparent), transparent 60%),
+      linear-gradient(160deg,var(--bg0),var(--bg1) 55%,var(--bg2));
+  }
+  .grid { position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(148,163,184,.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(148,163,184,.04) 1px, transparent 1px);
+    background-size:44px 44px; mask:radial-gradient(1400px 800px at 60% 40%, #000 30%, transparent 85%); }
+  .wrap { position:relative; width:100%; height:100%; padding:56px 58px; display:flex; gap:44px; }
+  .left { width:628px; flex:none; display:flex; flex-direction:column; }
+  .right { flex:1; display:flex; flex-direction:column; gap:18px; }
+
+  .pill { display:inline-flex; align-items:center; gap:11px; align-self:flex-start;
+    padding:9px 16px 9px 14px; border:1px solid color-mix(in srgb, var(--accent) 34%, transparent); border-radius:999px;
+    background:color-mix(in srgb, var(--accent2) 10%, transparent); font-size:14px; font-weight:700; letter-spacing:.16em; color:color-mix(in srgb, var(--accentDim) 72%, #ffffff); }
+  .pill .bar { width:4px; height:15px; border-radius:2px; background:linear-gradient(var(--accent),var(--accent2)); }
+
+  h1 { font-weight:800; letter-spacing:-.03em; line-height:.98; margin-top:26px; }
+  h1 .a { display:block; font-size:112px;
+    background:linear-gradient(180deg,#ffffff,#c2d0e2); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  h1 .b { display:block; font-size:112px; margin-top:2px;
+    background:linear-gradient(96deg,var(--accent) 4%,var(--accent2) 55%,var(--accentDim) 98%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .rule { width:118px; height:5px; border-radius:3px; margin:24px 0 16px;
+    background:linear-gradient(90deg,var(--accent2),var(--accent) 72%, transparent); }
+  .sub { font-size:31px; font-weight:700; letter-spacing:-.01em; color:#eaf1fb; }
+  .tag { font-size:18px; color:var(--muted); margin-top:10px; font-weight:500; line-height:1.5; max-width:560px; }
+  .tag code { font-family:var(--mono); font-size:15px; color:var(--accentDim); background:color-mix(in srgb, var(--accent) 10%, transparent); padding:1px 7px; border-radius:6px; }
+
+  .feats { margin-top:auto; display:flex; flex-direction:column; gap:18px; }
+  .feat { display:flex; gap:15px; align-items:flex-start; }
+  .ico { width:44px; height:44px; flex:none; border-radius:12px; display:grid; place-items:center; border:1px solid var(--border2); }
+  .ico svg { width:22px; height:22px; }
+  .ico.a { background:color-mix(in srgb, var(--accent) 13%, transparent); box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--accent) 16%, transparent); }
+  .ico.b { background:rgba(96,165,250,.12); } .ico.g { background:rgba(74,222,128,.12); } .ico.p { background:rgba(167,139,250,.12); }
+  .feat .ttl { font-size:19px; font-weight:700; color:#eef4fd; }
+  .feat .dsc { font-size:14px; color:var(--muted); margin-top:2px; }
+  .feat .dsc b { color:var(--accentDim); font-weight:700; }
+
+  .win { border:1px solid var(--border); border-radius:16px; overflow:hidden;
+    background:linear-gradient(180deg,var(--panel),var(--panel2));
+    box-shadow:0 30px 70px -30px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.04); }
+  .win .bar { display:flex; align-items:center; gap:8px; padding:13px 16px; border-bottom:1px solid var(--border); background:rgba(255,255,255,.015); }
+  .dot { width:12px; height:12px; border-radius:50%; }
+  .dot.r{background:#ff5f57} .dot.y{background:#febc2e} .dot.g{background:#28c840}
+  .win .title { margin-left:8px; font-family:var(--mono); font-size:13.5px; color:var(--dim); }
+  .win .title b{ color:#9fb0c7; font-weight:600 }
+  .badge0 { margin-left:auto; font-size:12px; font-weight:700; color:var(--accentDim); letter-spacing:.02em;
+    padding:4px 10px; border-radius:999px; background:color-mix(in srgb, var(--accent) 10%, transparent); border:1px solid color-mix(in srgb, var(--accent) 22%, transparent); }
+
+  /* rendered component preview */
+  .prev { padding:20px; }
+  .profile { display:flex; align-items:center; gap:16px; padding:18px; border-radius:14px;
+    border:1px solid var(--border2); background:rgba(255,255,255,.02); }
+  .avatar { width:60px; height:60px; border-radius:16px; flex:none;
+    background:linear-gradient(140deg,var(--accent),var(--accent2)); box-shadow:0 8px 22px -6px color-mix(in srgb, var(--accent) 60%, transparent);
+    display:grid; place-items:center; font-weight:800; font-size:24px; color:#062434; }
+  .profile .nm { font-size:22px; font-weight:800; color:#eef4fd; }
+  .profile .hd { font-family:var(--mono); font-size:13px; color:var(--muted); margin-top:3px; }
+  .profile .st { margin-left:auto; align-self:flex-start; font-size:12.5px; font-weight:700; color:#86efac;
+    padding:4px 10px; border-radius:999px; background:rgba(74,222,128,.1); border:1px solid rgba(74,222,128,.22); }
+  .skel { margin-top:14px; padding:16px 18px; border-radius:14px; border:1px solid var(--border2); background:rgba(255,255,255,.015);
+    display:flex; align-items:center; gap:14px; }
+  .skc { width:60px; height:60px; border-radius:16px; flex:none; background:linear-gradient(100deg,rgba(148,163,184,.14),rgba(148,163,184,.06)); }
+  .skl { flex:1; display:flex; flex-direction:column; gap:9px; }
+  .skb { height:12px; border-radius:6px; background:linear-gradient(100deg,rgba(148,163,184,.16),rgba(148,163,184,.05)); }
+  .skpill { font-family:var(--mono); font-size:12px; color:var(--accentDim); }
+
+  .card { border:1px solid var(--border); border-radius:16px; padding:16px 18px;
+    background:linear-gradient(180deg,var(--panel),var(--panel2)); box-shadow:inset 0 1px 0 rgba(255,255,255,.03); }
+  .card .ch { display:flex; align-items:center; gap:9px; font-size:14px; color:#a9b7cc; font-weight:600; }
+  .card .ch .k { margin-left:auto; font-family:var(--mono); font-size:11.5px; color:var(--dim); padding:3px 8px; border-radius:6px; background:rgba(148,163,184,.08); }
+  .code { font-family:var(--mono); font-size:14px; line-height:1.65; margin-top:12px; color:#cdd8e8; }
+  .code .kw{color:#c792ea} .code .fn{color:#82aaff} .code .pr{color:#7fdbca} .code .st{color:#c3e88d} .code .cm{color:#5a6b83} .code .nm{color:var(--accentDim)} .code .tag{color:#f0788c}
+</style>
+</head>
+<body>
+<div class="grid"></div>
+<div class="wrap">
+
+  <div class="left">
+    <span class="pill"><span class="bar"></span>@tahanabavi/typefetch-react</span>
+
+    <h1><span class="a">React</span><span class="b">Adapter</span></h1>
+    <div class="rule"></div>
+    <div class="sub">useQuery · useMutation.</div>
+    <div class="tag">A thin React binding over the query core — <code>useSyncExternalStore</code> and nothing more. All the logic lives in the engine.</div>
+
+    <div class="feats">
+      <div class="feat">
+        <div class="ico a"><svg viewBox="0 0 24 24" fill="none" stroke="#7dd3fc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.4"/><ellipse cx="12" cy="12" rx="10" ry="4.3"/><ellipse cx="12" cy="12" rx="10" ry="4.3" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="10" ry="4.3" transform="rotate(120 12 12)"/></svg></div>
+        <div><div class="ttl"><b>useQuery</b>(endpoint, input)</div><div class="dsc">Typed data, pending &amp; error — keyed automatically</div></div>
+      </div>
+      <div class="feat">
+        <div class="ico b"><svg viewBox="0 0 24 24" fill="none" stroke="#93c5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v6l4-2M12 21v-6l-4 2"/><path d="M3.3 8 9 11M20.7 16 15 13"/></svg></div>
+        <div><div class="ttl"><b>useMutation</b> + invalidation</div><div class="dsc">Write, then dependent queries refresh on their own</div></div>
+      </div>
+      <div class="feat">
+        <div class="ico g"><svg viewBox="0 0 24 24" fill="none" stroke="#86efac" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg></div>
+        <div><div class="ttl">TypeFetchProvider</div><div class="dsc">One client at the root; hooks everywhere below</div></div>
+      </div>
+      <div class="feat">
+        <div class="ico p"><svg viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M2 12h4M18 12h4M5 5l3 3M16 16l3 3M19 5l-3 3M8 16l-3 3"/></svg></div>
+        <div><div class="ttl">Concurrent-safe</div><div class="dsc">Built on <b>useSyncExternalStore</b> — no tearing</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="right">
+    <div class="win">
+      <div class="bar">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="title">Profile.tsx · <b>preview</b></span>
+        <span class="badge0">● rendered</span>
+      </div>
+      <div class="prev">
+        <div class="profile">
+          <div class="avatar">T</div>
+          <div><div class="nm">Taha Nabavi</div><div class="hd">useQuery(api.user.getUser, { id })</div></div>
+          <div class="st">● success</div>
+        </div>
+        <div class="skel">
+          <div class="skc"></div>
+          <div class="skl">
+            <div class="skb" style="width:60%"></div>
+            <div class="skb" style="width:38%"></div>
+            <div class="skpill">isPending — &lt;Skeleton /&gt;</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ch">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#82aaff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 6 3 12 8 18"/><polyline points="16 6 21 12 16 18"/></svg>
+        the whole daily surface
+        <span class="k">useQuery()</span>
+      </div>
+      <div class="code">
+<span class="kw">function</span> <span class="fn">Profile</span>({ id }) {<br>
+&nbsp;&nbsp;<span class="kw">const</span> { data, isPending } = <span class="fn">useQuery</span>(api.user.<span class="nm">getUser</span>, { id });<br>
+&nbsp;&nbsp;<span class="kw">if</span> (isPending) <span class="kw">return</span> &lt;<span class="tag">Skeleton</span> /&gt;;<br>
+&nbsp;&nbsp;<span class="kw">return</span> &lt;<span class="tag">h1</span>&gt;{data.name}&lt;/<span class="tag">h1</span>&gt;;&nbsp;&nbsp;<span class="cm">// data is typed</span><br>
+}
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

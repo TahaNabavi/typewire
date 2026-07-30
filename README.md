@@ -45,6 +45,7 @@ the types can't drift from what's validated at runtime. Everything ships under t
 | [`@tahanabavi/typefetch-react`](./packages/react) | ✅ published | Thin **React** adapter — `useQuery` / `useMutation` / `TypeFetchProvider`. |
 | [`@tahanabavi/type-devtools-core`](./packages/devtools-core) | ✅ published | **Transport-agnostic** inspector bridge + query-cache mirror — one timeline for HTTP **and** WS, plus a `QueryClient` view, with runtime overrides. |
 | [`@tahanabavi/type-devtools`](./packages/devtools) | ✅ published | **React inspector panel** — timeline, query cache, override editor, colored JSON tree, and theme/sound settings. Renders any bridge. |
+| [`@tahanabavi/type-permission`](./packages/permission) | 🚧 in dev | **Framework-less** capability permissions — one shared bit map, evaluated identically on client and server; layered resolution, codecs, lock file, optional contract link. |
 
 > `type-opengraph` and more are on the [roadmap](#roadmap).
 
@@ -174,7 +175,14 @@ flowchart TD
   F --> Q["query-core → react<br/>cache · mutations · invalidation"]
   F --> D["type-devtools<br/>one timeline, any transport"]
   S --> D
+  P["type-permission<br/>one bit map, both ends"] -.-> F
+  P -.-> S
+  P -.-> N
 ```
+
+The dotted edges are the **optional** contract link: an endpoint may carry a
+`permission` requirement that the server guard enforces and the client pre-checks
+— the *same* bit map, evaluated on both ends, never drifting.
 
 Three design laws keep the ecosystem coherent: the **contract stays untouched**,
 the **daily API stays tiny**, and **features compose as independent modules**.
@@ -219,6 +227,8 @@ Every PR that changes a package's source must include a changeset.
 - [x] `typefetch-query-core` + `typefetch-react` — the React-Query-like layer
 - [x] `type-devtools-core` + `type-devtools` — the cross-transport inspector
 - [ ] `typewire-nestjs` — extend beyond HTTP to `typesocket` WS gateways
+- [x] `type-permission` — framework-less capability permissions + optional contract link (NestJS guard)
+- [ ] `type-permission` client pre-flight middleware + Vue/React binding recipes
 - [ ] `type-opengraph` — typed OpenGraph/metadata client
 - [ ] `typewire-vue` / `typewire-angular` query adapters
 

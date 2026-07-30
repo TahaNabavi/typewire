@@ -50,6 +50,25 @@ export type RequestSchema = z.ZodTypeAny;
 export type ResponseSchema = z.ZodTypeAny;
 
 /**
+ * A permission requirement a contract endpoint may carry inline (the optional
+ * `permission` key on {@link EndpointDef}).
+ *
+ * Redeclared structurally here — rather than imported from
+ * `@tahanabavi/type-permission` — so typefetch stays dependency-free, exactly as
+ * `type-devtools-core` redeclares the transport event types. It is structurally
+ * identical to that package's `PermissionRequirement`, so
+ * `P.authorize(perms, endpoint.permission)` type-checks with no adapter.
+ */
+export type PermissionRequirement = {
+  /** All of these flags must be held (`hasAll`). */
+  require?: readonly string[];
+  /** At least one of these flags must be held (`hasAny`). */
+  any?: readonly string[];
+  /** Human reason, surfaced in the 403 body and the audit log. */
+  reason?: string;
+};
+
+/**
  * ErrorResponsesMap
  * =================
  * Optional map of declared error responses for an endpoint, keyed by HTTP
@@ -141,6 +160,15 @@ export type EndpointDef<
 
   /** Whether this endpoint requires an Authorization token */
   auth?: boolean;
+
+  /**
+   * Optional permission requirement, written once on the contract. A server
+   * guard (`@tahanabavi/typewire-nestjs`) reads it to enforce access and reject
+   * with a 403; the client can read it to pre-block a call before it leaves.
+   * Purely additive — endpoints without it behave exactly as before. Flag names
+   * reference a `@tahanabavi/type-permission` bit map.
+   */
+  permission?: PermissionRequirement;
 
   /** Zod schema describing the expected request structure */
   request: TReq; // Typically { path?, query?, body? }

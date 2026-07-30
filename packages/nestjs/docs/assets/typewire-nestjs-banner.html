@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<style>
+  :root {
+    --bg0:#060a14; --bg1:#0a1120; --bg2:#0b1424;
+    --panel:#0d1626; --panel2:#0b1322;
+    --border:rgba(148,163,184,.12); --border2:rgba(148,163,184,.18);
+    --text:#e8eef8; --muted:#94a3b8; --dim:#5a6b83;
+    --accent:#fb7185; --accent2:#f43f5e; --accentDim:#fda4af;
+    --blue:#60a5fa; --cyan:#22d3ee; --green:#4ade80; --purple:#a78bfa; --amber:#fbbf24;
+    --mono:"JetBrains Mono","Cascadia Code",Consolas,"SF Mono",Menlo,monospace;
+    --sans:-apple-system,"Segoe UI",Roboto,system-ui,"Helvetica Neue",Arial,sans-serif;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:1600px; height:850px; overflow:hidden; }
+  body {
+    font-family:var(--sans); color:var(--text); position:relative;
+    background:
+      radial-gradient(1200px 700px at 82% -8%, color-mix(in srgb, var(--accent) 15%, transparent), transparent 60%),
+      radial-gradient(900px 600px at 10% 108%, rgba(139,92,246,.12), transparent 60%),
+      radial-gradient(700px 500px at 96% 96%, color-mix(in srgb, var(--accent2) 10%, transparent), transparent 60%),
+      linear-gradient(160deg,var(--bg0),var(--bg1) 55%,var(--bg2));
+  }
+  .grid { position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(148,163,184,.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(148,163,184,.04) 1px, transparent 1px);
+    background-size:44px 44px; mask:radial-gradient(1400px 800px at 60% 40%, #000 30%, transparent 85%); }
+  .wrap { position:relative; width:100%; height:100%; padding:56px 58px; display:flex; gap:44px; }
+  .left { width:628px; flex:none; display:flex; flex-direction:column; }
+  .right { flex:1; display:flex; flex-direction:column; gap:18px; }
+
+  .pill { display:inline-flex; align-items:center; gap:11px; align-self:flex-start;
+    padding:9px 16px 9px 14px; border:1px solid color-mix(in srgb, var(--accent) 34%, transparent); border-radius:999px;
+    background:color-mix(in srgb, var(--accent2) 10%, transparent); font-size:14px; font-weight:700; letter-spacing:.16em; color:color-mix(in srgb, var(--accentDim) 74%, #ffffff); }
+  .pill .bar { width:4px; height:15px; border-radius:2px; background:linear-gradient(var(--accent),var(--accent2)); }
+
+  h1 { font-weight:800; letter-spacing:-.03em; line-height:.98; margin-top:26px; }
+  h1 .a { display:block; font-size:112px;
+    background:linear-gradient(180deg,#ffffff,#c2d0e2); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  h1 .b { display:block; font-size:112px; margin-top:2px;
+    background:linear-gradient(96deg,var(--accent) 4%,var(--accent2) 58%,#e11d48 98%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .rule { width:118px; height:5px; border-radius:3px; margin:24px 0 16px;
+    background:linear-gradient(90deg,var(--accent2),var(--accent) 72%, transparent); }
+  .sub { font-size:31px; font-weight:700; letter-spacing:-.01em; color:#eaf1fb; }
+  .tag { font-size:18px; color:var(--muted); margin-top:10px; font-weight:500; line-height:1.5; max-width:560px; }
+  .tag code { font-family:var(--mono); font-size:15px; color:var(--accentDim); background:color-mix(in srgb, var(--accent) 10%, transparent); padding:1px 7px; border-radius:6px; }
+
+  .feats { margin-top:auto; display:flex; flex-direction:column; gap:18px; }
+  .feat { display:flex; gap:15px; align-items:flex-start; }
+  .ico { width:44px; height:44px; flex:none; border-radius:12px; display:grid; place-items:center; border:1px solid var(--border2); }
+  .ico svg { width:22px; height:22px; }
+  .ico.a { background:color-mix(in srgb, var(--accent) 13%, transparent); box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--accent) 16%, transparent); }
+  .ico.b { background:rgba(96,165,250,.12); } .ico.g { background:rgba(74,222,128,.12); } .ico.p { background:rgba(167,139,250,.12); }
+  .feat .ttl { font-size:19px; font-weight:700; color:#eef4fd; }
+  .feat .dsc { font-size:14px; color:var(--muted); margin-top:2px; }
+  .feat .dsc b { color:var(--accentDim); font-weight:700; }
+
+  .win { border:1px solid var(--border); border-radius:16px; overflow:hidden;
+    background:linear-gradient(180deg,var(--panel),var(--panel2));
+    box-shadow:0 30px 70px -30px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.04); }
+  .win .bar { display:flex; align-items:center; gap:8px; padding:13px 16px; border-bottom:1px solid var(--border); background:rgba(255,255,255,.015); }
+  .dot { width:12px; height:12px; border-radius:50%; }
+  .dot.r{background:#ff5f57} .dot.y{background:#febc2e} .dot.g{background:#28c840}
+  .win .title { margin-left:8px; font-family:var(--mono); font-size:13.5px; color:var(--dim); }
+  .win .title b{ color:#9fb0c7; font-weight:600 }
+  .badge0 { margin-left:auto; font-size:12px; font-weight:700; color:#86efac; letter-spacing:.02em;
+    padding:4px 10px; border-radius:999px; background:rgba(74,222,128,.10); border:1px solid rgba(74,222,128,.22); }
+
+  /* request pipeline */
+  .pipe { padding:16px 18px; }
+  .step { display:flex; align-items:center; gap:13px; padding:10px 12px; border-radius:11px; border:1px solid transparent; }
+  .step .num { width:30px; height:30px; flex:none; border-radius:9px; display:grid; place-items:center;
+    font-family:var(--mono); font-size:13px; font-weight:700; color:#86efac; background:rgba(74,222,128,.12); border:1px solid rgba(74,222,128,.24); }
+  .step .lbl { font-size:15px; color:#dbe4f0; font-weight:600; } .step .lbl .mono{ font-family:var(--mono); font-size:13.5px; color:#9fb0c7; }
+  .step .tag2 { margin-left:auto; font-family:var(--mono); font-size:12px; color:var(--muted); }
+  .step.on { border-color:color-mix(in srgb, var(--accent) 40%, transparent); background:color-mix(in srgb, var(--accent) 11%, transparent); }
+  .step.on .num { color:var(--accentDim); background:color-mix(in srgb, var(--accent) 16%, transparent); border-color:color-mix(in srgb, var(--accent) 32%, transparent); }
+  .step.on .tag2 { color:var(--accentDim); font-weight:700; }
+  .conn { width:2px; height:9px; margin-left:27px; background:linear-gradient(var(--border2),transparent); }
+
+  .card { border:1px solid var(--border); border-radius:16px; padding:16px 18px;
+    background:linear-gradient(180deg,var(--panel),var(--panel2)); box-shadow:inset 0 1px 0 rgba(255,255,255,.03); }
+  .card .ch { display:flex; align-items:center; gap:9px; font-size:14px; color:#a9b7cc; font-weight:600; }
+  .card .ch .k { margin-left:auto; font-family:var(--mono); font-size:11.5px; color:var(--dim); padding:3px 8px; border-radius:6px; background:rgba(148,163,184,.08); }
+  .code { font-family:var(--mono); font-size:13.5px; line-height:1.62; margin-top:12px; color:#cdd8e8; }
+  .code .kw{color:#c792ea} .code .fn{color:#82aaff} .code .pr{color:#7fdbca} .code .st{color:#c3e88d} .code .cm{color:#5a6b83} .code .dec{color:var(--accentDim)}
+</style>
+</head>
+<body>
+<div class="grid"></div>
+<div class="wrap">
+
+  <div class="left">
+    <span class="pill"><span class="bar"></span>@tahanabavi/typewire-nestjs</span>
+
+    <h1><span class="a">NestJS</span><span class="b">Backend</span></h1>
+    <div class="rule"></div>
+    <div class="sub">Same contracts, on the server.</div>
+    <div class="tag">Bind routes and validate request &amp; response from the one Zod contract your client already imports — the route <code>can't drift</code> from what's called.</div>
+
+    <div class="feats">
+      <div class="feat">
+        <div class="ico a"><svg viewBox="0 0 24 24" fill="none" stroke="#fda4af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/><circle cx="19" cy="17" r="2"/></svg></div>
+        <div><div class="ttl">Contract-bound routes</div><div class="dsc"><b>@TypeFetchEndpoint</b> — method &amp; path from the contract</div></div>
+      </div>
+      <div class="feat">
+        <div class="ico g"><svg viewBox="0 0 24 24" fill="none" stroke="#86efac" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+        <div><div class="ttl">Request + response validation</div><div class="dsc">Both directions checked with the same Zod schemas</div></div>
+      </div>
+      <div class="feat">
+        <div class="ico p"><svg viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 5 3.8 8.5 8 10 4.2-1.5 8-5 8-10V6l-8-3Z"/><path d="m9 12 2 2 4-4"/></svg></div>
+        <div><div class="ttl">Permission guard</div><div class="dsc">Enforces an endpoint's <b>permission</b> key → typed 403</div></div>
+      </div>
+      <div class="feat">
+        <div class="ico b"><svg viewBox="0 0 24 24" fill="none" stroke="#93c5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v5"/></svg></div>
+        <div><div class="ttl">OpenAPI from contracts</div><div class="dsc">Swagger docs &amp; error responses, no duplication</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="right">
+    <div class="win">
+      <div class="bar">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="title">DELETE <b>/messages/:id</b></span>
+        <span class="badge0">● 200 OK</span>
+      </div>
+      <div class="pipe">
+        <div class="step on">
+          <span class="num">1</span>
+          <span class="lbl">PermissionGuard <span class="mono">· require chat.MANAGE_MESSAGES</span></span>
+          <span class="tag2">✓ granted</span>
+        </div>
+        <div class="conn"></div>
+        <div class="step">
+          <span class="num">2</span>
+          <span class="lbl">Validate request <span class="mono">· Zod</span></span>
+          <span class="tag2">✓</span>
+        </div>
+        <div class="conn"></div>
+        <div class="step">
+          <span class="num">3</span>
+          <span class="lbl"><span class="mono">remove(input)</span> — your handler</span>
+          <span class="tag2">→</span>
+        </div>
+        <div class="conn"></div>
+        <div class="step">
+          <span class="num">4</span>
+          <span class="lbl">Validate response <span class="mono">· Zod</span></span>
+          <span class="tag2">✓</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ch">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#82aaff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 6 3 12 8 18"/><polyline points="16 6 21 12 16 18"/></svg>
+        one decorator, wired from the contract
+        <span class="k">@TypeFetchEndpoint</span>
+      </div>
+      <div class="code">
+<span class="dec">@Controller</span>()<br>
+<span class="kw">class</span> <span class="fn">MessageController</span> {<br>
+&nbsp;&nbsp;<span class="dec">@TypeFetchEndpoint</span>(contracts.message.<span class="fn">remove</span>)<br>
+&nbsp;&nbsp;<span class="fn">remove</span>(<span class="dec">@ContractInput</span>() input) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> { removed: input.path.id };<br>
+&nbsp;&nbsp;}<br>
+}
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
