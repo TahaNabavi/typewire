@@ -1,5 +1,7 @@
 # @tahanabavi/typefetch-react
 
+![typefetch-react — useQuery / useMutation / TypeFetchProvider, a thin React binding over the query core](./docs/assets/type-react-banner.png)
+
 The **React** adapter for [`@tahanabavi/typefetch-query-core`](../query-core):
 `useQuery`, `useMutation`, and a provider. Deliberately thin — the engine already
 exposes `subscribe` / `getSnapshot`, so each hook is that contract handed to

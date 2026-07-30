@@ -1,0 +1,64 @@
+{
+  "name": "@tahanabavi/type-permission",
+  "version": "0.0.0",
+  "private": false,
+  "description": "Framework-less, dependency-free capability permissions: one shared bit map, evaluated identically on client and server, with layered resolution, codecs, a lock file and contract-linkable requirements.",
+  "author": {
+    "name": "Taha Nabavi",
+    "email": "sayyedtahanabavi@gmail.com",
+    "url": "https://www.tahanabavi.ir"
+  },
+  "license": "MIT",
+  "keywords": [
+    "typewire",
+    "permissions",
+    "authorization",
+    "rbac",
+    "bitfield",
+    "bigint",
+    "capabilities",
+    "access-control",
+    "framework-agnostic",
+    "type-safe"
+  ],
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.3.0",
+    "jest": "^30.1.3",
+    "ts-jest": "^29.4.1",
+    "ts-node": "^10.9.2",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TahaNabavi/typewire.git",
+    "directory": "packages/permission"
+  },
+  "bugs": {
+    "url": "https://github.com/TahaNabavi/typewire/issues"
+  },
+  "homepage": "https://www.tahanabavi.ir/docs/type-permission",
+  "publishConfig": {
+    "access": "public"
+  }
+}

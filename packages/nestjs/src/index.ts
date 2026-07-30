@@ -7,6 +7,8 @@ export * from "./interceptors/contract-validation.interceptor";
 export * from "./decorators/typefetch-endpoint.decorator";
 export * from "./decorators/use-contract.decorator";
 export * from "./decorators/params.decorators";
+export * from "./decorators/require-permission.decorator";
+export * from "./guards/permission.guard";
 export { coerceInput } from "./validation/coerce";
 export type { CoercionMode } from "./validation/coerce";
 export { validateRequest } from "./validation/request-validator";

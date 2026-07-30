@@ -1,5 +1,7 @@
 # @tahanabavi/typesocket
 
+![typesocket — contract-driven Socket.IO / WebSocket client with direction-tagged events and validated acks](./docs/assets/typesocket-v2.0.0-banner.png)
+
 [![npm](https://img.shields.io/npm/v/%40tahanabavi%2Ftypesocket?color=8b5cf6)](https://www.npmjs.com/package/@tahanabavi/typesocket)
 [![Zod](https://img.shields.io/badge/contracts-Zod%204-3e67b1?logo=zod&logoColor=white)](https://zod.dev)
 [![license](https://img.shields.io/badge/license-MIT-22d3ee)](./LICENSE)

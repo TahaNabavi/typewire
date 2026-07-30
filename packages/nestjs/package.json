@@ -73,6 +73,7 @@
     "@nestjs/platform-express": "^11.0.0",
     "@nestjs/swagger": "^11.4.6",
     "@nestjs/testing": "^11.0.0",
+    "@tahanabavi/type-permission": "workspace:*",
     "@tahanabavi/typefetch": "workspace:*",
     "@types/crypto-js": "^4.2.2",
     "@types/jest": "^30.0.0",

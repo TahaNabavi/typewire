@@ -1,5 +1,7 @@
 # @tahanabavi/type-devtools-core
 
+![type-devtools-core — transport-agnostic inspector bridge: one timeline for HTTP and WS, with runtime overrides](./docs/assets/type-devtools-core-banner.png)
+
 The **transport-agnostic** core the TypeWire inspector is built on: one timeline
 for HTTP **and** WebSocket, a runtime override registry, and a live mirror of a
 query cache. Headless and **dependency-free** — it stores generic events and

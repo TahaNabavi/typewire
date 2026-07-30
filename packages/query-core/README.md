@@ -1,5 +1,7 @@
 # @tahanabavi/typefetch-query-core
 
+![typefetch-query-core — framework-agnostic query engine: cache, dedup, staleness, mutations, auto-invalidation](./docs/assets/type-query-core-banner.png)
+
 A framework-agnostic **query engine** for TypeWire contracts — cache, dedup,
 staleness, mutations, and **declared invalidation** — over HTTP **and**
 WebSocket alike, because it needs nothing but a callable endpoint carrying a

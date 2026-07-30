@@ -17,6 +17,23 @@ import type { ErrorLike } from "./errors";
  */
 export type EventDirection = "client->server" | "server->client";
 
+/**
+ * A permission requirement a `client->server` event may carry inline (the
+ * optional `permission` key). Redeclared structurally — rather than imported
+ * from `@tahanabavi/type-permission` — so typesocket stays dependency-free, the
+ * same way `type-devtools-core` redeclares transport types. Structurally
+ * identical to that package's `PermissionRequirement`, so
+ * `P.authorize(perms, def.permission)` type-checks with no adapter.
+ */
+export type PermissionRequirement = {
+  /** All of these flags must be held (`hasAll`). */
+  require?: readonly string[];
+  /** At least one of these flags must be held (`hasAny`). */
+  any?: readonly string[];
+  /** Human reason, surfaced to a guard and the audit log. */
+  reason?: string;
+};
+
 /** An event the client sends and the server handles. */
 export type ClientToServerDef<
   TReq extends z.ZodTypeAny = z.ZodTypeAny,
@@ -25,6 +42,13 @@ export type ClientToServerDef<
   direction: "client->server";
   /** Wire event name. Defaults to the key the event is declared under. */
   event?: string;
+  /**
+   * Optional permission requirement to emit this event. Read by a server-side
+   * gateway guard to reject the frame, and by the client to pre-block an emit.
+   * Only `client->server` events carry it — the client authorizes what it
+   * *sends*, never what it receives. Additive; events without it are unaffected.
+   */
+  permission?: PermissionRequirement;
   /** Schema for the payload sent to the server. */
   request: TReq;
   /**

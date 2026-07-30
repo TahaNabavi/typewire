@@ -1,5 +1,7 @@
 # @tahanabavi/type-devtools
 
+![type-devtools — the React inspector panel: timeline, query cache, override editor, colored JSON tree](./docs/assets/type-devtools-banner.png)
+
 A React inspector panel for the TypeWire ecosystem. One timeline for **HTTP and
 WebSocket** traffic, a live **query cache** view, a runtime **override editor**,
 and a **settings** tab — dropped into your app as a single component.
