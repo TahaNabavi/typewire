@@ -1,5 +1,12 @@
 # @tahanabavi/typewire-nestjs
 
+## 2.0.0
+
+### Patch Changes
+
+- Updated dependencies [03ecc58]
+  - @tahanabavi/typefetch@1.9.0
+
 ## 1.0.0
 
 ### Minor Changes
