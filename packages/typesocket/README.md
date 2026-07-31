@@ -1,6 +1,6 @@
 # @tahanabavi/typesocket
 
-![typesocket — contract-driven Socket.IO / WebSocket client with direction-tagged events and validated acks](./docs/assets/typesocket-v2.0.0-banner.png)
+![TypeSocket v2.1.0 — contract-linked permissions on client→server events](./docs/assets/typesocket-v2.1.0-banner.png)
 
 [![npm](https://img.shields.io/npm/v/%40tahanabavi%2Ftypesocket?color=8b5cf6)](https://www.npmjs.com/package/@tahanabavi/typesocket)
 [![Zod](https://img.shields.io/badge/contracts-Zod%204-3e67b1?logo=zod&logoColor=white)](https://zod.dev)
@@ -22,6 +22,7 @@ HTTP and WebSocket traffic land in one devtools timeline with no adapter glue.
 - [Quick start](#quick-start)
 - [Why direction belongs in the contract](#why-direction-belongs-in-the-contract)
 - [Emitting](#emitting)
+- [Permissions](#permissions)
 - [Listening](#listening)
 - [Errors](#errors)
 - [Middleware](#middleware)
@@ -146,6 +147,62 @@ evicts oldest-first.
 **Acks are validated.** If the server answers `sendMessage` with something that
 doesn't match the `ack` schema, the promise rejects with a
 `SocketValidationError` rather than resolving a value whose type is a lie.
+
+---
+
+## Permissions
+
+*(v2.1.0)* A `client->server` event may carry an optional **`permission`**
+requirement — the flag names a gateway guard and the client both check. Only
+outbound events carry it: **the client authorizes what it sends, never what it
+receives**.
+
+```ts
+export const contracts = defineSocketContracts({
+  chat: {
+    deleteAny: {
+      direction: "client->server",
+      permission: { require: ["chat.MANAGE_MESSAGES"] }, // ← new, optional
+      request: z.object({ id: z.string() }),
+      ack: z.object({ ok: z.boolean() }),
+    },
+  },
+});
+```
+
+The value is a `PermissionRequirement` — `{ require?, any?, reason? }` (`require`
+= all flags, `any` = at least one). The flag names reference a
+[`@tahanabavi/type-permission`](../permission) bit map, but the type is
+**redeclared structurally**, so typesocket gains **no new dependency**.
+
+- **Server** — a Socket.IO gateway guard reads `def.permission` and rejects the
+  frame when the actor lacks the flags.
+- **Client** — register `createPermissionMiddleware` via the `authorizeOutbound`
+  option; a denied emit throws before it reaches the wire.
+
+```ts
+import { SocketClient, createPermissionMiddleware } from "@tahanabavi/typesocket";
+import { P } from "./permissions";
+
+const client = new SocketClient(config, contracts, {
+  authorizeOutbound: createPermissionMiddleware({
+    getPermissions: () => store.getSnapshot().global, // synchronous
+    authorize: P.authorize,
+  }),
+});
+
+// blocked emits throw PermissionDeniedError — an ack'd emit rejects, a
+// fire-and-forget one throws synchronously; other events are untouched:
+await client.modules.chat.deleteAny({ id });
+```
+
+It goes through `authorizeOutbound` rather than `client.use()` on purpose: a
+`SocketMiddleware` can only *drop* a frame silently, whereas this **throws to the
+call site**. `getPermissions` is synchronous so a fire-and-forget emit can fail
+synchronously. The check is **UX only** — the server re-authorizes every frame.
+
+Additive: events without a `permission` key are unaffected. See
+[`docs/releases/v2.1.0.md`](./docs/releases/v2.1.0.md).
 
 ---
 
@@ -327,7 +384,7 @@ Recognised suffixes: `URL`, `PATH`, `AUTO_CONNECT`, `RECONNECTION`,
 | --- | --- |
 | `(input, options?)` | Validate and emit. `Promise<Ack>` when `ack` is declared, else `void`. |
 | `.queue(input)` | Validate now, send on the next connect. |
-| `.eventId` · `.event` · `.def` | Metadata for tooling. |
+| `.eventId` · `.event` · `.def` | Metadata for tooling. `.def.permission` carries the optional requirement. |
 
 ### `server->client` events
 
@@ -407,6 +464,7 @@ const wsContracts = defineSocketContracts({
 | --- | --- |
 | [`examples/basic`](../../examples/basic) | typesocket in four files — contract, server, client, run. |
 | [`examples/chat`](../../examples/chat) | Multi-room chat with presence, typing and a live frame inspector. |
+| [`docs/releases/v2.1.0.md`](./docs/releases/v2.1.0.md) | Contract-linked permissions on `client->server` events. |
 | [`docs/releases/v2.0.0.md`](./docs/releases/v2.0.0.md) | The full 2.0 release note, with rationale and the complete migration table. |
 
 ```bash

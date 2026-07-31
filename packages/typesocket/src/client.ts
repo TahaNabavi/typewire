@@ -37,6 +37,7 @@ import type {
   SocketMiddleware,
   SocketModules,
   SocketOverride,
+  OutboundAuthorizer,
   Unsubscribe,
   WaitOptions,
 } from "./types";
@@ -96,6 +97,8 @@ export class SocketClient<C extends SocketContracts> {
   private readonly queue: QueuedFrame[] = [];
   private middlewares: SocketMiddleware[] = [];
   private instrumentations: SocketInstrumentation[] = [];
+  /** Optional pre-emit guard; throwing from it blocks an outbound frame. */
+  private outboundAuthorizer?: OutboundAuthorizer;
 
   private readonly lifecycle = {
     connect: new Set<(info: { socketId?: string; attempt: number }) => void>(),
@@ -125,6 +128,7 @@ export class SocketClient<C extends SocketContracts> {
     this.config = resolveSocketConfig(config);
     this.ioOptions = toIoOptions(this.config);
     this.middlewares = [...(options.middlewares ?? [])];
+    this.outboundAuthorizer = options.authorizeOutbound;
 
     if (options.onConnect) this.lifecycle.connect.add(options.onConnect);
     if (options.onDisconnect) this.lifecycle.disconnect.add(options.onDisconnect);
@@ -187,6 +191,7 @@ export class SocketClient<C extends SocketContracts> {
     this.queue.length = 0;
     this.middlewares = [];
     this.instrumentations = [];
+    this.outboundAuthorizer = undefined;
     this.lifecycle.connect.clear();
     this.lifecycle.disconnect.clear();
     this.lifecycle.connectError.clear();
@@ -273,6 +278,15 @@ export class SocketClient<C extends SocketContracts> {
    * Registers a middleware over every frame in both directions.
    * Returns a function that removes it.
    */
+  /**
+   * Sets (or clears, with no argument) the pre-emit authorization guard — the
+   * throw-to-block hook `createPermissionMiddleware` produces. Also settable at
+   * construction via the `authorizeOutbound` option.
+   */
+  public setOutboundAuthorizer(authorizer?: OutboundAuthorizer): void {
+    this.outboundAuthorizer = authorizer;
+  }
+
   public use(middleware: SocketMiddleware): Unsubscribe {
     this.middlewares.push(middleware);
     return () => {
@@ -427,6 +441,12 @@ export class SocketClient<C extends SocketContracts> {
     queued: boolean,
   ): Prepared {
     const frameId = this.nextFrameId();
+
+    // Pre-emit authorization: may throw (e.g. PermissionDeniedError) to block the
+    // frame at the call site. Runs on the raw input, before override/middleware/
+    // validation — a denied frame never reaches the wire or the instrumentation.
+    this.outboundAuthorizer?.({ eventId, event, def, payload: input });
+
     const override = this.resolveOverride(eventId, input);
 
     if (override?.drop) {

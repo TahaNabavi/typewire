@@ -19,13 +19,14 @@ the inspector panel.
 
 ```txt
 shared/contracts.ts        the single source of truth — imported by both sides
+shared/permissions.ts      the type-permission bit map — imported by both sides
 server/
   contract-bridge.ts       ~60 lines: contract -> socket.io handlers
-  index.ts                 rooms, presence, history, typing
+  index.ts                 rooms, presence, history, typing, moderation
 client/src/
   socket.ts                one SocketClient for the app
   hooks.ts                 useSocketEvent · useConnection · useFrameLog
-  App.tsx                  join form, room, composer
+  App.tsx                  join form, room, composer, delete button
   Inspector.tsx            live frame timeline, built only on instrument()
 ```
 
@@ -64,6 +65,38 @@ This is hand-rolled here to show the moving parts. The planned
 send failure. `chat.setTyping` doesn't, so it returns `void` — right for a
 keystroke-frequency signal nobody needs to confirm. You never pick a method
 name; the contract already decided.
+
+### Permissions, from one bit map — client and server
+
+[`shared/permissions.ts`](./shared/permissions.ts) defines a
+[`@tahanabavi/type-permission`](../../packages/permission) bit map
+(`chat.VIEW_ROOM`, `chat.SEND_MESSAGES`, `chat.MANAGE_MESSAGES`,
+`server.ADMINISTRATOR`). The `chat.deleteMessage` event carries a `permission`
+key **on the contract**:
+
+```ts
+deleteMessage: {
+  direction: "client->server",
+  permission: { require: ["chat.MANAGE_MESSAGES"] }, // written once
+  request: z.object({ roomId: z.string(), id: z.string() }),
+  ack: z.object({ ok: z.boolean() }),
+}
+```
+
+Both ends read the same map. The **client** hides the delete button when the
+capability isn't held (`P.has(perms, "chat.MANAGE_MESSAGES")`), and the
+**server** enforces it — it reads the requirement straight off the contract and
+runs `P.authorize(perms, def.permission)`, never trusting the client's copy:
+
+```ts
+const need = chatContracts.chat.deleteMessage.permission;
+if (need && !P.authorize(perms, need).granted) return { ok: false };
+```
+
+Join as **admin** (via `grantsAll`) or **mod-you** (via `MANAGE_MESSAGES`) and the
+✕ appears; join as anyone else and it's gone — and still rejected if you emit the
+frame by hand. Roles are just named flag sets, resolved with `P.from()` so
+`grantsAll`/`implies` expand.
 
 ### The inspector is just `instrument()`
 
@@ -128,7 +161,9 @@ VITE_SOCKET_URL=http://localhost:3103 pnpm dev:client   # ...and point the UI at
 
 ## Notes
 
-This is a demo: history and presence live in memory, there is no auth, and one
-socket belongs to one room. Adding auth would mean a `auth: () => ({ token })`
-in the client config — it is re-invoked on every reconnect, so a refreshed token
-is picked up without rebuilding the client.
+This is a demo: history and presence live in memory, roles are derived from the
+username (a stand-in for a real auth/session lookup), and one socket belongs to
+one room. Adding real auth would mean a `auth: () => ({ token })` in the client
+config — it is re-invoked on every reconnect, so a refreshed token is picked up
+without rebuilding the client — and deriving `perms` from the verified session
+instead of the name.

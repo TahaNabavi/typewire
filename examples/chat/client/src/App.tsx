@@ -2,9 +2,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SocketError } from "@tahanabavi/typesocket";
 
 import type { Message } from "../../shared/contracts.js";
+import { P, permsForUser, roleForUser } from "../../shared/permissions.js";
 import { Inspector } from "./Inspector.js";
 import { useConnection, useSocketEvent } from "./hooks.js";
-import { socket } from "./socket.js";
+import { setPerms, socket } from "./socket.js";
 
 const TYPING_IDLE_MS = 1_500;
 
@@ -13,6 +14,11 @@ export function App() {
   const [identity, setIdentity] = useState<{ user: string; roomId: string } | null>(
     null,
   );
+
+  // Keep the outbound permission guard in step with who's logged in.
+  useEffect(() => {
+    setPerms(identity?.user ?? null);
+  }, [identity]);
 
   return (
     <div className="app">
@@ -50,6 +56,9 @@ function Header({
           {identity ? (
             <>
               <b>{identity.user}</b> in <b>#{identity.roomId}</b>
+              <span className={`role ${roleForUser(identity.user)}`}>
+                {roleForUser(identity.user)}
+              </span>
             </>
           ) : (
             "One contract. Validated both directions."
@@ -120,7 +129,9 @@ function JoinForm({
       {error && <p className="error">{error}</p>}
       <p className="hint">
         Open this page in two tabs with different names to see frames flow both
-        ways in the inspector.
+        ways in the inspector. Join as <b>admin</b> or <b>mod-you</b> to unlock the
+        delete button — the same <code>type-permission</code> bit map gates it here
+        and enforces it on the server.
       </p>
     </form>
   );
@@ -139,6 +150,22 @@ function Room({
   const [draft, setDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
   const bottom = useRef<HTMLDivElement>(null);
+
+  // The same bit map the server enforces with. Reading it here is a courtesy —
+  // hide the button no one is allowed to press — never the actual check.
+  const canModerate = useMemo(
+    () => P.has(permsForUser(identity.user), "chat.MANAGE_MESSAGES"),
+    [identity.user],
+  );
+
+  const remove = useCallback(
+    (id: string) => {
+      // Ack is `{ ok }`; the message leaves the UI via the `chat.deleted`
+      // broadcast, so one code path removes it for everyone.
+      void socket.modules.chat.deleteMessage({ roomId: identity.roomId, id });
+    },
+    [identity.roomId],
+  );
 
   // Re-join on mount (and after a reconnect) to hydrate history and presence.
   useEffect(() => {
@@ -169,6 +196,11 @@ function Room({
   useSocketEvent(
     socket.modules.room.presence,
     useCallback((p) => setMembers(p.members), []),
+  );
+
+  useSocketEvent(
+    socket.modules.chat.deleted,
+    useCallback((d) => setMessages((prev) => prev.filter((m) => m.id !== d.id)), []),
   );
 
   useSocketEvent(
@@ -253,6 +285,17 @@ function Room({
                 minute: "2-digit",
               })}
             </span>
+            {/* Rendered only when the contract's permission is held. The server
+                re-checks regardless — this button just hides what's not allowed. */}
+            {canModerate && (
+              <button
+                className="del"
+                title="Delete message (moderator)"
+                onClick={() => remove(m.id)}
+              >
+                ✕
+              </button>
+            )}
           </div>
         ))}
         <div ref={bottom} />

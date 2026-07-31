@@ -1,6 +1,17 @@
-import { SocketClient } from "@tahanabavi/typesocket";
+import { SocketClient, createPermissionMiddleware } from "@tahanabavi/typesocket";
 
 import { chatContracts } from "../../shared/contracts.js";
+import { P, permsForUser } from "../../shared/permissions.js";
+
+/**
+ * The actor's current bits. The client is module-scoped and outlives any one
+ * identity, so the guard reads through this mutable holder — `setPerms` is called
+ * on join. In a real app these come from the verified session, not the name.
+ */
+let currentPerms = 0n;
+export function setPerms(user: string | null): void {
+  currentPerms = user ? permsForUser(user) : 0n;
+}
 
 /**
  * One client for the whole app.
@@ -21,4 +32,13 @@ export const socket = new SocketClient(
     },
   },
   chatContracts,
+  {
+    // Defense in depth: the delete button is already hidden for non-mods, but
+    // this blocks the emit itself — even a hand-called one throws before it
+    // reaches the wire. The server still re-checks; this is UX only.
+    authorizeOutbound: createPermissionMiddleware({
+      getPermissions: () => currentPerms,
+      authorize: P.authorize,
+    }),
+  },
 );

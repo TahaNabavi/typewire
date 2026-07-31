@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@tahanabavi/type-permission": "workspace:*",
     "@tahanabavi/typesocket": "workspace:*",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
