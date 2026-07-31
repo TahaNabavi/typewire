@@ -45,6 +45,9 @@ importers:
 
   examples/chat:
     dependencies:
+      '@tahanabavi/type-permission':
+        specifier: workspace:*
+        version: link:../../packages/permission
       '@tahanabavi/typesocket':
         specifier: workspace:*
         version: link:../../packages/typesocket

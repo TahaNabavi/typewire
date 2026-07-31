@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { Server } from "socket.io";
 
 import { chatContracts, type Message } from "../shared/contracts.js";
+import { P, permsForUser, roleForUser } from "../shared/permissions.js";
 import { handle, push } from "./contract-bridge.js";
 
 const PORT = Number(process.env.PORT ?? 3102);
@@ -24,6 +25,8 @@ io.on("connection", (socket) => {
   /** Set on join. A socket belongs to at most one room in this demo. */
   let user: string | null = null;
   let room: string | null = null;
+  /** The actor's effective permission bits, derived from their name on join. */
+  let perms = 0n;
 
   const leaveCurrentRoom = () => {
     if (!room || !user) return;
@@ -45,6 +48,8 @@ io.on("connection", (socket) => {
 
     user = input.user;
     room = input.roomId;
+    // Same map the client uses — the server just doesn't trust the client's copy.
+    perms = permsForUser(user);
     void socket.join(room);
 
     const set = members.get(room) ?? new Set<string>();
@@ -55,7 +60,7 @@ io.on("connection", (socket) => {
       roomId: room,
       members: roomMembers(room),
     });
-    console.log(`[server] ${user} joined #${room}`);
+    console.log(`[server] ${user} joined #${room} as ${roleForUser(user)}`);
 
     // The return value is validated against the `ack` schema before it is sent.
     return {
@@ -89,6 +94,29 @@ io.on("connection", (socket) => {
     push(io.to(input.roomId), "chat.message", chatContracts.chat.message, message);
 
     return { id: message.id, sentAt: message.sentAt };
+  });
+
+  handle(socket, "chat.deleteMessage", chatContracts.chat.deleteMessage, (input) => {
+    // The gateway guard: read the requirement off the contract and authorize the
+    // actor's bits — the exact `P.authorize` the client used to show the button.
+    // The client's UI check is a courtesy; this is where it's actually enforced.
+    const need = chatContracts.chat.deleteMessage.permission;
+    if (need && !P.authorize(perms, need).granted) {
+      console.warn(`[server] ${user ?? "?"} denied chat.deleteMessage`);
+      return { ok: false };
+    }
+
+    const log = history.get(input.roomId);
+    const existed = log?.some((m) => m.id === input.id) ?? false;
+    if (existed && log) {
+      history.set(input.roomId, log.filter((m) => m.id !== input.id));
+      push(io.to(input.roomId), "chat.deleted", chatContracts.chat.deleted, {
+        roomId: input.roomId,
+        id: input.id,
+      });
+      console.log(`[server] ${user} deleted ${input.id} in #${input.roomId}`);
+    }
+    return { ok: existed };
   });
 
   handle(socket, "chat.setTyping", chatContracts.chat.setTyping, (input) => {

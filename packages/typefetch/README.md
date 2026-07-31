@@ -1,6 +1,6 @@
 # TypeFetch
 
-![TypeFetch v1.7.0 — Runtime Instrumentation & Overrides](./docs/assets/typefetch-v1.7.0-banner.png)
+![TypeFetch v1.8.0 — Contract-Linked Permissions](./docs/assets/typefetch-v1.8.0-banner.png)
 
 **TypeFetch** is a strongly typed HTTP client for TypeScript projects, built around **Zod** contracts.
 
@@ -43,6 +43,39 @@ const user = await api.user.getUser({
 * Markdown, HTML, and JSON test reports
 * CLI commands for project setup, endpoint listing, API testing, and release documentation
 * Versioned release documentation under `docs/releases`
+
+---
+
+## What's New in v1.8.0
+
+An endpoint may now carry an optional **`permission`** requirement, declared once
+on the contract — the flag names your frontend and backend both check:
+
+```ts
+export const contracts = {
+  message: {
+    remove: {
+      method: "DELETE",
+      path: "/messages/:id",
+      permission: { require: ["chat.MANAGE_MESSAGES"] }, // ← new, optional
+      request: z.object({ path: z.object({ id: z.string() }) }),
+      response: z.object({ removed: z.string() }),
+    },
+  },
+};
+```
+
+`PermissionRequirement` is `{ require?, any?, reason? }` — `require` needs *all*
+listed flags, `any` needs *at least one*. A server guard
+([`@tahanabavi/typewire-nestjs`](../nestjs)) reads it off the contract and rejects
+with a typed **403** naming the missing flags; the client can read the same key to
+pre-block a call before it leaves the browser. The flag names reference a
+[`@tahanabavi/type-permission`](../permission) bit map, but the type is
+**redeclared structurally**, so TypeFetch gains **no new dependency** — exactly
+how `type-devtools-core` redeclares transport types.
+
+Purely additive: endpoints without a `permission` key behave byte-for-byte as
+before. See [`docs/releases/v1.8.0.md`](./docs/releases/v1.8.0.md).
 
 ---
 
@@ -508,6 +541,72 @@ You can also set the token provider later:
 ```ts
 client.setTokenProvider(async () => "new-token");
 ```
+
+---
+
+## Permissions
+
+Where `auth` answers *"is there a token?"*, `permission` answers *"is this actor
+allowed?"* — declared once on the contract, enforced on the server and mirrored
+on the client. It is optional and additive: endpoints without it are unaffected.
+
+```ts
+const contracts = {
+  message: {
+    remove: {
+      method: "DELETE",
+      path: "/messages/:id",
+      auth: true,
+      permission: { require: ["chat.MANAGE_MESSAGES"] },
+      request: z.object({ path: z.object({ id: z.string() }) }),
+      response: z.object({ removed: z.string() }),
+    },
+  },
+} as const;
+```
+
+The `permission` value is a `PermissionRequirement`:
+
+| Field     | Type              | Meaning                                             |
+| --------- | ----------------- | --------------------------------------------------- |
+| `require` | `readonly string[]` | The actor must hold **all** of these flags (`hasAll`). |
+| `any`     | `readonly string[]` | The actor must hold **at least one** (`hasAny`).       |
+| `reason`  | `string`          | Human message, surfaced in the 403 body / audit log. |
+
+The flag names reference a [`@tahanabavi/type-permission`](../permission) bit
+map. To keep TypeFetch dependency-free, `PermissionRequirement` is **redeclared
+structurally** here — it is structurally identical to that package's type, so
+`P.authorize(perms, endpoint.permission)` type-checks with no adapter.
+
+**Server** — [`@tahanabavi/typewire-nestjs`](../nestjs) ships
+`createPermissionGuard({ getPermissions, authorize })` that reads the requirement
+off the contract and rejects with a `403` naming the missing flags.
+
+**Client** — register `createPermissionMiddleware` once and every endpoint with a
+`permission` key is pre-blocked before the request leaves the browser. It's the
+mirror of the server guard — inject where the bits are (`getPermissions`) and how
+to evaluate (`authorize`), and it stays dependency-free:
+
+```ts
+import { createPermissionMiddleware } from "@tahanabavi/typefetch";
+import { P } from "./permissions";
+
+client.use(createPermissionMiddleware({
+  getPermissions: () => store.getSnapshot().global, // keep it cheap; runs per request
+  authorize: P.authorize,
+  onDeny: ({ decision }) => console.warn("denied", decision.missing),
+}));
+
+// throws PermissionDeniedError *before* sending — only when the contract
+// declares a permission the user lacks; other endpoints are untouched:
+await api.message.remove({ path: { id } });
+```
+
+`PermissionDeniedError` carries `{ status: 403, missing, missingAny? }`, so a
+client block reads like the server's 403. The check is **UX only** — the server
+recomputes from the session and remains the real enforcement point. Same
+declaration, both ends. Full details in
+[`docs/releases/v1.8.0.md`](./docs/releases/v1.8.0.md).
 
 ---
 

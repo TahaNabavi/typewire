@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<style>
+  :root {
+    --bg0:#060a14; --bg1:#0a1120; --bg2:#0b1424;
+    --panel:#0d1626; --panel2:#0b1322;
+    --border:rgba(148,163,184,.12); --border2:rgba(148,163,184,.18);
+    --text:#e8eef8; --muted:#94a3b8; --dim:#5a6b83;
+    --blue:#60a5fa; --blue2:#3b82f6;
+    --purple:#a78bfa; --purple2:#8b5cf6;
+    --green:#4ade80; --green2:#22c55e;
+    --cyan:#22d3ee; --red:#f87171; --amber:#fbbf24;
+    --mono:"JetBrains Mono","Cascadia Code",Consolas,"SF Mono",Menlo,monospace;
+    --sans:-apple-system,"Segoe UI",Roboto,system-ui,"Helvetica Neue",Arial,sans-serif;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:1600px; height:850px; overflow:hidden; }
+  body {
+    font-family:var(--sans); color:var(--text);
+    background:
+      radial-gradient(1200px 700px at 82% -8%, rgba(59,130,246,.15), transparent 60%),
+      radial-gradient(900px 600px at 10% 108%, rgba(34,197,94,.14), transparent 60%),
+      radial-gradient(700px 500px at 96% 96%, rgba(139,92,246,.10), transparent 60%),
+      linear-gradient(160deg,var(--bg0),var(--bg1) 55%,var(--bg2));
+    position:relative;
+  }
+  .grid { position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(148,163,184,.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(148,163,184,.04) 1px, transparent 1px);
+    background-size:44px 44px; mask:radial-gradient(1400px 800px at 60% 40%, #000 30%, transparent 85%); }
+  .wrap { position:relative; width:100%; height:100%; padding:54px 56px; display:flex; gap:40px; }
+  .left { width:632px; flex:none; display:flex; flex-direction:column; }
+  .right { flex:1; display:flex; flex-direction:column; gap:16px; }
+
+  .pill { display:inline-flex; align-items:center; gap:11px; align-self:flex-start;
+    padding:9px 16px 9px 14px; border:1px solid rgba(96,165,250,.35); border-radius:999px;
+    background:rgba(59,130,246,.08); font-size:14.5px; font-weight:700; letter-spacing:.16em; color:#cfe0f7; }
+  .pill .bar { width:4px; height:15px; border-radius:2px; background:linear-gradient(var(--blue),var(--green)); }
+
+  h1 { font-weight:800; letter-spacing:-.03em; line-height:.98; margin-top:26px; }
+  h1 .tf { display:block; font-size:112px;
+    background:linear-gradient(180deg,#ffffff, #b9c6dc); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  h1 .ver { display:block; font-size:112px; margin-top:2px;
+    background:linear-gradient(96deg,#63a4ff 6%, #22c55e 62%, #4ade80 96%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .rule { width:118px; height:5px; border-radius:3px; margin:22px 0 16px;
+    background:linear-gradient(90deg,var(--blue2),var(--green2) 70%, transparent); }
+  .sub { font-size:33px; font-weight:700; letter-spacing:-.01em; color:#eaf1fb; }
+  .tag { font-size:18.5px; color:var(--muted); margin-top:9px; font-weight:500; }
+
+  .feats { margin-top:48px; display:flex; flex-direction:column; gap:19px; }
+  .feat { display:flex; gap:15px; align-items:flex-start; }
+  .ico { width:44px; height:44px; flex:none; border-radius:12px; display:grid; place-items:center; border:1px solid var(--border2); }
+  .ico svg { width:22px; height:22px; }
+  .ico.b { background:rgba(59,130,246,.12); box-shadow:inset 0 0 0 1px rgba(59,130,246,.15); }
+  .ico.p { background:rgba(139,92,246,.12); }
+  .ico.g { background:rgba(34,197,94,.12); }
+  .ico.c { background:rgba(34,211,238,.12); }
+  .feat .ttl { font-size:19.5px; font-weight:700; color:#eef4fd; }
+  .feat .dsc { font-size:14.5px; color:var(--muted); margin-top:2px; }
+  .feat .dsc b { color:#bfe6cd; font-weight:700; }
+
+  .win { border:1px solid var(--border); border-radius:16px; overflow:hidden;
+    background:linear-gradient(180deg,var(--panel),var(--panel2));
+    box-shadow:0 30px 70px -30px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.04); }
+  .win .bar { display:flex; align-items:center; gap:8px; padding:13px 16px; border-bottom:1px solid var(--border); background:rgba(255,255,255,.015); }
+  .dot { width:12px; height:12px; border-radius:50%; }
+  .dot.r{background:#ff5f57} .dot.y{background:#febc2e} .dot.g{background:#28c840}
+  .win .title { margin-left:8px; font-family:var(--mono); font-size:13.5px; color:var(--dim); }
+  .win .title b{ color:#9fb0c7; font-weight:600 }
+  .badge0 { margin-left:auto; font-size:12px; font-weight:700; color:#8ad0a0; letter-spacing:.02em;
+    padding:4px 10px; border-radius:999px; background:rgba(34,197,94,.10); border:1px solid rgba(34,197,94,.22); }
+
+  .tl { padding:8px 6px 10px; font-family:var(--mono); font-size:14px; }
+  .row { display:grid; grid-template-columns:66px 1fr 210px 60px 24px; align-items:center; gap:10px; padding:9px 16px; border-radius:9px; }
+  .row + .row { margin-top:1px; }
+  .row.head { color:var(--dim); font-size:11.5px; letter-spacing:.07em; padding-bottom:4px; }
+  .row.hl { background:linear-gradient(90deg, rgba(248,113,113,.13), rgba(248,113,113,.02)); box-shadow:inset 0 0 0 1px rgba(248,113,113,.22); }
+  .m { font-weight:700; }
+  .m.get{color:#7dd3fc} .m.post{color:#86efac} .m.del{color:#fca5a5}
+  .ep { color:#c7d3e6; } .ep .ns{ color:var(--dim) }
+  .req { text-align:right; color:#c4b5fd; } .req.none{ color:var(--dim) }
+  .st { font-weight:700; text-align:right; } .st.ok{color:var(--green)} .st.err{color:var(--red)}
+  .g { text-align:center; font-weight:800; } .g.ok{color:var(--green)} .g.err{color:var(--red)}
+
+  .cards { display:flex; gap:16px; }
+  .card { flex:1; border:1px solid var(--border); border-radius:16px; padding:16px 17px;
+    background:linear-gradient(180deg,var(--panel),var(--panel2)); box-shadow:inset 0 1px 0 rgba(255,255,255,.03); }
+  .card .ch { display:flex; align-items:center; gap:9px; font-size:14px; color:#a9b7cc; font-weight:600; }
+  .card .ch .k { margin-left:auto; font-family:var(--mono); font-size:11.5px; color:var(--dim); padding:3px 8px; border-radius:6px; background:rgba(148,163,184,.08); }
+  .code { font-family:var(--mono); font-size:13px; line-height:1.6; margin-top:12px; color:#cdd8e8; }
+  .code .kw{color:#c792ea} .code .fn{color:#82aaff} .code .pr{color:#7fdbca} .code .st{color:#c3e88d} .code .cm{color:#5a6b83} .code .nm{color:#86efac}
+
+  .strip { border:1px solid var(--border); border-radius:16px; padding:16px 20px; display:flex;
+    background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0)); gap:14px; }
+  .qi { flex:1; display:flex; align-items:center; gap:12px; }
+  .qi + .qi { border-left:1px solid var(--border); padding-left:18px; }
+  .qi .qc { width:34px; height:34px; border-radius:9px; flex:none; display:grid; place-items:center; background:rgba(148,163,184,.08); border:1px solid var(--border2); }
+  .qi .qc svg{ width:17px; height:17px }
+  .qi .qt { font-size:15px; font-weight:700; color:#eaf1fb; }
+  .qi .qd { font-size:12.5px; color:var(--muted); margin-top:1px; }
+</style>
+</head>
+<body>
+<div class="grid"></div>
+<div class="wrap">
+
+  <div class="left">
+    <span class="pill"><span class="bar"></span>NEW&nbsp;RELEASE</span>
+
+    <h1>
+      <span class="tf">TypeFetch</span>
+      <span class="ver">v1.8.0</span>
+    </h1>
+    <div class="rule"></div>
+    <div class="sub">Contract-Linked Permissions</div>
+    <div class="tag">Declare who may call an endpoint — once, on the contract. Additive, dependency-free.</div>
+
+    <div class="feats">
+      <div class="feat">
+        <div class="ico g"><svg viewBox="0 0 24 24" fill="none" stroke="#86efac" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 5 3.8 8.5 8 10 4.2-1.5 8-5 8-10V6l-8-3Z"/><path d="m9 12 2 2 4-4"/></svg></div>
+        <div><div class="ttl">One optional <b>permission</b> key</div><div class="dsc">`{ require?, any?, reason? }` written once on the contract</div></div>
+      </div>
+      <div class="feat">
+        <div class="ico b"><svg viewBox="0 0 24 24" fill="none" stroke="#7dd3fc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
+        <div><div class="ttl">Server enforces it</div><div class="dsc">The NestJS guard reads it → typed <b>403</b>, naming the missing flags</div></div>
+      </div>
+      <div class="feat">
+        <div class="ico p"><svg viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
+        <div><div class="ttl">Client pre-blocks</div><div class="dsc">Read it to grey out the button — no wasted round trip</div></div>
+      </div>
+      <div class="feat">
+        <div class="ico c"><svg viewBox="0 0 24 24" fill="none" stroke="#67e8f9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z"/></svg></div>
+        <div><div class="ttl">Zero new dependency</div><div class="dsc">Type redeclared structurally — no import of type-permission</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="right">
+    <div class="win">
+      <div class="bar">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="title">typefetch · <b>authorize</b></span>
+        <span class="badge0">● contract-driven</span>
+      </div>
+      <div class="tl">
+        <div class="row head"><span>METHOD</span><span>ENDPOINT</span><span style="text-align:right">REQUIRES</span><span style="text-align:right">RESULT</span><span></span></div>
+        <div class="row"><span class="m del">DEL</span><span class="ep"><span class="ns">message.</span>remove</span><span class="req">chat.MANAGE_MESSAGES</span><span class="st ok">200</span><span class="g ok">✓</span></div>
+        <div class="row hl"><span class="m post">POST</span><span class="ep"><span class="ns">post.</span>publish</span><span class="req">post.publish</span><span class="st err">403</span><span class="g err">✗</span></div>
+        <div class="row"><span class="m get">GET</span><span class="ep"><span class="ns">user.</span>getUser</span><span class="req none">— none —</span><span class="st ok">200</span><span class="g ok">✓</span></div>
+      </div>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <div class="ch">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#86efac" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 5 3.8 8.5 8 10 4.2-1.5 8-5 8-10V6l-8-3Z"/></svg>
+          on the contract
+          <span class="k">EndpointDef</span>
+        </div>
+        <div class="code">
+<span class="pr">remove</span>: {<br>
+&nbsp;&nbsp;<span class="pr">method</span>: <span class="st">"DELETE"</span>, <span class="pr">path</span>: <span class="st">"/messages/:id"</span>,<br>
+&nbsp;&nbsp;<span class="pr">permission</span>: { <span class="pr">require</span>: [<span class="st">"chat.MANAGE_MESSAGES"</span>] },<br>
+&nbsp;&nbsp;<span class="pr">request</span>, <span class="pr">response</span>,<br>
+}
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#82aaff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 6 3 12 8 18"/><polyline points="16 6 21 12 16 18"/></svg>
+          one check, both ends
+        </div>
+        <div class="code">
+<span class="cm">// server guard &amp; client pre-flight</span><br>
+<span class="fn">P</span>.<span class="fn">authorize</span>(perms, endpoint.<span class="nm">permission</span>);<br>
+<span class="cm">// → { granted, missing: [...] }</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="strip">
+      <div class="qi"><div class="qc"><svg viewBox="0 0 24 24" fill="none" stroke="#86efac" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div><div><div class="qt">Written once</div><div class="qd">on the contract</div></div></div>
+      <div class="qi"><div class="qc"><svg viewBox="0 0 24 24" fill="none" stroke="#7dd3fc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div><div><div class="qt">Server 403</div><div class="qd">names missing flags</div></div></div>
+      <div class="qi"><div class="qc"><svg viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></div><div><div class="qt">Client pre-block</div><div class="qd">no round trip</div></div></div>
+      <div class="qi"><div class="qc"><svg viewBox="0 0 24 24" fill="none" stroke="#67e8f9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></div><div><div class="qt">Additive</div><div class="qd">byte-identical without it</div></div></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

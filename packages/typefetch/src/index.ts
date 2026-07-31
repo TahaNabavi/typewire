@@ -5,6 +5,7 @@ export * from "./middlewares/retry";
 export * from "./middlewares/auth";
 export * from "./middlewares/cache";
 export * from "./middlewares/encryption";
+export * from "./middlewares/permission";
 export * from "./utils/make-request-schema";
 export * from "./modules/tester/index";
 export { defineTypeFetchTestConfig } from "./cli/config";

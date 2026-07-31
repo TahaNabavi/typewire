@@ -367,8 +367,31 @@ export type SocketClientConfig = {
   ioOptions?: Record<string, unknown>;
 };
 
+/**
+ * A synchronous pre-emit authorization hook. Runs on every outbound frame,
+ * *before* override / middleware / validation. **Throwing from it blocks the
+ * emit** and the error surfaces at the call site — unlike a {@link SocketMiddleware},
+ * whose throws are swallowed and whose `false` return drops the frame silently.
+ *
+ * Deliberately synchronous: a fire-and-forget emit (`void`, no ack) resolves
+ * synchronously, so an async check couldn't stop it in time. Read the actor's
+ * bits from an in-memory source (a store snapshot, a decoded token).
+ */
+export type OutboundAuthorizer = (frame: {
+  eventId: string;
+  event: string;
+  def: ClientToServerDef;
+  payload: unknown;
+}) => void;
+
 export type SocketClientOptions = {
   middlewares?: SocketMiddleware[];
+  /**
+   * A pre-emit guard that may throw to block an outbound frame — used by
+   * `createPermissionMiddleware` to enforce a `client->server` event's
+   * `permission` key client-side. See {@link OutboundAuthorizer}.
+   */
+  authorizeOutbound?: OutboundAuthorizer;
   onConnect?: (info: { socketId?: string; attempt: number }) => void;
   onDisconnect?: (reason: string) => void;
   onConnectError?: (error: ErrorLike) => void;

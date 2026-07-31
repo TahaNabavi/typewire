@@ -71,6 +71,25 @@ export const chatContracts = defineSocketContracts({
       payload: messageSchema,
     },
 
+    /**
+     * Delete a message. Gated by the contract's `permission` key — a moderator
+     * capability from `shared/permissions.ts`. The server guard reads this key
+     * to reject the frame; the client reads it to hide the button. Written once.
+     */
+    deleteMessage: {
+      direction: "client->server",
+      description: "Remove a message from the room (moderators only).",
+      permission: { require: ["chat.MANAGE_MESSAGES"] },
+      request: z.object({ roomId: z.string(), id: z.string() }),
+      ack: z.object({ ok: z.boolean() }),
+    },
+
+    /** A message was removed; every client drops it from the room. */
+    deleted: {
+      direction: "server->client",
+      payload: z.object({ roomId: z.string(), id: z.string() }),
+    },
+
     /** Typing signal. High-frequency, so deliberately no ack. */
     setTyping: {
       direction: "client->server",

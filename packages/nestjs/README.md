@@ -199,6 +199,72 @@ export class ContractAuthGuard implements CanActivate {
 providers: [{ provide: APP_GUARD, useClass: ContractAuthGuard }]
 ```
 
+## Permission guard *(v0.2.0)*
+
+Where `auth` answers *"is there a token?"*, the **permission guard** answers *"is
+this actor allowed?"* — enforcing the optional [`permission`
+key](../typefetch#permissions) an endpoint declares on its contract, using the
+**same** [`@tahanabavi/type-permission`](../permission) bit map the frontend
+checks. The route can't drift from the button.
+
+`createPermissionGuard` builds the guard from two functions you provide — where to
+read the actor's bits, and how to evaluate a requirement (pass your permission
+instance's `P.authorize` straight through):
+
+```ts
+import { APP_GUARD } from "@nestjs/core";
+import { createPermissionGuard } from "@tahanabavi/typewire-nestjs";
+import { P } from "./permissions"; // your definePermissions() bit map
+
+export const PermissionGuard = createPermissionGuard({
+  // whatever your auth layer put on the request (decoded JWT, session lookup…)
+  getPermissions: (req) => req.user.perms as bigint,
+  authorize: P.authorize,
+  // audit-log seam — denials are a security signal
+  onDeny: ({ decision, context }) =>
+    logger.warn("permission denied", { missing: decision.missing }),
+});
+
+// app.module.ts — enforce everywhere
+@Module({ providers: [{ provide: APP_GUARD, useClass: PermissionGuard }] })
+export class AppModule {}
+```
+
+With `@TypeFetchEndpoint(contracts.message.remove)`, the guard reads
+`endpoint.permission` automatically — no extra decorator to forget. A route with
+**no** requirement (no contract `permission`, no `@RequirePermission`) always
+passes: enforcement is purely additive.
+
+On a denial it throws a `ForbiddenException` whose body names the missing flags:
+
+```jsonc
+{ "statusCode": 403, "code": "FORBIDDEN",
+  "message": "Insufficient permissions", "missing": ["chat.MANAGE_MESSAGES"] }
+```
+
+Customize the thrown error with `onForbidden`. Both `getPermissions` and
+`authorize` may be async.
+
+### `@RequirePermission()` — routes without a contract
+
+For a route that isn't bound to a contract (or to **override** a contract's
+`permission`), declare the requirement inline. Handler metadata wins over the
+class, and `@RequirePermission` wins over the contract's `permission`:
+
+```ts
+@Post("ban")
+@RequirePermission({ require: ["guild.KICK_MEMBERS"] })
+banUser() { /* ... */ }
+
+// any-of: at least one flag
+@RequirePermission({ any: ["post.publish", "post.moderate"] })
+publish() { /* ... */ }
+```
+
+The guard depends only on typefetch — `PermissionDecisionLike` is declared
+structurally, so passing `type-permission`'s `P.authorize` needs no adapter. See
+[`docs/releases/v0.2.0.md`](./docs/releases/v0.2.0.md).
+
 ## Flat (non-structured) contracts
 
 A request schema that isn't shaped as `{ path, query, body, headers }` is "flat" — the client sends the whole input as the JSON body, and the server validates `req.body` against the whole schema. Both styles work with both decorators.
@@ -376,12 +442,15 @@ Options: `bearerAuth` (default on), `includeValidationError` (default on), `serv
 | `ResponseEnvelopeInterceptor` / `ContractEnvelopeExceptionFilter` | interceptor / filter | Response-envelope success + error wrapping |
 | `decryptRequestBody` / `encryptResponseData` / `encryptValue` / `decryptValue` | functions | Field-level encryption building blocks |
 | `getContractEndpoint` | helper | Read the bound endpoint in guards/interceptors |
+| `createPermissionGuard` | function | Build a guard enforcing the contract's `permission` key → typed 403 |
+| `RequirePermission` | decorator | Declare/override a permission requirement on a route |
+| `PermissionGuardConfig` / `PermissionDecisionLike` | types | Config and decision shapes for the permission guard |
 | `setupContractSwagger` | helper | Build + mount Swagger UI from contracts |
 | `buildOpenApiDocument` | function | Contracts → plain OpenAPI 3.0 document |
 | `InferRequest` / `InferResponse` / `ContractHandler` | types | End-to-end handler typing |
 | `ContractValidationException` / `ContractResponseViolationException` | exceptions | Thrown on 400 / 500 |
 | `formatZodIssues`, `coerceInput`, `validateRequest` | utilities | Building blocks for custom pipelines |
-| `TYPEFETCH_ENDPOINT_METADATA`, `TYPEFETCH_OPTIONS_METADATA`, `TYPEFETCH_MODULE_OPTIONS`, `PARSED_REQUEST_KEY` | constants | Metadata & DI tokens |
+| `TYPEFETCH_ENDPOINT_METADATA`, `TYPEFETCH_OPTIONS_METADATA`, `TYPEFETCH_MODULE_OPTIONS`, `TYPEFETCH_PERMISSION_METADATA`, `PARSED_REQUEST_KEY` | constants | Metadata & DI tokens |
 
 ## License
 
