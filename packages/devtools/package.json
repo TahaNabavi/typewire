@@ -1,6 +1,6 @@
 {
   "name": "@tahanabavi/type-devtools",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": false,
   "description": "React inspector panel for the TypeWire ecosystem — one timeline for HTTP and WS, a live query cache, a runtime override editor, and theme/sound settings.",
   "author": {

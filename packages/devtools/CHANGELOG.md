@@ -1,5 +1,12 @@
 # @tahanabavi/type-devtools
 
+## 1.0.1
+
+### Patch Changes
+
+- Updated dependencies [7e52d2b]
+  - @tahanabavi/type-devtools-core@1.1.0
+
 ## 1.0.0
 
 ### Major Changes

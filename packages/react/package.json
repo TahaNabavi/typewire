@@ -1,6 +1,6 @@
 {
   "name": "@tahanabavi/typefetch-react",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": false,
   "description": "React adapter for the TypeFetch query engine — useQuery, useMutation, TypeFetchProvider.",
   "author": {
