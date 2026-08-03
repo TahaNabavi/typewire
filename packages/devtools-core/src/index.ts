@@ -31,6 +31,7 @@ export type {
   InspectorEntry,
   InspectorEvent,
   InspectorOverride,
+  InspectorProgress,
   InspectorSource,
   Instrumentable,
   MutationSnapshot,

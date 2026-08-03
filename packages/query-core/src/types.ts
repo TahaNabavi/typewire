@@ -1,6 +1,26 @@
 import type { QueryKey } from "./hash-key";
 
 /**
+ * One transfer-progress tick. Structurally identical to typefetch's
+ * `TransferProgress`, redeclared for the same reason as everything else in this
+ * file — the engine describes what it needs and imports no transport.
+ *
+ * `total` and `percent` are absent when the length is unknown, which is the
+ * normal case for a cross-origin download whose `Content-Length` the server did
+ * not expose. Render an indeterminate bar when `lengthComputable` is false.
+ */
+export type TransferProgressLike = {
+  phase: "upload" | "download";
+  loaded: number;
+  total?: number;
+  percent?: number;
+  lengthComputable: boolean;
+};
+
+/** Receives each {@link TransferProgressLike} tick. */
+export type ProgressHandlerLike = (progress: TransferProgressLike) => void;
+
+/**
  * Per-call options forwarded to the transport. Structurally identical to
  * typefetch's `RequestOptions`, redeclared here so the engine has no value
  * import from any transport package.
@@ -8,7 +28,21 @@ import type { QueryKey } from "./hash-key";
 export type EndpointCallOptions = {
   signal?: AbortSignal;
   timeout?: number;
+  onUploadProgress?: ProgressHandlerLike;
+  onDownloadProgress?: ProgressHandlerLike;
 };
+
+/**
+ * The latest progress in each direction for one mutation.
+ *
+ * Both halves are tracked separately because a single call can do both — an
+ * upload that responds with the processed file — and a UI usually wants to show
+ * them as distinct stages rather than one merged number.
+ */
+export interface MutationProgress {
+  upload?: TransferProgressLike;
+  download?: TransferProgressLike;
+}
 
 /** The callable half of a source: input in, promise out. */
 export interface CallableContract<TInput = any, TOutput = any> {
@@ -180,6 +214,12 @@ export interface MutationState<TData = unknown, TError = Error, TInput = unknown
   /** The input of the most recent `mutate` call. */
   variables: TInput | undefined;
   failureCount: number;
+  /**
+   * Latest transfer progress, present only while `trackProgress` is enabled and
+   * the transport has reported at least one tick. Cleared when a new `mutate`
+   * starts and by `reset`.
+   */
+  progress?: MutationProgress;
 }
 
 /** What a mutation observer exposes to the UI. */
@@ -231,6 +271,29 @@ export interface MutationObserverOptions<
    * the client-level `relations` map declares.
    */
   invalidates?: string[];
+
+  /**
+   * Mirror transfer progress into `result.progress` so a component can render a
+   * bar straight from the mutation's state.
+   *
+   * `true` tracks both directions; `"upload"` or `"download"` narrows it to
+   * one. Off by default, and for a reason on each side: upload progress
+   * switches the request to `XMLHttpRequest`, and download progress re-streams
+   * the response body. Neither is free, and neither is wanted by the mutations
+   * that just post a JSON form.
+   */
+  trackProgress?: boolean | "upload" | "download";
+
+  /**
+   * Raw progress ticks, if you would rather drive an imperative UI than read
+   * `result.progress`. Enabling either of these implies tracking for that
+   * direction.
+   *
+   * Only the most recent `mutate` reports progress — a superseded call goes
+   * quiet, matching how `data` and `error` already ignore stale calls.
+   */
+  onUploadProgress?: ProgressHandlerLike;
+  onDownloadProgress?: ProgressHandlerLike;
 }
 
 /**

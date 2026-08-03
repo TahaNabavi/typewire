@@ -1,5 +1,11 @@
 export * from "./types";
 export * from "./client";
+export * from "./schemas";
+export { isXhrAvailable, xhrRequest } from "./transport/xhr";
+export {
+  parseContentDisposition,
+  contentLengthOf,
+} from "./utils/response-body";
 export * from "./middlewares/logging";
 export * from "./middlewares/retry";
 export * from "./middlewares/auth";

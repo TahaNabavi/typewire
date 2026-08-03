@@ -34,6 +34,7 @@ export function App({ stack }: { stack: Stack }) {
           entry. The second visit to a user is served from cache. */}
       <UserCard userId={userId} stack={stack} />
       <ChatCard stack={stack} />
+      <TransferCard stack={stack} />
 
       <TypeDevtools
         bridge={stack.bridge}
@@ -150,5 +151,131 @@ function ChatCard({ stack }: { stack: Stack }) {
         timeline below.
       </p>
     </section>
+  );
+}
+
+function TransferCard({ stack }: { stack: Stack }) {
+  const [file, setFile] = useState<File | null>(null);
+  const [uploadedId, setUploadedId] = useState<string | null>(null);
+
+  // `trackProgress` mirrors each tick into the mutation's own state, so the bar
+  // below re-renders through the same subscription as `data` and `error`. No
+  // `useState` for progress, and no second hook.
+  const upload = useMutation(stack.upload, {
+    trackProgress: "upload",
+    onSuccess: (data) => setUploadedId(data.id),
+  });
+
+  // The download is a plain mutation because it is an action, not cached state.
+  // `responseType: "file"` on the contract is what makes `data` a
+  // `{ blob, filename, contentType, size }` instead of parsed JSON.
+  const download = useMutation(stack.download, { trackProgress: "download" });
+
+  const uploadPercent = upload.progress?.upload?.percent;
+  const downloadPercent = download.progress?.download?.percent;
+
+  return (
+    <section className="card">
+      <div className="card-head">
+        <h2>Progress &amp; response types</h2>
+        <span className="badge http">real network</span>
+      </div>
+
+      <div className="row">
+        <input
+          type="file"
+          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+        />
+        <button
+          disabled={!file || upload.isPending}
+          onClick={() => file && upload.mutate({ body: { file } })}
+        >
+          {upload.isPending ? "uploading…" : "upload"}
+        </button>
+      </div>
+
+      {/* `percent` is undefined when the length is unknown — an indeterminate
+          bar, not a zero. */}
+      {upload.progress && (
+        <Bar label="upload" percent={uploadPercent} />
+      )}
+
+      {upload.isSuccess && upload.data && (
+        <p className="muted">
+          stored <code>{upload.data.id}</code> — {upload.data.bytes} bytes
+        </p>
+      )}
+      {upload.isError && <p className="error">{upload.error?.message}</p>}
+
+      <div className="row">
+        <button
+          className="ghost"
+          disabled={!uploadedId || download.isPending}
+          onClick={() =>
+            uploadedId && download.mutate({ path: { id: uploadedId } })
+          }
+        >
+          {download.isPending ? "downloading…" : "download it back"}
+        </button>
+        {download.isSuccess && download.data && (
+          <button
+            onClick={() => {
+              // The whole point of `responseType: "file"`: the filename is
+              // already parsed out of Content-Disposition.
+              const url = URL.createObjectURL(download.data!.blob);
+              Object.assign(document.createElement("a"), {
+                href: url,
+                download: download.data!.filename ?? "download.bin",
+              }).click();
+              URL.revokeObjectURL(url);
+            }}
+          >
+            save “{download.data.filename ?? "download.bin"}”
+          </button>
+        )}
+      </div>
+
+      {download.progress && (
+        <Bar label="download" percent={downloadPercent} />
+      )}
+
+      {download.isSuccess && download.data && (
+        <dl className="kv">
+          <dt>filename</dt>
+          <dd>{download.data.filename ?? <em>not exposed</em>}</dd>
+          <dt>type</dt>
+          <dd>{download.data.contentType ?? "—"}</dd>
+          <dt>size</dt>
+          <dd>{download.data.size} bytes</dd>
+        </dl>
+      )}
+      {download.isError && <p className="error">{download.error?.message}</p>}
+
+      <p className="hint">
+        These two endpoints are the only ones here that touch the network —
+        progress needs bytes actually moving, and an override answers before the
+        transport runs. Passing <code>onUploadProgress</code> is what moves the
+        request from <code>fetch</code> to <code>XMLHttpRequest</code>, since{" "}
+        <code>fetch</code> has no upload-progress API.
+      </p>
+    </section>
+  );
+}
+
+/** A determinate bar when the length is known, an indeterminate one when not. */
+function Bar({ label, percent }: { label: string; percent?: number }) {
+  return (
+    <div className="bar-row">
+      <span className="bar-label">{label}</span>
+      <div className={percent === undefined ? "bar indeterminate" : "bar"}>
+        <div
+          className="bar-fill"
+          style={percent === undefined ? undefined : { width: `${percent}%` }}
+        />
+      </div>
+      <span className="bar-value">
+        {percent === undefined ? "…" : `${percent.toFixed(0)}%`}
+      </span>
+    </div>
   );
 }

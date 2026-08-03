@@ -41,8 +41,10 @@ export type {
   InferOutput,
   MutationObserverOptions,
   MutationObserverResult,
+  MutationProgress,
   MutationState,
   MutationStatus,
+  ProgressHandlerLike,
   QueryCacheEvent,
   QueryEndpoint,
   QueryEvent,
@@ -56,4 +58,5 @@ export type {
   RelationsConfig,
   RetryDelayValue,
   RetryValue,
+  TransferProgressLike,
 } from "./types";

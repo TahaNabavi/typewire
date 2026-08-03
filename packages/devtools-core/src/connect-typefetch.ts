@@ -61,6 +61,18 @@ export function connectTypeFetch(
             meta: { status: event.status },
           });
           return;
+        case "progress":
+          // Routed to the progress channel, not `record`. Ticks arrive far too
+          // often to belong in the event log — see `recordProgress`.
+          bridge.recordProgress("http", event.requestId, {
+            phase: event.phase,
+            loaded: event.loaded,
+            total: event.total,
+            percent: event.percent,
+            lengthComputable: event.lengthComputable,
+            ts: Date.now(),
+          });
+          return;
       }
     },
     resolveOverride: (endpointId) => {

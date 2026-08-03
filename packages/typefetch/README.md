@@ -1,6 +1,6 @@
 # TypeFetch
 
-![TypeFetch v1.8.0 — Contract-Linked Permissions](./docs/assets/typefetch-v1.8.0-banner.png)
+![TypeFetch v1.9.0 — Response Types & Transfer Progress](./docs/assets/typefetch-v1.9.0-banner.png)
 
 **TypeFetch** is a strongly typed HTTP client for TypeScript projects, built around **Zod** contracts.
 
@@ -24,6 +24,8 @@ const user = await api.user.getUser({
 * Automatic path parameter injection
 * Automatic query string generation
 * JSON and `form-data` request bodies
+* JSON, text, blob, arrayBuffer, formData, file, stream and raw response types
+* Upload progress (via `XMLHttpRequest`) and download progress
 * Middleware pipeline
 * Built-in retry engine with backoff strategies
 * Timeout and `AbortController` support
@@ -43,6 +45,51 @@ const user = await api.user.getUser({
 * Markdown, HTML, and JSON test reports
 * CLI commands for project setup, endpoint listing, API testing, and release documentation
 * Versioned release documentation under `docs/releases`
+
+---
+
+## What's New in v1.9.0
+
+Two additions, both fully backward compatible.
+
+**1. Response types.** An endpoint can declare how its body is decoded:
+
+```ts
+downloadPdf: {
+  method: "GET",
+  path: "/reports/:id/pdf",
+  responseType: "blob",   // ← new: json | text | blob | arrayBuffer
+  response: zBlob(),      //   | formData | file | stream | response
+}
+```
+
+`responseType: "file"` goes one step further and hands back
+`{ blob, filename, contentType, size }`, with `filename` already parsed out of
+`Content-Disposition`. See [Response Types](#response-types).
+
+**2. Upload and download progress**, as per-request options:
+
+```ts
+await api.media.upload(input, {
+  onUploadProgress: ({ percent }) => setProgress(percent ?? 0),
+});
+```
+
+`fetch` has no upload-progress API, so passing `onUploadProgress` switches that
+request to `XMLHttpRequest` — middleware is unaffected, and requests without it
+keep the unchanged `fetch` path. In React, `useMutation(endpoint, {
+trackProgress: "upload" })` puts it directly in the mutation's state. See
+[Upload and Download Progress](#upload-and-download-progress).
+
+**Two fixes**, both behavior changes worth reading before upgrading:
+
+* Failed responses are no longer decoded with `res.json()` before their status is
+  checked, so an HTML 502 or an empty 401 now produces a `RichError` carrying
+  `status` instead of a raw `SyntaxError`. See
+  [Non-JSON error bodies](#non-json-error-bodies).
+* `onError` now fires **once per failed request** instead of once per layer that
+  saw the error — a request with `maxRetries: 2` called it four times. See
+  [Error Handling](#error-handling).
 
 ---
 
@@ -865,6 +912,14 @@ Handled error types include:
 * Timeout errors
 * Retry exhaustion
 
+`onError` fires **exactly once per failed request** — after retries are
+exhausted, not once per attempt.
+
+> **Changed in v1.9.0.** It previously fired once per layer that saw the error on
+> its way out: twice for a plain HTTP failure, and once per attempt plus one when
+> retries were configured (a request with `maxRetries: 2` called it four times).
+> If you were compensating for the duplicates, remove that.
+
 Example:
 
 ```ts
@@ -878,6 +933,28 @@ try {
   }
 }
 ```
+
+### Non-JSON error bodies
+
+A failed response is read as text and *then* parsed, never with `res.json()`
+directly. Real failures are frequently not JSON — a 502 from a proxy is an HTML
+page, a 401 from a gateway is often empty — and the HTTP status is the single
+most useful fact about them.
+
+* JSON body → parsed, and `data` typed against the endpoint's `errors` map.
+* Anything else → the raw text lands in `error.detail`.
+* Empty body → still a `RichError` carrying `status`.
+
+`message` falls back through the body's `message`, then `statusText`, then
+`HTTP <status>`.
+
+This applies whatever the endpoint's `responseType` is: a `blob` endpoint still
+reports its 404 as JSON.
+
+> **Changed in v1.9.0.** Before this, the body was decoded with `res.json()`
+> *before* the status was checked, so any non-JSON failure threw a raw
+> `SyntaxError` and the status never reached the caller. If you have a `catch`
+> that special-cases that `SyntaxError`, it now receives a `RichError` instead.
 
 ---
 
@@ -985,6 +1062,172 @@ await api.user.uploadAvatar({
 ```
 
 When using `form-data`, TypeFetch does not force the `Content-Type: application/json` header.
+
+For a progress bar on the upload, see [Upload and Download Progress](#upload-and-download-progress).
+
+---
+
+## Response Types
+
+By default a response body is read as JSON. Set `responseType` on the endpoint to
+read it as something else:
+
+```ts
+import { z } from "zod";
+import { zBlob, zFile } from "@tahanabavi/typefetch";
+
+const contracts = {
+  report: {
+    downloadPdf: {
+      method: "GET",
+      path: "/reports/:id/pdf",
+      responseType: "blob", // ← new
+      request: z.object({ path: z.object({ id: z.string() }) }),
+      response: zBlob(),
+    },
+  },
+} as const;
+
+const pdf = await api.report.downloadPdf({ path: { id: "42" } });
+// pdf: Blob
+```
+
+| `responseType`  | Resolves to                                  | Schema helper     |
+| --------------- | -------------------------------------------- | ----------------- |
+| `"json"`        | parsed JSON *(default)*                      | any Zod schema    |
+| `"text"`        | `string`                                     | `z.string()`      |
+| `"blob"`        | `Blob`                                       | `zBlob()`         |
+| `"arrayBuffer"` | `ArrayBuffer`                                | `zArrayBuffer()`  |
+| `"formData"`    | `FormData`                                   | `zFormData()`     |
+| `"file"`        | `{ blob, filename, contentType, size }`      | `zFile()`         |
+| `"stream"`      | `ReadableStream \| null` *(undrained)*       | `zStream()`       |
+| `"response"`    | the whole `Response` *(untouched)*           | `zResponse()`     |
+
+`responseType` lives on the **contract**, not on the call. The decoded value is
+what the endpoint's `response` schema validates, so a per-call override would
+silently invalidate the endpoint's inferred return type.
+
+### Schema helpers
+
+Write `response: zBlob()`, not `response: z.instanceof(Blob)`. The latter reads
+the global when the module is *evaluated*, so merely importing a contract that
+uses it throws a `ReferenceError` anywhere `Blob` is absent — older Node, and any
+server-side render that loads your shared contract file. Every helper here defers
+that lookup into the validator, so the schema is always constructible.
+
+### Downloading a file
+
+`responseType: "file"` returns the blob together with the metadata you would
+otherwise re-derive from the response headers by hand:
+
+```ts
+const { blob, filename, contentType, size } = await api.report.downloadFile({
+  path: { id: "42" },
+});
+
+const url = URL.createObjectURL(blob);
+Object.assign(document.createElement("a"), {
+  href: url,
+  download: filename ?? "report.pdf",
+}).click();
+URL.revokeObjectURL(url);
+```
+
+`filename` is parsed from `Content-Disposition`, preferring the RFC 5987
+`filename*` form, with any directory component stripped. It is `undefined` when
+the header is absent — **including** the common cross-origin case where the
+server did not send `Access-Control-Expose-Headers: Content-Disposition`, which
+makes the header invisible to the browser even though it was sent. Always keep a
+fallback name.
+
+### What is skipped for non-JSON types
+
+`setResponseWrapper` and `useResponseTransform` apply to `"json"` and `"text"`
+only. Unwrapping an envelope from a `Blob`, or spreading one into a transform
+written for records, would corrupt exactly the payloads these response types
+exist for.
+
+Error responses ignore `responseType` entirely. A 404 from a blob endpoint is
+still JSON, so failures are always read defensively — see
+[Error Handling](#error-handling).
+
+---
+
+## Upload and Download Progress
+
+Pass `onUploadProgress` / `onDownloadProgress` as **per-request** options —
+progress is a call-site concern, not a contract fact:
+
+```ts
+await api.media.upload(
+  { body: { file } },
+  {
+    onUploadProgress: ({ percent, loaded, total }) => {
+      setProgress(percent ?? 0);
+    },
+  },
+);
+```
+
+Each tick is a `TransferProgress`:
+
+```ts
+type TransferProgress = {
+  phase: "upload" | "download";
+  loaded: number;            // bytes so far
+  total?: number;            // only when the length is known
+  percent?: number;          // 0–100, two decimals, only when known
+  lengthComputable: boolean; // false → render an indeterminate bar
+};
+```
+
+### How upload progress works
+
+**`fetch` cannot report upload progress** — there is no such API, and the
+streaming-request-body workaround (`ReadableStream` body + `duplex: "half"`) is
+Chromium-only and requires HTTP/2.
+
+So when — and only when — you pass `onUploadProgress`, TypeFetch swaps the final
+transport for `XMLHttpRequest`, which can. Your middleware is unaffected: the
+chain still receives the same context and is still handed a `Response`. A request
+without the handler takes the unchanged `fetch` path.
+
+Three consequences worth knowing:
+
+* **Node and SSR have no `XMLHttpRequest`.** The request still runs over `fetch`
+  and the handler is never called. TypeFetch warns once so the silence isn't
+  mistaken for a stalled upload.
+* **Some `RequestInit` fields have no XHR equivalent** and are not carried over:
+  `cache`, `mode`, `redirect`, `referrerPolicy`, `integrity`. `credentials:
+  "include"` maps to `withCredentials`.
+* **Retries restart progress.** Each attempt re-sends the whole body and begins
+  with a `loaded: 0` tick, so a bar visibly resets rather than appearing stuck.
+
+### Download progress and CORS
+
+Download progress runs on the normal `fetch` path by counting bytes off
+`res.body`. `total` and `percent` require a readable `Content-Length` — and
+cross-origin, that means the server must also list it in
+`Access-Control-Expose-Headers`. Without it you still get `loaded` ticks, with
+`lengthComputable: false`.
+
+It is ignored for `responseType: "stream"` and `"response"`, which hand you the
+undrained body — counting bytes there would consume the stream you asked to own.
+
+### In React
+
+`@tahanabavi/typefetch-react` reads progress straight off the mutation's state,
+so no `useState` of your own:
+
+```tsx
+const upload = useMutation(api.media.upload, { trackProgress: "upload" });
+
+<progress value={upload.progress?.upload?.percent ?? 0} max={100} />;
+```
+
+`trackProgress` accepts `true` (both directions), `"upload"`, or `"download"`.
+It is off by default because neither side is free: upload tracking moves the
+request to XHR, download tracking re-streams the response body.
 
 ---
 
@@ -1336,10 +1579,12 @@ function.
 ```ts
 const stop = client.instrument({
   on(event) {
-    // event.type: "start" | "success" | "error"
-    // start:   { requestId, endpointId, method, url, input, timestamp }
-    // success: { requestId, endpointId, data, durationMs, fromMock }
-    // error:   { requestId, endpointId, status?, error, durationMs }
+    // event.type: "start" | "success" | "error" | "progress"
+    // start:    { requestId, endpointId, method, url, input, timestamp }
+    // success:  { requestId, endpointId, data, durationMs, fromMock }
+    // error:    { requestId, endpointId, status?, error, durationMs }
+    // progress: { requestId, endpointId, phase, loaded, total?, percent?,
+    //             lengthComputable, durationMs }
     console.log(event.type, event.endpointId);
   },
 });
@@ -1348,6 +1593,11 @@ stop(); // detach later
 ```
 
 `requestId` correlates a request's `start` with its `success`/`error`.
+
+`progress` events are emitted **only** for requests that were given an
+`onUploadProgress` / `onDownloadProgress` handler. Attaching instrumentation
+never causes progress tracking on its own — opening devtools must not change
+which transport a request uses or re-stream a body nobody asked to measure.
 
 ### Runtime overrides
 
@@ -1574,6 +1824,8 @@ docs/
     v1.6.0.md
     v1.6.7.md
     v1.7.0.md
+    v1.8.0.md
+    v1.9.0.md
 ```
 
 ## Notes

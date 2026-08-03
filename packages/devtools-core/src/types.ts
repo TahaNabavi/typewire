@@ -35,6 +35,24 @@ export interface InspectorEvent {
 }
 
 /**
+ * The most recent transfer progress for one in-flight call.
+ *
+ * Progress is stored latest-only, outside the event log. A single large upload
+ * emits progress continuously; appending each tick would evict the entire real
+ * event history from the ring buffer within one request, which is the opposite
+ * of what an inspector is for.
+ */
+export interface InspectorProgress {
+  phase: "upload" | "download";
+  loaded: number;
+  total?: number;
+  percent?: number;
+  lengthComputable: boolean;
+  /** When this tick was recorded (ms). */
+  ts: number;
+}
+
+/**
  * How one collapsed timeline row looks: every event sharing a correlation id,
  * reduced to a single request/frame.
  */
@@ -50,6 +68,8 @@ export interface InspectorEntry {
   input?: unknown;
   output?: unknown;
   error?: unknown;
+  /** Latest transfer progress, while the call is still in flight. */
+  progress?: InspectorProgress;
   events: InspectorEvent[];
 }
 
@@ -105,6 +125,17 @@ export type TypeFetchRequestEvent =
       endpointId: string;
       status?: number;
       error: unknown;
+      durationMs: number;
+    }
+  | {
+      type: "progress";
+      requestId: string;
+      endpointId: string;
+      phase: "upload" | "download";
+      loaded: number;
+      total?: number;
+      percent?: number;
+      lengthComputable: boolean;
       durationMs: number;
     };
 

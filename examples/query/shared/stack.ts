@@ -18,9 +18,15 @@ import { httpContracts, wsContracts } from "./contracts.js";
  * the same seam a devtools panel uses to force a mock, an error or latency at
  * runtime.
  */
-export function createStack() {
+export function createStack(options: { baseUrl?: string } = {}) {
+  // Only the `media` endpoints actually reach this origin — everything else is
+  // answered by the override below, before the network. The browser points it at
+  // the Vite dev server and the headless run at its own `node:http` server, so
+  // both demonstrate real transfers without a third piece of infrastructure.
+  const baseUrl = options.baseUrl ?? "http://localhost:9310";
+
   const http = new ApiClient(
-    { baseUrl: "http://localhost:9310", mockDelay: { min: 0, max: 0 } },
+    { baseUrl, mockDelay: { min: 0, max: 0 } },
     httpContracts,
   );
   http.init();
@@ -33,17 +39,23 @@ export function createStack() {
   };
   http.instrument({
     resolveOverride: (endpointId, input) => {
-      const { path } = input as { path: { id: string } };
-      const record = users[path.id];
-      if (!record) return undefined;
-      if (endpointId === "user.getUser") return { mock: { ...record } };
-      if (endpointId === "user.updateUser") {
-        const { body } = input as { body: { name: string } };
-        record.name = body.name;
-        record.version += 1;
-        return { mock: { ok: true } };
+      // Returning `undefined` for anything else is what lets `media.*` fall
+      // through to the real transport — an override answers before the network,
+      // so an overridden upload could never report progress.
+      if (endpointId !== "user.getUser" && endpointId !== "user.updateUser") {
+        return undefined;
       }
-      return undefined;
+
+      const { path } = input as { path?: { id: string } };
+      const record = path ? users[path.id] : undefined;
+      if (!record) return undefined;
+
+      if (endpointId === "user.getUser") return { mock: { ...record } };
+
+      const { body } = input as { body: { name: string } };
+      record.name = body.name;
+      record.version += 1;
+      return { mock: { ok: true } };
     },
   });
 
@@ -87,5 +99,7 @@ export function createStack() {
     getUser: http.modules.user.getUser,
     updateUser: http.modules.user.updateUser,
     sendMessage: socket.modules.chat.sendMessage,
+    upload: http.modules.media.upload,
+    download: http.modules.media.download,
   };
 }
