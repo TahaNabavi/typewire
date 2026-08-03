@@ -5,6 +5,96 @@ export type EncryptionMethod = "AES" | "DES" | "RSA" | "Base64" | "Custom";
 export type Method = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 /**
+ * ResponseType
+ * ============
+ * How a successful (2xx) response body is decoded before it reaches the
+ * endpoint's `response` schema. Declared on the contract rather than per call,
+ * because the decoded value is what `response` validates — a per-call override
+ * would silently invalidate the endpoint's inferred return type.
+ *
+ * - `"json"` (default) — `res.json()`. Unchanged legacy behavior.
+ * - `"text"` — `res.text()`.
+ * - `"blob"` — `res.blob()`.
+ * - `"arrayBuffer"` — `res.arrayBuffer()`.
+ * - `"formData"` — `res.formData()`.
+ * - `"file"` — a {@link TypeFetchFile}: the blob plus the filename parsed from
+ *   `Content-Disposition`, the content type, and the size.
+ * - `"stream"` — the raw `res.body` (`ReadableStream | null`), undecoded.
+ * - `"response"` — the whole `Response`, untouched. The escape hatch for SSE
+ *   and anything else that needs the headers or manual stream handling.
+ *
+ * Only `"json"` and `"text"` pass through the client's `responseWrapper` and
+ * `useResponseTransform` — an envelope wrapped around a `Blob` is meaningless.
+ * Every type is still validated by the endpoint's `response` schema; see the
+ * `zBlob()` / `zFile()` / `zStream()` helpers in `schemas.ts`.
+ *
+ * Error (non-2xx) responses ignore this entirely: they are always read as text
+ * and parsed as JSON when possible, whatever the declared success type is.
+ */
+export type ResponseType =
+  | "json"
+  | "text"
+  | "blob"
+  | "arrayBuffer"
+  | "formData"
+  | "file"
+  | "stream"
+  | "response";
+
+/**
+ * TypeFetchFile
+ * =============
+ * What a `responseType: "file"` endpoint resolves to — the download plus the
+ * metadata callers otherwise re-derive by hand from the response headers.
+ *
+ * `filename` is parsed from `Content-Disposition`, preferring the RFC 5987
+ * `filename*` form over plain `filename`. It is `undefined` when the header is
+ * absent — including the common cross-origin case where the server did not send
+ * `Access-Control-Expose-Headers: Content-Disposition`, which makes the header
+ * invisible to the client even though it was sent.
+ */
+export type TypeFetchFile = {
+  blob: Blob;
+  /** From `Content-Disposition`; `undefined` when absent or CORS-hidden. */
+  filename?: string;
+  /** From `Content-Type`; `undefined` when absent. */
+  contentType?: string;
+  /** `blob.size` — the decoded byte length. */
+  size: number;
+};
+
+/**
+ * TransferProgress
+ * ================
+ * One progress tick for a request body being uploaded or a response body being
+ * downloaded.
+ *
+ * Deliberately *not* named `ProgressEvent`: that is a DOM global, and shadowing
+ * it in a package consumers `export *` from would break unrelated code.
+ *
+ * `total` and `percent` are only present when the length is known
+ * (`lengthComputable`). For downloads that means the server sent
+ * `Content-Length` **and**, cross-origin, exposed it via
+ * `Access-Control-Expose-Headers` — otherwise only `loaded` is meaningful and a
+ * UI should fall back to an indeterminate indicator.
+ */
+export type TransferProgress = {
+  /** Which half of the exchange this tick describes. */
+  phase: "upload" | "download";
+  /** Bytes transferred so far. */
+  loaded: number;
+  /** Total bytes, when known. */
+  total?: number;
+  /** `0`–`100`, rounded to two decimals, when known. */
+  percent?: number;
+  /** Whether `total`/`percent` are present. */
+  lengthComputable: boolean;
+};
+
+/** Receives each {@link TransferProgress} tick. Never throws into the request. */
+export type ProgressHandler = (progress: TransferProgress) => void;
+
+/**
  * DeepEncryptionMap<T>
  * --------------------
  * Recursively describes which fields should be encrypted/decrypted.
@@ -175,6 +265,17 @@ export type EndpointDef<
 
   /** Zod schema describing the expected (success / 2xx) response structure */
   response: TRes;
+
+  /**
+   * How the success body is decoded before `response` validates it.
+   * Defaults to `"json"` — omitting it preserves the original behavior exactly.
+   *
+   * Pair it with the matching schema helper so validation stays honest:
+   * `responseType: "blob"` with `response: zBlob()`, `"file"` with `zFile()`.
+   *
+   * @see {@link ResponseType}
+   */
+  responseType?: ResponseType;
 
   /**
    * Optional map of error response schemas keyed by HTTP status code, e.g.
@@ -359,10 +460,47 @@ export type ErrorLike = {
  * Per-request options passed to the client execution:
  * - Optional AbortSignal (for cancellation)
  * - Optional timeout (in milliseconds)
+ * - Optional upload/download progress handlers
+ *
+ * Progress lives here rather than on the contract because it is a call-site
+ * concern — the same endpoint is worth a progress bar in a form and not worth
+ * one in a background sync.
  */
 export type RequestOptions = {
   signal?: AbortSignal;
   timeout?: number;
+
+  /**
+   * Called as the request body is uploaded.
+   *
+   * **`fetch` cannot report upload progress** — there is no such API. Passing
+   * this handler switches the request's final transport to `XMLHttpRequest`,
+   * which can. Middleware is unaffected: the chain still sees the same context
+   * and is still handed a `Response`. Requests without this handler take the
+   * byte-for-byte unchanged `fetch` path.
+   *
+   * Where `XMLHttpRequest` does not exist (Node, most SSR passes) the request
+   * still runs over `fetch` and this handler is simply never called; the client
+   * warns once so the silence is not mistaken for a stalled upload.
+   *
+   * On retry, progress restarts — each attempt re-sends the whole body and
+   * begins with a `loaded: 0` tick.
+   */
+  onUploadProgress?: ProgressHandler;
+
+  /**
+   * Called as the response body is downloaded. Runs on the normal `fetch` path
+   * by counting bytes off `res.body`.
+   *
+   * `total`/`percent` require a readable `Content-Length`; cross-origin that
+   * also means the server must expose it via `Access-Control-Expose-Headers`.
+   * Without it, ticks still arrive but report `lengthComputable: false`.
+   *
+   * Ignored for `responseType: "stream"` and `"response"`, which hand the
+   * undrained body to the caller — counting bytes there would mean consuming
+   * the stream the caller asked to own.
+   */
+  onDownloadProgress?: ProgressHandler;
 };
 
 /**
@@ -460,6 +598,19 @@ export type RequestEvent =
       endpointId: string;
       status?: number;
       error: ErrorLike;
+      durationMs: number;
+    }
+  | {
+      type: "progress";
+      requestId: string;
+      endpointId: string;
+      /** Which half of the exchange advanced. */
+      phase: "upload" | "download";
+      loaded: number;
+      total?: number;
+      percent?: number;
+      lengthComputable: boolean;
+      /** Elapsed time from the request's start to this tick (ms). */
       durationMs: number;
     };
 

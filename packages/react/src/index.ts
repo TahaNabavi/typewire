@@ -31,6 +31,7 @@ export type {
   InferOutput,
   MutationObserverOptions,
   MutationObserverResult,
+  MutationProgress,
   Observable,
   QueryCacheEvent,
   QueryClientOptions,
@@ -44,4 +45,5 @@ export type {
   QuerySource,
   QueryState,
   RelationsConfig,
+  TransferProgressLike,
 } from "@tahanabavi/typefetch-query-core";

@@ -1,12 +1,25 @@
 import type {
   InspectorEvent,
   InspectorOverride,
+  InspectorProgress,
   InspectorSource,
   Observable,
 } from "./types";
 
 /** Enough to see a page's traffic without letting a long session grow forever. */
 const DEFAULT_LIMIT = 500;
+
+/**
+ * Event kinds that end a call, across both transports. Progress for that
+ * correlation id is released when one arrives.
+ */
+const CONCLUDING_KINDS = new Set([
+  "success",
+  "error",
+  "frame_error",
+  "ack",
+  "dropped",
+]);
 
 export interface InspectorBridgeOptions {
   /** Maximum retained events; the oldest are dropped first. Default 500. */
@@ -32,12 +45,30 @@ export class InspectorBridge implements Observable<readonly InspectorEvent[]> {
    */
   private events: readonly InspectorEvent[] = [];
 
+  /**
+   * Latest progress per in-flight call, keyed `${source}:${id}`. Replaced
+   * wholesale for the same identity-comparison reason as `events`.
+   */
+  private progress: ReadonlyMap<string, InspectorProgress> = new Map();
+
   constructor(options: InspectorBridgeOptions = {}) {
     this.limit = options.limit ?? DEFAULT_LIMIT;
   }
 
   getSnapshot(): readonly InspectorEvent[] {
     return this.events;
+  }
+
+  /**
+   * Latest progress for every call still transferring.
+   *
+   * A second snapshot rather than a field on the event log, because progress
+   * and events change at wildly different rates. Both are published through the
+   * one `subscribe`, so a panel can bind either (or both) with
+   * `useSyncExternalStore`.
+   */
+  getProgressSnapshot(): ReadonlyMap<string, InspectorProgress> {
+    return this.progress;
   }
 
   subscribe(listener: () => void): () => void {
@@ -54,12 +85,48 @@ export class InspectorBridge implements Observable<readonly InspectorEvent[]> {
         ? [...this.events.slice(this.events.length - this.limit + 1), event]
         : [...this.events, event];
     this.events = next;
+
+    // A concluded call has nothing left to transfer. Dropping its progress here
+    // is what keeps the map bounded over a long session — otherwise every
+    // upload a page ever made would be retained at 100%.
+    if (CONCLUDING_KINDS.has(event.kind)) {
+      this.dropProgress(progressKey(event.source, event.id));
+    }
+
+    this.notify();
+  }
+
+  /**
+   * Record the latest transfer progress for one call.
+   *
+   * Separate from `record` on purpose. Progress ticks arrive orders of
+   * magnitude more often than lifecycle events, and routing them through the
+   * event log would both flood the ring buffer and copy a 500-element array per
+   * tick. Here each call keeps exactly one entry, replaced in place.
+   */
+  recordProgress(
+    source: InspectorSource,
+    id: string,
+    progress: InspectorProgress,
+  ): void {
+    const next = new Map(this.progress);
+    next.set(progressKey(source, id), progress);
+    this.progress = next;
     this.notify();
   }
 
   clear(): void {
     this.events = [];
+    this.progress = new Map();
     this.notify();
+  }
+
+  /** Remove one call's progress, if it has any. Does not notify on its own. */
+  private dropProgress(key: string): void {
+    if (!this.progress.has(key)) return;
+    const next = new Map(this.progress);
+    next.delete(key);
+    this.progress = next;
   }
 
   /**
@@ -122,4 +189,13 @@ export class InspectorBridge implements Observable<readonly InspectorEvent[]> {
  */
 function overrideKey(source: InspectorSource, label: string): string {
   return `${source}:${label}`;
+}
+
+/**
+ * Keyed by correlation id, not label: progress belongs to one in-flight call,
+ * and two concurrent uploads of the same endpoint must not overwrite each
+ * other. This is the same key `selectEntries` builds for an `InspectorEntry`.
+ */
+function progressKey(source: InspectorSource, id: string): string {
+  return `${source}:${id}`;
 }

@@ -1,9 +1,31 @@
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vite";
+import { defineConfig, type Plugin } from "vite";
+import { handleMedia } from "./shared/media-server.js";
+
+/**
+ * Serves `/media` from the dev server itself.
+ *
+ * The rest of the example answers through `resolveOverride` and needs no server
+ * at all. Upload progress cannot work that way — an override resolves before the
+ * transport runs, and there are no bytes to measure — so these two endpoints are
+ * real. Mounting them here keeps that to four lines instead of a second process.
+ */
+function mediaPlugin(): Plugin {
+  return {
+    name: "typewire-example-media",
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        void handleMedia(req, res).then((handled) => {
+          if (!handled) next();
+        });
+      });
+    },
+  };
+}
 
 export default defineConfig({
   root: "client",
-  plugins: [react()],
+  plugins: [react(), mediaPlugin()],
   server: {
     // One port above the chat example's 5273, so both can run at once.
     port: 5274,

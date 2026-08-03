@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<style>
+  :root {
+    --bg0:#060a14; --bg1:#0a1120; --bg2:#0b1424;
+    --panel:#0d1626; --panel2:#0b1322;
+    --border:rgba(148,163,184,.12); --border2:rgba(148,163,184,.18);
+    --text:#e8eef8; --muted:#94a3b8; --dim:#5a6b83;
+    --blue:#60a5fa; --blue2:#3b82f6;
+    --purple:#a78bfa; --purple2:#8b5cf6;
+    --green:#4ade80; --green2:#22c55e;
+    --cyan:#22d3ee; --red:#f87171; --amber:#fbbf24;
+    --mono:"JetBrains Mono","Cascadia Code",Consolas,"SF Mono",Menlo,monospace;
+    --sans:-apple-system,"Segoe UI",Roboto,system-ui,"Helvetica Neue",Arial,sans-serif;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:1600px; height:850px; overflow:hidden; }
+  body {
+    font-family:var(--sans); color:var(--text);
+    background:
+      radial-gradient(1200px 700px at 82% -8%, rgba(59,130,246,.15), transparent 60%),
+      radial-gradient(900px 600px at 10% 108%, rgba(34,197,94,.14), transparent 60%),
+      radial-gradient(700px 500px at 96% 96%, rgba(139,92,246,.10), transparent 60%),
+      linear-gradient(160deg,var(--bg0),var(--bg1) 55%,var(--bg2));
+    position:relative;
+  }
+  .grid { position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(148,163,184,.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(148,163,184,.04) 1px, transparent 1px);
+    background-size:44px 44px; mask:radial-gradient(1400px 800px at 60% 40%, #000 30%, transparent 85%); }
+  .wrap { position:relative; width:100%; height:100%; padding:54px 56px; display:flex; gap:40px; }
+  .left { width:632px; flex:none; display:flex; flex-direction:column; }
+  .right { flex:1; display:flex; flex-direction:column; gap:16px; }
+
+  .pill { display:inline-flex; align-items:center; gap:11px; align-self:flex-start;
+    padding:9px 16px 9px 14px; border:1px solid rgba(96,165,250,.35); border-radius:999px;
+    background:rgba(59,130,246,.08); font-size:14.5px; font-weight:700; letter-spacing:.16em; color:#cfe0f7; }
+  .pill .bar { width:4px; height:15px; border-radius:2px; background:linear-gradient(var(--blue),var(--green)); }
+
+  h1 { font-weight:800; letter-spacing:-.03em; line-height:.98; margin-top:26px; }
+  h1 .tf { display:block; font-size:112px;
+    background:linear-gradient(180deg,#ffffff, #b9c6dc); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  h1 .ver { display:block; font-size:112px; margin-top:2px;
+    background:linear-gradient(96deg,#63a4ff 6%, #22c55e 62%, #4ade80 96%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .rule { width:118px; height:5px; border-radius:3px; margin:22px 0 16px;
+    background:linear-gradient(90deg,var(--blue2),var(--green2) 70%, transparent); }
+  .sub { font-size:33px; font-weight:700; letter-spacing:-.01em; color:#eaf1fb; }
+  .tag { font-size:18.5px; color:var(--muted); margin-top:9px; font-weight:500; }
+
+  .feats { margin-top:44px; display:flex; flex-direction:column; gap:19px; }
+  .feat { display:flex; gap:15px; align-items:flex-start; }
+  .ico { width:44px; height:44px; flex:none; border-radius:12px; display:grid; place-items:center; border:1px solid var(--border2); }
+  .ico svg { width:22px; height:22px; }
+  .ico.b { background:rgba(59,130,246,.12); box-shadow:inset 0 0 0 1px rgba(59,130,246,.15); }
+  .ico.p { background:rgba(139,92,246,.12); }
+  .ico.g { background:rgba(34,197,94,.12); }
+  .ico.c { background:rgba(34,211,238,.12); }
+  .feat .ttl { font-size:19.5px; font-weight:700; color:#eef4fd; }
+  .feat .dsc { font-size:14.5px; color:var(--muted); margin-top:2px; }
+  .feat .dsc b { color:#bfe6cd; font-weight:700; }
+  .feat .dsc code { font-family:var(--mono); font-size:13px; color:#9fd0ff; }
+
+  .win { border:1px solid var(--border); border-radius:16px; overflow:hidden;
+    background:linear-gradient(180deg,var(--panel),var(--panel2));
+    box-shadow:0 30px 70px -30px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.04); }
+  .win .bar { display:flex; align-items:center; gap:8px; padding:13px 16px; border-bottom:1px solid var(--border); background:rgba(255,255,255,.015); }
+  .dot { width:12px; height:12px; border-radius:50%; }
+  .dot.r{background:#ff5f57} .dot.y{background:#febc2e} .dot.g{background:#28c840}
+  .win .title { margin-left:8px; font-family:var(--mono); font-size:13.5px; color:var(--dim); }
+  .win .title b{ color:#9fb0c7; font-weight:600 }
+  .badge0 { margin-left:auto; font-size:12px; font-weight:700; color:#8ad0a0; letter-spacing:.02em;
+    padding:4px 10px; border-radius:999px; background:rgba(34,197,94,.10); border:1px solid rgba(34,197,94,.22); }
+
+  .tl { padding:8px 6px 10px; font-family:var(--mono); font-size:14px; }
+  .row { display:grid; grid-template-columns:60px 1fr 200px 58px 62px; align-items:center; gap:10px; padding:9px 16px; border-radius:9px; }
+  .row + .row { margin-top:1px; }
+  .row.head { color:var(--dim); font-size:11.5px; letter-spacing:.07em; padding-bottom:4px; }
+  .row.hl { background:linear-gradient(90deg, rgba(96,165,250,.13), rgba(96,165,250,.02)); box-shadow:inset 0 0 0 1px rgba(96,165,250,.22); }
+  .m { font-weight:700; }
+  .m.get{color:#7dd3fc} .m.post{color:#86efac}
+  .ep { color:#c7d3e6; } .ep .ns{ color:var(--dim) }
+  .ty { text-align:right; font-size:12.5px; }
+
+  /* Transfer bars — the release's whole subject, so they are the loudest thing
+     in the panel. The indeterminate one is not decoration: `percent` really is
+     undefined when the length is unknown. */
+  .pbar { height:8px; border-radius:5px; background:rgba(148,163,184,.13);
+    box-shadow:inset 0 0 0 1px rgba(148,163,184,.10); overflow:hidden; }
+  .pbar i { display:block; height:100%; border-radius:5px; }
+  .pbar i.up { background:linear-gradient(90deg,#2563eb,#60a5fa); }
+  .pbar i.dn { background:linear-gradient(90deg,#16a34a,#4ade80); }
+  .pbar i.ind { width:38%; margin-left:31%;
+    background:linear-gradient(90deg,rgba(167,139,250,.25),#a78bfa,rgba(167,139,250,.25)); }
+  .pct { text-align:right; font-weight:700; font-size:13px; color:#dbe6f5; }
+  .pct.dim { color:var(--purple); }
+  /* Only the upload row reads `xhr` — the point being that the swap is
+     per-request, not a client-wide transport change. */
+  .st { font-weight:700; text-align:right; font-size:13px; }
+  .st.ok{color:var(--green)} .st.run{color:var(--blue)} .st.dim{color:var(--dim); font-weight:600}
+
+  .cards { display:flex; gap:16px; }
+  .card { flex:1; border:1px solid var(--border); border-radius:16px; padding:16px 17px;
+    background:linear-gradient(180deg,var(--panel),var(--panel2)); box-shadow:inset 0 1px 0 rgba(255,255,255,.03); }
+  .card .ch { display:flex; align-items:center; gap:9px; font-size:14px; color:#a9b7cc; font-weight:600; }
+  .card .ch .k { margin-left:auto; font-family:var(--mono); font-size:11.5px; color:var(--dim); padding:3px 8px; border-radius:6px; background:rgba(148,163,184,.08); }
+  .code { font-family:var(--mono); font-size:13px; line-height:1.6; margin-top:12px; color:#cdd8e8; }
+  .code .kw{color:#c792ea} .code .fn{color:#82aaff} .code .pr{color:#7fdbca} .code .st{color:#c3e88d} .code .cm{color:#5a6b83} .code .nm{color:#86efac}
+
+  .strip { border:1px solid var(--border); border-radius:16px; padding:16px 20px; display:flex;
+    background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0)); gap:14px; }
+  .qi { flex:1; display:flex; align-items:center; gap:12px; }
+  .qi + .qi { border-left:1px solid var(--border); padding-left:18px; }
+  .qi .qc { width:34px; height:34px; border-radius:9px; flex:none; display:grid; place-items:center; background:rgba(148,163,184,.08); border:1px solid var(--border2); }
+  .qi .qc svg{ width:17px; height:17px }
+  .qi .qt { font-size:15px; font-weight:700; color:#eaf1fb; }
+  .qi .qd { font-size:12.5px; color:var(--muted); margin-top:1px; }
+</style>
+</head>
+<body>
+<div class="grid"></div>
+<div class="wrap">
+
+  <div class="left">
+    <span class="pill"><span class="bar"></span>NEW&nbsp;RELEASE</span>
+
+    <h1>
+      <span class="tf">TypeFetch</span>
+      <span class="ver">v1.9.0</span>
+    </h1>
+    <div class="rule"></div>
+    <div class="sub">Response Types &amp; Transfer Progress</div>
+    <div class="tag">Decode any body the contract declares — and watch the bytes move.</div>
+
+    <div class="feats">
+      <div class="feat">
+        <div class="ico b"><svg viewBox="0 0 24 24" fill="none" stroke="#7dd3fc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg></div>
+        <div><div class="ttl">Eight ways to read a body</div><div class="dsc"><code>responseType</code>: json · text · blob · arrayBuffer · formData · file · stream · response</div></div>
+      </div>
+      <div class="feat">
+        <div class="ico g"><svg viewBox="0 0 24 24" fill="none" stroke="#86efac" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/><path d="M4 21h16"/></svg></div>
+        <div><div class="ttl">Upload progress</div><div class="dsc"><b>fetch cannot do this.</b> The request moves to XHR — middleware untouched</div></div>
+      </div>
+      <div class="feat">
+        <div class="ico c"><svg viewBox="0 0 24 24" fill="none" stroke="#67e8f9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/><path d="M4 21h16"/></svg></div>
+        <div><div class="ttl">Download progress</div><div class="dsc">Counted off <code>res.body</code> as it drains — nothing buffered to measure it</div></div>
+      </div>
+      <div class="feat">
+        <div class="ico p"><svg viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z"/></svg></div>
+        <div><div class="ttl">One line in React</div><div class="dsc"><code>trackProgress</code> puts it in the mutation's state — no extra hook</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="right">
+    <div class="win">
+      <div class="bar">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="title">typefetch · <b>transfers</b></span>
+        <span class="badge0">● per-request</span>
+      </div>
+      <div class="tl">
+        <div class="row head"><span>METHOD</span><span>ENDPOINT</span><span>PROGRESS</span><span style="text-align:right">%</span><span style="text-align:right">VIA</span></div>
+        <div class="row hl"><span class="m post">POST</span><span class="ep"><span class="ns">media.</span>upload</span><span class="pbar"><i class="up" style="width:68%"></i></span><span class="pct">68%</span><span class="st run">xhr</span></div>
+        <div class="row"><span class="m get">GET</span><span class="ep"><span class="ns">media.</span>download</span><span class="pbar"><i class="dn" style="width:100%"></i></span><span class="pct">100%</span><span class="st dim">fetch</span></div>
+        <div class="row"><span class="m get">GET</span><span class="ep"><span class="ns">report.</span>stream</span><span class="pbar"><i class="ind"></i></span><span class="pct dim">—</span><span class="st dim">fetch</span></div>
+      </div>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <div class="ch">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#7dd3fc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>
+          on the contract
+          <span class="k">EndpointDef</span>
+        </div>
+        <div class="code">
+<span class="pr">downloadPdf</span>: {<br>
+&nbsp;&nbsp;<span class="pr">method</span>: <span class="st">"GET"</span>, <span class="pr">path</span>: <span class="st">"/reports/:id/pdf"</span>,<br>
+&nbsp;&nbsp;<span class="pr">responseType</span>: <span class="st">"file"</span>,<br>
+&nbsp;&nbsp;<span class="pr">response</span>: <span class="fn">zFile</span>(),<br>
+}
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#86efac" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg>
+          at the call site
+        </div>
+        <div class="code">
+<span class="cm">// progress is a call-site concern</span><br>
+<span class="kw">await</span> api.media.<span class="fn">upload</span>(input, {<br>
+&nbsp;&nbsp;<span class="pr">onUploadProgress</span>: (p) =&gt; <span class="fn">set</span>(p.<span class="nm">percent</span>),<br>
+});
+        </div>
+      </div>
+    </div>
+
+    <div class="strip">
+      <div class="qi"><div class="qc"><svg viewBox="0 0 24 24" fill="none" stroke="#7dd3fc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg></div><div><div class="qt">File downloads</div><div class="qd">filename included</div></div></div>
+      <div class="qi"><div class="qc"><svg viewBox="0 0 24 24" fill="none" stroke="#86efac" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 6 3 12 8 18"/><polyline points="16 6 21 12 16 18"/></svg></div><div><div class="qt">Middleware safe</div><div class="qd">same ctx &amp; Response</div></div></div>
+      <div class="qi"><div class="qc"><svg viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></div><div><div class="qt">Zero cost</div><div class="qd">fetch path unchanged</div></div></div>
+      <div class="qi"><div class="qc"><svg viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg></div><div><div class="qt">Error path fixed</div><div class="qd">keeps the status</div></div></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

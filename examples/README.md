@@ -6,7 +6,7 @@ Runnable demos. All private, none published.
 | --- | --- |
 | [`basic`](./basic) | typesocket in four files — contract, server, client, run. No UI, prints an annotated frame log and exits. Start here. |
 | [`chat`](./chat) | A real app: multi-room chat with presence, typing, history, and a live frame inspector. socket.io server + React UI on one contract. |
-| [`query`](./query) | The query layer end to end: `useQuery` / `useMutation` over HTTP **and** WebSocket, declared invalidation, and the devtools panel showing both transports in one timeline. Ships a React app *and* a headless run that asserts, so `pnpm test` covers it. |
+| [`query`](./query) | The query layer end to end: `useQuery` / `useMutation` over HTTP **and** WebSocket, declared invalidation, and the devtools panel showing both transports in one timeline. Also covers `responseType: "file"` and upload/download progress, against a real endpoint pair. Ships a React app *and* a headless run that asserts, so `pnpm test` covers it. |
 
 ```bash
 pnpm install

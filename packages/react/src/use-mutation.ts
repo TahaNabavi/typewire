@@ -12,6 +12,20 @@ import { useQueryClient } from "./context";
 /**
  * A write against one endpoint, plus whatever invalidation the client declares
  * for it. Returns `mutate` (fire and forget) and `mutateAsync` (awaitable).
+ *
+ * For an upload, pass `trackProgress` and read `result.progress` — it is part
+ * of the observer's state, so each tick re-renders through the same
+ * `useSyncExternalStore` subscription as `data` and `error`. No extra hook, and
+ * no `useState` of your own:
+ *
+ * ```tsx
+ * const upload = useMutation(api.file.upload, { trackProgress: "upload" });
+ *
+ * <progress value={upload.progress?.upload?.percent ?? 0} max={100} />
+ * ```
+ *
+ * `percent` is `undefined` when the transfer length is unknown — render an
+ * indeterminate bar for that case rather than treating it as zero.
  */
 export function useMutation<E extends AnyQuerySource>(
   endpoint: E,

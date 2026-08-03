@@ -1,4 +1,8 @@
-import type { InspectorEntry, InspectorEvent } from "./types";
+import type {
+  InspectorEntry,
+  InspectorEvent,
+  InspectorProgress,
+} from "./types";
 
 /**
  * Collapse a flat event log into one row per call.
@@ -6,9 +10,15 @@ import type { InspectorEntry, InspectorEvent } from "./types";
  * A pure function rather than state on the bridge: the panel re-derives rows
  * from whatever slice of the log it is showing, and the grouping stays testable
  * without a transport.
+ *
+ * `progress` is the bridge's separate latest-only snapshot
+ * (`getProgressSnapshot()`), joined here by the same `${source}:${id}` key.
+ * Optional, so a panel that does not render progress bars passes nothing and
+ * behaves exactly as before.
  */
 export function selectEntries(
   events: readonly InspectorEvent[],
+  progress?: ReadonlyMap<string, InspectorProgress>,
 ): InspectorEntry[] {
   const byKey = new Map<string, InspectorEntry>();
   const ordered: InspectorEntry[] = [];
@@ -31,6 +41,13 @@ export function selectEntries(
     }
     entry.events.push(event);
     apply(entry, event);
+  }
+
+  if (progress?.size) {
+    for (const entry of ordered) {
+      const tick = progress.get(entry.key);
+      if (tick) entry.progress = tick;
+    }
   }
 
   return ordered;

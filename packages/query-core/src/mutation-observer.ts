@@ -3,9 +3,12 @@ import { resolveRetryDelay, shouldRetry, sleep } from "./retry";
 import { resolveSourceId } from "./source";
 import type {
   AnyQuerySource,
+  EndpointCallOptions,
   MutationObserverOptions,
   MutationObserverResult,
   MutationState,
+  ProgressHandlerLike,
+  TransferProgressLike,
 } from "./types";
 
 /**
@@ -105,6 +108,9 @@ export class MutationObserver<
       failureCount: 0,
       data: undefined,
       error: undefined,
+      // A new call starts at zero; leaving the last upload's percentage on
+      // screen would show the new one as already finished.
+      progress: undefined,
     });
 
     try {
@@ -154,14 +160,21 @@ export class MutationObserver<
       error: undefined,
       variables: undefined,
       failureCount: 0,
+      progress: undefined,
     });
   }
 
   private async run(input: TInput, callId: number): Promise<TData> {
     let failureCount = 0;
+    const callOptions = this.buildCallOptions(callId);
+
     for (;;) {
       try {
-        return (await this.endpoint(input)) as TData;
+        // Options are omitted entirely when nothing needs them, so a mutation
+        // without progress tracking calls the endpoint exactly as before.
+        return (await (callOptions
+          ? this.endpoint(input, callOptions)
+          : this.endpoint(input))) as TData;
       } catch (error) {
         failureCount += 1;
         if (callId === this.activeCallId) this.setState({ failureCount });
@@ -173,6 +186,69 @@ export class MutationObserver<
         );
       }
     }
+  }
+
+  /**
+   * Build the per-call options for this attempt, or `undefined` when the
+   * mutation wants nothing from the transport.
+   *
+   * Bound to `callId` so a superseded call's ticks are discarded rather than
+   * writing progress for a mutation whose result is already being ignored.
+   */
+  private buildCallOptions(callId: number): EndpointCallOptions | undefined {
+    const { trackProgress, onUploadProgress, onDownloadProgress } = this.options;
+
+    const wantUpload =
+      trackProgress === true ||
+      trackProgress === "upload" ||
+      Boolean(onUploadProgress);
+    const wantDownload =
+      trackProgress === true ||
+      trackProgress === "download" ||
+      Boolean(onDownloadProgress);
+
+    if (!wantUpload && !wantDownload) return undefined;
+
+    const options: EndpointCallOptions = {};
+
+    if (wantUpload) {
+      options.onUploadProgress = this.progressSink(
+        callId,
+        "upload",
+        onUploadProgress,
+      );
+    }
+    if (wantDownload) {
+      options.onDownloadProgress = this.progressSink(
+        callId,
+        "download",
+        onDownloadProgress,
+      );
+    }
+
+    return options;
+  }
+
+  /** One direction's tick handler: forward to the caller, then store. */
+  private progressSink(
+    callId: number,
+    phase: "upload" | "download",
+    handler: ProgressHandlerLike | undefined,
+  ): ProgressHandlerLike {
+    return (progress: TransferProgressLike) => {
+      if (callId !== this.activeCallId) return;
+
+      handler?.(progress);
+
+      // Reads `this.options` fresh rather than closing over `trackProgress`,
+      // so a re-render that flips tracking off stops writing state mid-upload.
+      const tracking = this.options.trackProgress;
+      if (tracking !== true && tracking !== phase) return;
+
+      this.setState({
+        progress: { ...this.state.progress, [phase]: progress },
+      });
+    };
   }
 
   private setState(patch: Partial<MutationState<TData, TError, TInput>>): void {

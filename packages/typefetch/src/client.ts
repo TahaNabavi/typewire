@@ -13,7 +13,26 @@ import {
   Instrumentation,
   Override,
   RequestEvent,
+  ResponseType,
+  TransferProgress,
 } from "./types";
+import { isXhrAvailable, xhrRequest } from "./transport/xhr";
+import { safeProgress } from "./utils/progress";
+import {
+  decodeResponse,
+  readErrorBody,
+  withDownloadProgress,
+} from "./utils/response-body";
+
+/**
+ * Response types whose bodies belong to the caller. Download progress and the
+ * wrapper/transform pipeline both stay off these — counting bytes would mean
+ * draining the stream the caller asked to own.
+ */
+const UNDRAINED_RESPONSE_TYPES = new Set<ResponseType>(["stream", "response"]);
+
+/** Response types the `responseWrapper` / `responseTransform` pipeline applies to. */
+const ENVELOPE_RESPONSE_TYPES = new Set<ResponseType>(["json", "text"]);
 
 export class RichError extends Error implements ErrorLike {
   status?: number;
@@ -84,6 +103,13 @@ export function isContractError<
   );
 }
 
+/** The correlation state one in-flight request carries for instrumentation. */
+type RequestTrace = {
+  requestId: string;
+  endpointId: string;
+  startedAt: number;
+};
+
 type ParsedRequestParts = {
   path?: Record<string, any>;
   query?: Record<string, any>;
@@ -110,6 +136,18 @@ export class ApiClient<C extends Contracts, E extends ErrorLike = RichError> {
   private tokenProvider?: TokenProvider;
   private instrumentations: Instrumentation[] = [];
   private requestCounter = 0;
+  /** Latches the one-time "no XMLHttpRequest here" warning. */
+  private warnedNoXhr = false;
+
+  /**
+   * Errors already handed to `onError`.
+   *
+   * A `WeakSet` rather than a flag on the error, so nothing is added to an
+   * object the caller inspects and a discarded error is still collectable. It
+   * makes `report` idempotent per error instance, which keeps a rethrow through
+   * an outer catch from producing a second call.
+   */
+  private readonly reportedErrors = new WeakSet<object>();
 
   private retryConfig?: {
     maxRetries: number;
@@ -234,17 +272,17 @@ export class ApiClient<C extends Contracts, E extends ErrorLike = RichError> {
 
       // Forced error: behave like a real failing endpoint (errorHandler fires).
       if (override?.error) {
-        const error = this.createError({
-          message:
-            override.error.message ??
-            `Forced error for ${endpointId || activeEndpoint.path}`,
-          status: override.error.status,
-          code: override.error.code ?? "OVERRIDE_ERROR",
-          data: override.error.body,
-          dataParsed: false,
-        });
-        this.errorHandler?.(error as any);
-        throw error;
+        throw this.report(
+          this.createError({
+            message:
+              override.error.message ??
+              `Forced error for ${endpointId || activeEndpoint.path}`,
+            status: override.error.status,
+            code: override.error.code ?? "OVERRIDE_ERROR",
+            data: override.error.body,
+            dataParsed: false,
+          }),
+        );
       }
 
       // Forced mock (devtools): bypass the network regardless of mock mode.
@@ -278,6 +316,7 @@ export class ApiClient<C extends Contracts, E extends ErrorLike = RichError> {
         built.headers,
         built.parts,
         options,
+        trace,
       );
       this.finishTrace(trace, data, false);
       return data;
@@ -328,7 +367,7 @@ export class ApiClient<C extends Contracts, E extends ErrorLike = RichError> {
     endpointId: string,
     endpoint: EndpointDefZ,
     input: unknown,
-  ): { requestId: string; endpointId: string; startedAt: number } | null {
+  ): RequestTrace | null {
     if (!this.instrumentations.length) return null;
     const requestId = `tf_${++this.requestCounter}`;
     const startedAt = this.nowMs();
@@ -345,7 +384,7 @@ export class ApiClient<C extends Contracts, E extends ErrorLike = RichError> {
   }
 
   private finishTrace(
-    trace: { requestId: string; endpointId: string; startedAt: number } | null,
+    trace: RequestTrace | null,
     data: unknown,
     fromMock: boolean,
   ) {
@@ -361,7 +400,7 @@ export class ApiClient<C extends Contracts, E extends ErrorLike = RichError> {
   }
 
   private failTrace(
-    trace: { requestId: string; endpointId: string; startedAt: number } | null,
+    trace: RequestTrace | null,
     err: unknown,
   ) {
     if (!trace) return;
@@ -387,6 +426,7 @@ export class ApiClient<C extends Contracts, E extends ErrorLike = RichError> {
     requestHeaders: Record<string, string>,
     requestParts: ParsedRequestParts,
     options?: RequestOptions,
+    trace?: RequestTrace | null,
   ): Promise<z.infer<TRes>> {
     const headers: Record<string, string> = {};
 
@@ -409,13 +449,15 @@ export class ApiClient<C extends Contracts, E extends ErrorLike = RichError> {
       const token = await this.getCurrentToken();
 
       if (!token) {
-        const error = this.createError({
-          message: `Missing token for ${endpoint.path}`,
-          status: 401,
-          code: "NO_TOKEN",
-        });
-        this.errorHandler?.(error as any);
-        throw error;
+        // Thrown before the request is under way, so it never reaches the catch
+        // below and is reported here instead.
+        throw this.report(
+          this.createError({
+            message: `Missing token for ${endpoint.path}`,
+            status: 401,
+            code: "NO_TOKEN",
+          }),
+        );
       }
 
       headers["Authorization"] = `Bearer ${token}`;
@@ -443,55 +485,84 @@ export class ApiClient<C extends Contracts, E extends ErrorLike = RichError> {
       ctx.init.signal = options?.signal || controller?.signal;
     }
 
+    const responseType: ResponseType =
+      (endpoint as EndpointDefZ).responseType ?? "json";
+
+    // Progress handlers are wired only when the caller asked for them — never
+    // merely because instrumentation is attached. Opening devtools must not
+    // change which transport a request uses or whether its body is re-streamed.
+    const onUpload = this.withProgressEvents(options?.onUploadProgress, trace);
+    const onDownload = this.withProgressEvents(
+      options?.onDownloadProgress,
+      trace,
+    );
+
+    const useXhr = Boolean(onUpload) && isXhrAvailable();
+    if (onUpload && !useXhr) this.warnUploadProgressUnavailable();
+
     const runner = this.middlewares.reduceRight(
       (next, mw) => () => mw.fn(ctx, next, mw.options),
-      () => fetch(ctx.url, ctx.init),
+      useXhr
+        ? () => xhrRequest(ctx.url, ctx.init, { onUploadProgress: onUpload })
+        : () => fetch(ctx.url, ctx.init),
     );
 
     const execute = async () => {
-      const res = await runner();
-      const json = await res.json();
-      let responseData = json;
+      let res = await runner();
+
+      // Failure is handled before any decoding. The declared `responseType`
+      // describes the *success* body only — an endpoint returning a Blob still
+      // reports its 404 as JSON — and reading the error body defensively is what
+      // keeps a non-JSON failure (an HTML 502, an empty 401) reporting its
+      // status instead of surfacing as a bare SyntaxError.
+      if (!res.ok) {
+        const { body: errorBody, wasJson } = await readErrorBody(res);
+
+        // An envelope API answering `{ success: false, message }` alongside a
+        // 4xx put its message here before this reordering, and that message is
+        // the useful one. Consulted with `safeParse`, so a failure body that
+        // doesn't fit the envelope falls through to the status-based error
+        // instead of throwing a validation error over it.
+        if (
+          wasJson &&
+          this.responseWrapper &&
+          ENVELOPE_RESPONSE_TYPES.has(responseType)
+        ) {
+          const enveloped = this.responseWrapper(endpoint.response).safeParse(
+            errorBody,
+          );
+          if (enveloped.success && (enveloped.data as any)?.success === false) {
+            throw this.buildEnvelopeFailure(enveloped.data as any, res.status);
+          }
+        }
+
+        throw this.buildFailure(endpoint as EndpointDefZ, res, errorBody);
+      }
+
+      if (onDownload && !UNDRAINED_RESPONSE_TYPES.has(responseType)) {
+        res = withDownloadProgress(res, onDownload);
+      }
+
+      const decoded = await decodeResponse(res, responseType);
+
+      // Envelopes and the global response transform are JSON/text concepts.
+      // Unwrapping a Blob, or handing one to a transform written for records,
+      // would corrupt exactly the payloads that motivated these response types.
+      if (!ENVELOPE_RESPONSE_TYPES.has(responseType)) {
+        return endpoint.response.parse(decoded);
+      }
+
+      let responseData = decoded;
 
       if (this.responseWrapper) {
         const wrappedSchema = this.responseWrapper(endpoint.response);
-        const parsedWrapped = wrappedSchema.parse(json) as any;
+        const parsedWrapped = wrappedSchema.parse(decoded) as any;
 
         if (parsedWrapped.success === false) {
-          const error = this.createError({
-            message:
-              parsedWrapped.message || parsedWrapped.error || "Request failed",
-            status: parsedWrapped.code || res.status,
-            code: parsedWrapped.code
-              ? `API_ERROR_${parsedWrapped.code}`
-              : "API_ERROR",
-          });
-
-          this.errorHandler?.(error as any);
-          throw error;
+          throw this.buildEnvelopeFailure(parsedWrapped, res.status);
         }
 
         responseData = parsedWrapped.data;
-      }
-
-      if (!res.ok) {
-        // Fail open: if a schema is declared for this status, parse and attach
-        // the typed body; otherwise (no schema or parse failure) keep the raw
-        // json. Error-typing must never throw and mask the real error.
-        const errorSchema = (endpoint as EndpointDefZ).errors?.[res.status];
-        const parsed = errorSchema?.safeParse(json);
-        const error = this.createError({
-          message: json.message || res.statusText,
-          status: res.status,
-          code: json.code,
-          title: json.title,
-          detail: json.detail,
-          errors: json.errors,
-          data: parsed?.success ? parsed.data : json,
-          dataParsed: parsed?.success === true,
-        });
-        this.errorHandler?.(error as any);
-        throw error;
       }
 
       const parsed = endpoint.response.parse(responseData);
@@ -504,9 +575,10 @@ export class ApiClient<C extends Contracts, E extends ErrorLike = RichError> {
       return result;
     } catch (err: any) {
       if (timeoutId) clearTimeout(timeoutId);
-      const error = this.normalizeError(err);
-      this.errorHandler?.(error as any);
-      throw error;
+      // The single reporting point for anything that fails once the request is
+      // under way: HTTP failures, envelope failures, schema failures, network
+      // errors, timeouts, and retry exhaustion.
+      throw this.report(this.normalizeError(err));
     }
   }
 
@@ -717,6 +789,127 @@ export class ApiClient<C extends Contracts, E extends ErrorLike = RichError> {
     }
 
     return normalized;
+  }
+
+  /**
+   * Build the error for a non-2xx response.
+   *
+   * `errorBody` has already been read defensively — it is the parsed JSON when
+   * the server sent JSON, and `{ detail: <raw text> }` when it sent anything
+   * else — so every field read here is safe on an HTML or empty body.
+   *
+   * Fail open on typing: when a schema is declared for this status, parse and
+   * attach the typed body; otherwise keep the raw body. Error-typing must never
+   * throw and mask the real error.
+   */
+  private buildFailure(
+    endpoint: EndpointDefZ,
+    res: Response,
+    errorBody: any,
+  ): RichError {
+    const errorSchema = endpoint.errors?.[res.status];
+    const parsed = errorSchema?.safeParse(errorBody);
+
+    const error = this.createError({
+      message: errorBody.message || res.statusText || `HTTP ${res.status}`,
+      status: res.status,
+      code: errorBody.code,
+      title: errorBody.title,
+      detail: errorBody.detail,
+      errors: errorBody.errors,
+      data: parsed?.success ? parsed.data : errorBody,
+      dataParsed: parsed?.success === true,
+    });
+
+    // Not reported here: this runs inside the retry loop, so an endpoint
+    // configured with `maxRetries: 2` would fire `onError` three times for one
+    // failed request. `performRequestLogic`'s catch reports it once, after
+    // retries are exhausted.
+    return error;
+  }
+
+  /** The error for an envelope that reports `success: false`. */
+  private buildEnvelopeFailure(
+    parsedWrapped: any,
+    fallbackStatus: number,
+  ): RichError {
+    const error = this.createError({
+      message: parsedWrapped.message || parsedWrapped.error || "Request failed",
+      status: parsedWrapped.code || fallbackStatus,
+      code: parsedWrapped.code ? `API_ERROR_${parsedWrapped.code}` : "API_ERROR",
+    });
+
+    // Reported by the catch in `performRequestLogic`; see `buildFailure`.
+    return error;
+  }
+
+  /**
+   * Wrap a caller's progress handler so each tick also reaches instrumentation.
+   *
+   * Returns `undefined` when the caller passed nothing — that absence is what
+   * keeps the fetch path and the un-restreamed body in place, so a request
+   * without progress behaves exactly as it did before this feature.
+   */
+  private withProgressEvents(
+    handler: RequestOptions["onUploadProgress"],
+    trace: RequestTrace | null | undefined,
+  ) {
+    if (!handler) return undefined;
+
+    return (progress: TransferProgress) => {
+      safeProgress(handler, progress);
+
+      if (!trace || !this.instrumentations.length) return;
+      this.emit({
+        type: "progress",
+        requestId: trace.requestId,
+        endpointId: trace.endpointId,
+        phase: progress.phase,
+        loaded: progress.loaded,
+        total: progress.total,
+        percent: progress.percent,
+        lengthComputable: progress.lengthComputable,
+        durationMs: this.nowMs() - trace.startedAt,
+      });
+    };
+  }
+
+  /**
+   * Warn once when upload progress was asked for somewhere it cannot work.
+   *
+   * Silently never calling the handler is the worst outcome: a progress bar
+   * that sits at zero for a request that is in fact uploading fine reads as a
+   * hung app. Warning once — not per request — keeps an SSR render or a test
+   * suite from flooding the log.
+   */
+  private warnUploadProgressUnavailable() {
+    if (this.warnedNoXhr) return;
+    this.warnedNoXhr = true;
+    console.warn(
+      "[typefetch] onUploadProgress was provided, but XMLHttpRequest is not " +
+        "available in this environment (Node/SSR). The request still runs over " +
+        "fetch, which cannot report upload progress, so the handler will not be " +
+        "called.",
+    );
+  }
+
+  /**
+   * Hand an error to `onError`, at most once per error instance.
+   *
+   * Every failure path routes through here rather than calling `errorHandler`
+   * directly. `onError` is a global handler — the thing that fires a toast or
+   * redirects on a 401 — so it must fire exactly once per failed request, not
+   * once per layer that happens to see the error on its way out.
+   *
+   * Returns the error so call sites can `throw this.report(...)`.
+   */
+  private report(error: RichError): RichError {
+    if (!this.errorHandler) return error;
+    if (this.reportedErrors.has(error)) return error;
+
+    this.reportedErrors.add(error);
+    this.errorHandler(error as any);
+    return error;
   }
 
   private createError(error: Partial<RichError> & { message: string }) {
