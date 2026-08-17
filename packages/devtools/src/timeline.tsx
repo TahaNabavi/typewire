@@ -1,6 +1,6 @@
 import type {
   InspectorEntry,
-  InspectorSource,
+  InspectorProgress,
 } from "@tahanabavi/type-devtools-core";
 import { type CSSProperties, type ReactNode } from "react";
 import { ANIM, IconButton, useChrome } from "./chrome";
@@ -24,10 +24,32 @@ export function statusColor(palette: Palette, status: InspectorEntry["status"]):
   }
 }
 
-export function sourceColor(palette: Palette, source: InspectorSource): string {
-  if (source === "http") return palette.http;
-  if (source === "ws") return palette.ws;
-  return palette.info;
+/**
+ * The wire a row travelled on, which is what the badge shows.
+ *
+ * Falls back to `source` for a client that reports no transport: typesocket has
+ * exactly one wire, and a typefetch older than the transport registry only ever
+ * had one either. So the fallback is never a guess.
+ */
+export function transportOf(entry: InspectorEntry): string {
+  return entry.transport ?? entry.source;
+}
+
+export function transportColor(palette: Palette, transport: string): string {
+  switch (transport) {
+    case "http":
+      return palette.http;
+    case "ws":
+      return palette.ws;
+    case "graphql":
+      return palette.graphql;
+    case "grpc":
+      return palette.grpc;
+    default:
+      // A third-party adapter. It gets a badge and a neutral colour rather than
+      // no badge — the registry is open, so this is a supported case, not a bug.
+      return palette.info;
+  }
 }
 
 export function Timeline({
@@ -62,11 +84,22 @@ export function Timeline({
                 }}
               >
                 <span
-                  style={{ ...styles.badge, background: sourceColor(palette, entry.source) }}
+                  style={{
+                    ...styles.badge,
+                    background: transportColor(palette, transportOf(entry)),
+                  }}
                 >
-                  {entry.source}
+                  {transportOf(entry)}
                 </span>
                 <span style={styles.label}>{entry.label}</span>
+                {entry.errorKind && (
+                  <span
+                    data-testid="typewire-row-kind"
+                    style={{ ...styles.kindTag, color: palette.error }}
+                  >
+                    {entry.errorKind}
+                  </span>
+                )}
                 <span
                   style={{
                     ...styles.statusText,
@@ -81,6 +114,9 @@ export function Timeline({
                   {entry.durationMs === undefined ? "" : `${entry.durationMs}ms`}
                 </span>
               </button>
+              {entry.progress && (
+                <ProgressBar progress={entry.progress} motionOk={motionOk} />
+              )}
             </li>
           ))
         )}
@@ -108,6 +144,10 @@ function Detail({
 }) {
   const { styles, palette } = useChrome();
   const meta = entry.events.find((e) => e.kind === "start" || e.kind === "outbound")?.meta;
+  // The HTTP status lives on the *error* event, not the opening one. Only
+  // meaningful for wires that have one — gRPC and GraphQL report none, which is
+  // the whole reason `errorKind` exists.
+  const status = entry.events.find((e) => e.kind === "error")?.meta?.status;
 
   return (
     <>
@@ -116,7 +156,14 @@ function Detail({
           {entry.label}
         </strong>
         <div style={{ display: "flex", gap: 4 }}>
-          {entry.source === "http" && (
+          {/*
+            Offered for REST only. The button reconstructs a command from the
+            start event's method and URL, and on GraphQL that is `query` against
+            the root field — `curl -X query` is not a command anyone can run.
+            Reconstructing the real POST would mean rebuilding the document and
+            the envelope here, which is the adapter's job, not the panel's.
+          */}
+          {transportOf(entry) === "http" && (
             <IconButton
               title="Copy as cURL"
               testId="typewire-copy-curl"
@@ -135,8 +182,10 @@ function Detail({
         </div>
       </div>
 
-      <Field label="source" palette={palette}>
-        <span style={{ color: sourceColor(palette, entry.source) }}>{entry.source}</span>
+      <Field label="transport" palette={palette}>
+        <span style={{ color: transportColor(palette, transportOf(entry)) }}>
+          {transportOf(entry)}
+        </span>
       </Field>
       <Field label="status" palette={palette}>
         <span style={{ color: statusColor(palette, entry.status) }}>{entry.status}</span>
@@ -144,10 +193,27 @@ function Detail({
           <span style={{ color: palette.textFaint }}> · {entry.durationMs}ms</span>
         )}
       </Field>
+      {entry.errorKind && (
+        <Field label="kind" palette={palette}>
+          <span data-testid="typewire-detail-kind" style={{ color: palette.error }}>
+            {entry.errorKind}
+          </span>
+          {typeof status === "number" && (
+            <span style={{ color: palette.textFaint }}> · {status}</span>
+          )}
+        </Field>
+      )}
       {typeof meta?.method === "string" && (
         <Field label="request" palette={palette}>
           <span style={{ color: palette.textMuted }}>
             {String(meta.method)} {String(meta.url ?? "")}
+          </span>
+        </Field>
+      )}
+      {entry.progress && (
+        <Field label="transfer" palette={palette}>
+          <span style={{ color: palette.textMuted }}>
+            {describeProgress(entry.progress)}
           </span>
         </Field>
       )}
@@ -159,6 +225,75 @@ function Detail({
       <OverrideControls source={entry.source} label={entry.label} overrides={overrides} />
     </>
   );
+}
+
+/**
+ * A live transfer, drawn under its row.
+ *
+ * `lengthComputable: false` is common — a chunked download reports bytes with no
+ * total — so that case gets a moving indeterminate bar rather than a bar stuck
+ * at zero, which would read as a stall.
+ */
+function ProgressBar({
+  progress,
+  motionOk,
+}: {
+  progress: InspectorProgress;
+  motionOk: boolean;
+}) {
+  const { palette } = useChrome();
+  const known = progress.percent !== undefined;
+  const color = progress.phase === "upload" ? palette.accent : palette.success;
+
+  return (
+    <div
+      data-testid="typewire-progress"
+      data-phase={progress.phase}
+      role="progressbar"
+      aria-valuenow={known ? Math.round(progress.percent as number) : undefined}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-label={`${progress.phase} progress`}
+      style={{ ...progressTrack, background: palette.bgInset }}
+    >
+      <div
+        style={{
+          ...progressFill,
+          background: color,
+          width: known ? `${clampPercent(progress.percent as number)}%` : "100%",
+          opacity: known ? 1 : 0.4,
+          animation: !known && motionOk ? ANIM.pulse : undefined,
+        }}
+      />
+    </div>
+  );
+}
+
+/** `↑ 62% · 1.2 MB / 2.0 MB`, degrading to just the byte count when unknown. */
+function describeProgress(progress: InspectorProgress): string {
+  const arrow = progress.phase === "upload" ? "↑" : "↓";
+  const loaded = formatBytes(progress.loaded);
+  if (progress.percent === undefined || progress.total === undefined) {
+    return `${arrow} ${loaded}`;
+  }
+  return `${arrow} ${Math.round(progress.percent)}% · ${loaded} / ${formatBytes(progress.total)}`;
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  const units = ["KB", "MB", "GB", "TB"];
+  let value = bytes / 1024;
+  let unit = 0;
+  while (value >= 1024 && unit < units.length - 1) {
+    value /= 1024;
+    unit++;
+  }
+  return `${value >= 10 ? Math.round(value) : value.toFixed(1)} ${units[unit]}`;
+}
+
+/** A server may report `loaded > total`; the bar must not overflow its track. */
+function clampPercent(percent: number): number {
+  return Math.min(100, Math.max(0, percent));
 }
 
 function Field({
@@ -214,7 +349,9 @@ function entryPayload(entry: InspectorEntry) {
   return {
     label: entry.label,
     source: entry.source,
+    transport: transportOf(entry),
     status: entry.status,
+    errorKind: entry.errorKind,
     durationMs: entry.durationMs,
     input: entry.input,
     output: entry.output,
@@ -240,4 +377,18 @@ const fieldStyle: CSSProperties = {
   margin: "0 0 6px",
   display: "flex",
   alignItems: "baseline",
+};
+
+const progressTrack: CSSProperties = {
+  height: 2,
+  width: "100%",
+  // Pulled up over the row's bottom border so the bar reads as part of the row
+  // rather than as a separator between two of them.
+  marginTop: -1,
+  overflow: "hidden",
+};
+
+const progressFill: CSSProperties = {
+  height: "100%",
+  transition: "width 120ms linear",
 };

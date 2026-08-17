@@ -44,6 +44,19 @@ function seeded() {
   return bridge;
 }
 
+/** One typefetch client, three wires — what the transport registry made normal. */
+function multiWire() {
+  const bridge = new InspectorBridge();
+  bridge.record(event({ kind: "start", transport: "http" }));
+  bridge.record(
+    event({ kind: "start", id: "r2", label: "user.profile", transport: "graphql" }),
+  );
+  bridge.record(
+    event({ kind: "start", id: "r3", label: "user.syncUser", transport: "grpc" }),
+  );
+  return bridge;
+}
+
 describe("TypeDevtools", () => {
   it("renders collapsed with a count", () => {
     render(<TypeDevtools bridge={seeded()} />);
@@ -84,6 +97,52 @@ describe("TypeDevtools", () => {
 
     fireEvent.click(screen.getByTestId("typewire-filter-all"));
     expect(screen.getByTestId("typewire-rows")).toHaveTextContent("user.getUser");
+  });
+
+  it("badges a row with the wire it used, not the client that sent it", () => {
+    render(<TypeDevtools bridge={multiWire()} defaultOpen />);
+
+    const rows = screen.getByTestId("typewire-rows");
+    // All three came from one typefetch client — `source` is "http" for every
+    // one of them. A timeline that showed that would be useless.
+    expect(rows).toHaveTextContent("graphql");
+    expect(rows).toHaveTextContent("grpc");
+    expect(rows).toHaveTextContent("http");
+  });
+
+  it("filters by wire, with chips derived from the traffic", () => {
+    render(<TypeDevtools bridge={multiWire()} defaultOpen />);
+
+    fireEvent.click(screen.getByTestId("typewire-filter-graphql"));
+
+    const rows = screen.getByTestId("typewire-rows");
+    expect(rows).toHaveTextContent("user.profile");
+    expect(rows).not.toHaveTextContent("user.getUser");
+    expect(rows).not.toHaveTextContent("user.syncUser");
+  });
+
+  it("hides the wire filter when everything went over one wire", () => {
+    const bridge = new InspectorBridge();
+    bridge.record(event({ kind: "start", transport: "http" }));
+    render(<TypeDevtools bridge={bridge} defaultOpen />);
+
+    // One option is not a choice. The status filter is still there.
+    expect(screen.queryByTestId("typewire-filter-http")).not.toBeInTheDocument();
+    expect(screen.getByTestId("typewire-status-error")).toBeInTheDocument();
+  });
+
+  it("keeps the active wire filter selectable after the timeline is cleared", () => {
+    const bridge = multiWire();
+    render(<TypeDevtools bridge={bridge} defaultOpen />);
+
+    fireEvent.click(screen.getByTestId("typewire-filter-grpc"));
+    fireEvent.click(screen.getByTestId("typewire-clear"));
+
+    // Without this the only chip that could turn the filter back off would have
+    // vanished with the traffic, leaving the panel permanently empty.
+    expect(screen.getByTestId("typewire-filter-all")).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("typewire-filter-all"));
+    expect(screen.queryByTestId("typewire-filter-grpc")).not.toBeInTheDocument();
   });
 
   it("filters by status", () => {
@@ -215,6 +274,108 @@ describe("TypeDevtools", () => {
     fireEvent.click(screen.getByLabelText("Remove override for user.getUser"));
     expect(bridge.getOverride("http", "user.getUser")).toBeUndefined();
     expect(screen.queryByTestId("typewire-active-overrides")).not.toBeInTheDocument();
+  });
+
+  it("shows the normalized error kind on the row and in the detail", () => {
+    const bridge = new InspectorBridge();
+    bridge.record(event({ kind: "start", transport: "grpc" }));
+    bridge.record(
+      event({
+        kind: "error",
+        payload: { message: "no such user", kind: "not_found" },
+        durationMs: 8,
+        meta: { kind: "not_found" },
+      }),
+    );
+    render(<TypeDevtools bridge={bridge} defaultOpen />);
+
+    // gRPC carries no HTTP status, so without the kind the row would say only
+    // "error" — true, and useless.
+    expect(screen.getByTestId("typewire-row-kind")).toHaveTextContent("not_found");
+
+    fireEvent.click(screen.getByText("user.getUser"));
+    expect(screen.getByTestId("typewire-detail-kind")).toHaveTextContent("not_found");
+  });
+
+  it("finds a row by its error kind or its wire", () => {
+    const bridge = new InspectorBridge();
+    bridge.record(event({ kind: "start", transport: "grpc" }));
+    bridge.record(event({ kind: "error", meta: { kind: "not_found" } }));
+    bridge.record(
+      event({ kind: "start", id: "r2", label: "user.listUsers", transport: "http" }),
+    );
+    render(<TypeDevtools bridge={bridge} defaultOpen />);
+
+    fireEvent.change(screen.getByTestId("typewire-search"), {
+      target: { value: "not_found" },
+    });
+    expect(screen.getByTestId("typewire-rows")).not.toHaveTextContent("user.listUsers");
+
+    fireEvent.change(screen.getByTestId("typewire-search"), {
+      target: { value: "grpc" },
+    });
+    const rows = screen.getByTestId("typewire-rows");
+    expect(rows).toHaveTextContent("user.getUser");
+    expect(rows).not.toHaveTextContent("user.listUsers");
+  });
+
+  it("draws a progress bar for a transfer in flight", () => {
+    const bridge = new InspectorBridge();
+    bridge.record(event({ kind: "start", label: "user.upload" }));
+    act(() => {
+      bridge.recordProgress("http", "r1", {
+        phase: "upload",
+        loaded: 512,
+        total: 1024,
+        percent: 50,
+        lengthComputable: true,
+        ts: 2,
+      });
+    });
+    render(<TypeDevtools bridge={bridge} defaultOpen />);
+
+    const bar = screen.getByTestId("typewire-progress");
+    expect(bar).toHaveAttribute("data-phase", "upload");
+    expect(bar).toHaveAttribute("aria-valuenow", "50");
+    expect(bar.firstElementChild).toHaveStyle({ width: "50%" });
+
+    fireEvent.click(screen.getByText("user.upload"));
+    expect(screen.getByTestId("typewire-detail")).toHaveTextContent(
+      "↑ 50% · 512 B / 1.0 KB",
+    );
+  });
+
+  it("drops the progress bar once the call concludes", () => {
+    const bridge = new InspectorBridge();
+    bridge.record(event({ kind: "start", label: "user.upload" }));
+    bridge.recordProgress("http", "r1", {
+      phase: "upload",
+      loaded: 1024,
+      total: 1024,
+      percent: 100,
+      lengthComputable: true,
+      ts: 2,
+    });
+    render(<TypeDevtools bridge={bridge} defaultOpen />);
+    expect(screen.getByTestId("typewire-progress")).toBeInTheDocument();
+
+    act(() => {
+      bridge.record(event({ kind: "success", label: "user.upload", durationMs: 30 }));
+    });
+
+    expect(screen.queryByTestId("typewire-progress")).not.toBeInTheDocument();
+  });
+
+  it("offers cURL for REST only", () => {
+    render(<TypeDevtools bridge={multiWire()} defaultOpen />);
+
+    fireEvent.click(screen.getByText("user.getUser"));
+    expect(screen.getByTestId("typewire-copy-curl")).toBeInTheDocument();
+
+    // `curl -X query` is not a command. The document and envelope belong to the
+    // adapter, so the panel declines rather than guessing.
+    fireEvent.click(screen.getByText("user.profile"));
+    expect(screen.queryByTestId("typewire-copy-curl")).not.toBeInTheDocument();
   });
 
   it("hides the Cache tab when no query client is attached", () => {

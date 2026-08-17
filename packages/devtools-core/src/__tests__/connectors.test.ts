@@ -1,11 +1,13 @@
 import { ApiClient } from "@tahanabavi/typefetch";
+import { graphqlTransport } from "@tahanabavi/typefetch-graphql";
+import { grpcTransport } from "@tahanabavi/typefetch-grpc";
 import { createSocketClient, defineSocketContracts } from "@tahanabavi/typesocket";
 import { z } from "zod";
 import { InspectorBridge } from "../bridge";
-import { connectTypeFetch } from "../connect-typefetch";
+import { connectTypeFetch, type TypeFetchLike } from "../connect-typefetch";
 import { connectTypeSocket, type TypeSocketLike } from "../connect-typesocket";
 import { selectEntries } from "../entries";
-import type { TypeSocketEvent } from "../types";
+import type { TypeFetchRequestEvent, TypeSocketEvent } from "../types";
 
 /**
  * These run against the *real* typefetch and typesocket clients. The connectors
@@ -49,6 +51,76 @@ function makeWs() {
     { url: "http://localhost:9999", autoConnect: false },
     wsContracts,
   );
+}
+
+/**
+ * The same module over three wires, answered from `mockData` so no server is
+ * needed. Built against the real adapter packages on purpose: `transport` is a
+ * field typefetch fills in from `adapter.kind`, and a hand-written event would
+ * prove only that this test can spell "graphql".
+ */
+const multiContracts = {
+  user: {
+    getUser: {
+      method: "GET",
+      path: "/users/:id",
+      request: z.object({ path: z.object({ id: z.string() }) }),
+      response: z.object({ id: z.string() }),
+      mockData: { id: "1" },
+    },
+    profile: {
+      transport: "graphql",
+      operation: "query",
+      root: "user",
+      request: z.object({ id: z.string() }),
+      response: z.object({ id: z.string() }),
+      mockData: { id: "1" },
+    },
+    syncUser: {
+      transport: "grpc",
+      service: "user.v1.UserService",
+      rpc: "GetUser",
+      request: z.object({ id: z.string() }),
+      response: z.object({ id: z.string() }),
+      mockData: { id: "1" },
+    },
+  },
+} as const;
+
+function makeMultiTransport() {
+  const client = new ApiClient(
+    {
+      baseUrl: "http://localhost:9999",
+      useMockData: true,
+      mockDelay: { min: 0, max: 0 },
+      transports: [graphqlTransport(), grpcTransport()],
+    },
+    multiContracts,
+  );
+  client.init();
+  return client;
+}
+
+/**
+ * Drive the connector's hook directly, for the events a real client cannot be
+ * made to emit on demand — a legacy start with no `transport`, an unclassified
+ * error, a progress tick without an upload.
+ */
+function driveTypeFetch(
+  bridge: InspectorBridge,
+  events: TypeFetchRequestEvent[],
+): void {
+  let hook: Parameters<TypeFetchLike["instrument"]>[0] | undefined;
+  connectTypeFetch(
+    {
+      instrument: (h) => {
+        hook = h;
+        return () => {};
+      },
+    },
+    bridge,
+  );
+  for (const event of events) hook?.on?.(event);
 }
 
 describe("connectTypeFetch", () => {
@@ -108,6 +180,108 @@ describe("connectTypeFetch", () => {
     const data = await client.modules.user.getUser({ path: { id: "1" } });
 
     expect(data).toEqual({ id: "override", name: "Forced" });
+  });
+
+  it("tags the row with the transport the client actually used", async () => {
+    const bridge = new InspectorBridge();
+    const client = makeMultiTransport();
+    connectTypeFetch(client, bridge);
+
+    await client.modules.user.getUser({ path: { id: "1" } });
+    await client.modules.user.profile({ id: "1" });
+    await client.modules.user.syncUser({ id: "1" });
+
+    const entries = selectEntries(bridge.getSnapshot());
+    expect(entries.map((e) => e.transport)).toEqual(["http", "graphql", "grpc"]);
+    // One client, one source: the wire is the new axis, not a second connector.
+    expect(entries.every((e) => e.source === "http")).toBe(true);
+  });
+
+  it("defaults the transport to http for a client that reports none", () => {
+    const bridge = new InspectorBridge();
+    driveTypeFetch(bridge, [
+      {
+        type: "start",
+        requestId: "r1",
+        endpointId: "user.getUser",
+        method: "GET",
+        url: "http://x/users/1",
+        input: undefined,
+        timestamp: 1,
+      },
+    ]);
+
+    // A typefetch older than the transport registry emits no `transport`, and
+    // every call it could make was HTTP. Blank would read as "unknown wire".
+    expect(selectEntries(bridge.getSnapshot())[0]?.transport).toBe("http");
+  });
+
+  it("lifts the normalized error kind onto the entry", async () => {
+    const bridge = new InspectorBridge();
+    const client = makeHttp(false);
+    connectTypeFetch(client, bridge);
+    bridge.setOverride("http", "user.getUser", {
+      error: { status: 404, message: "nope" },
+    });
+
+    await expect(
+      client.modules.user.getUser({ path: { id: "1" } }),
+    ).rejects.toBeDefined();
+
+    const [entry] = selectEntries(bridge.getSnapshot());
+    expect(entry?.status).toBe("error");
+    // The point of the taxonomy: a panel reads this instead of the status, so
+    // the same row renders identically when the 404 arrives as a gRPC `5`.
+    expect(entry?.errorKind).toBe("not_found");
+  });
+
+  it("leaves the error kind unset when the client classifies nothing", () => {
+    const bridge = new InspectorBridge();
+    driveTypeFetch(bridge, [
+      {
+        type: "error",
+        requestId: "r1",
+        endpointId: "user.getUser",
+        error: { message: "boom" },
+        durationMs: 3,
+      },
+    ]);
+
+    expect(selectEntries(bridge.getSnapshot())[0]?.errorKind).toBeUndefined();
+  });
+
+  it("routes progress to the progress channel, not the event log", () => {
+    const bridge = new InspectorBridge();
+    driveTypeFetch(bridge, [
+      {
+        type: "start",
+        requestId: "r1",
+        endpointId: "user.upload",
+        method: "POST",
+        url: "http://x/upload",
+        transport: "http",
+        input: undefined,
+        timestamp: 1,
+      },
+      {
+        type: "progress",
+        requestId: "r1",
+        endpointId: "user.upload",
+        phase: "upload",
+        loaded: 512,
+        total: 1024,
+        percent: 50,
+        lengthComputable: true,
+        durationMs: 5,
+      },
+    ]);
+
+    expect(bridge.getSnapshot().map((e) => e.kind)).toEqual(["start"]);
+    const [entry] = selectEntries(
+      bridge.getSnapshot(),
+      bridge.getProgressSnapshot(),
+    );
+    expect(entry?.progress).toMatchObject({ phase: "upload", percent: 50 });
   });
 
   it("stops recording after the returned detach is called", async () => {

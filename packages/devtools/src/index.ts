@@ -14,7 +14,15 @@
 export { TypeDevtools } from "./panel";
 export type { TypeDevtoolsProps } from "./panel";
 
-export { useInspectorEntries, useInspectorEvents, useQueryInspector } from "./use-inspector";
+export {
+  useInspectorEntries,
+  useInspectorEvents,
+  useInspectorProgress,
+  useQueryInspector,
+} from "./use-inspector";
+
+// A custom panel needs these to tag its own rows the way the bundled one does.
+export { statusColor, transportColor, transportOf } from "./timeline";
 
 export { JsonTree } from "./json-tree";
 export type { JsonTreeProps } from "./json-tree";
@@ -47,6 +55,7 @@ export type {
   InspectorEntry,
   InspectorEvent,
   InspectorOverride,
+  InspectorProgress,
   InspectorSource,
   MutationSnapshot,
   QueryClientLike,

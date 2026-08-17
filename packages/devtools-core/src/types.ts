@@ -1,4 +1,16 @@
-/** Which transport produced an event. Open string so new sources can be added. */
+/**
+ * Which **client** produced an event: `"http"` for typefetch, `"ws"` for
+ * typesocket. Open string so a third client can be added.
+ *
+ * Not the wire. Since typefetch grew a transport registry one typefetch client
+ * speaks REST, GraphQL and gRPC, and all three arrive here as `"http"`. Which
+ * wire a call actually used is {@link InspectorEvent.transport}.
+ *
+ * The distinction is load-bearing rather than pedantic: `source` is the key
+ * space for overrides and correlation ids, so it must stay stable per client. A
+ * GraphQL override registered under `"graphql"` would never match, because the
+ * connector that resolves it is typefetch's.
+ */
 export type InspectorSource = "http" | "ws" | (string & {});
 
 /**
@@ -30,6 +42,15 @@ export interface InspectorEvent {
   payload: unknown;
   /** Elapsed time, on the events that conclude a call. */
   durationMs?: number;
+  /**
+   * Which wire carried this call — `"http"`, `"graphql"`, `"grpc"`, or whatever
+   * a third-party adapter names itself. Only the opening event of a call
+   * (`start`, `outbound`) carries it; `selectEntries` hoists it onto the row.
+   *
+   * Optional because a client older than the transport registry emits none, and
+   * because typesocket has exactly one wire and says so through `source`.
+   */
+  transport?: string;
   /** Transport-specific extras (`fromMock`, `queued`, `direction`, `by`, …). */
   meta?: Record<string, unknown>;
 }
@@ -68,6 +89,22 @@ export interface InspectorEntry {
   input?: unknown;
   output?: unknown;
   error?: unknown;
+  /**
+   * Which wire carried the call, hoisted from the opening event. Absent when
+   * the client never reported one.
+   */
+  transport?: string;
+  /**
+   * The failure's normalized classification — typefetch's `ErrorKind`, hoisted
+   * out of the error so a panel can show and filter on it without reaching into
+   * a transport-specific body.
+   *
+   * This is what makes a mixed-transport timeline readable: `status: 404`,
+   * gRPC code `5` and GraphQL `extensions.code: "NOT_FOUND"` all render as
+   * `not_found`, so one glance answers "what went wrong" without first asking
+   * "on which wire".
+   */
+  errorKind?: string;
   /** Latest transfer progress, while the call is still in flight. */
   progress?: InspectorProgress;
   events: InspectorEvent[];
@@ -100,6 +137,20 @@ export interface Instrumentable<TEvent, TOverride> {
   }): () => void;
 }
 
+/**
+ * typefetch's `ErrorLike`/`RichError`, structurally — only the fields the
+ * inspector reads. The index signature keeps it assignable from the real thing,
+ * which carries a transport-specific body alongside these.
+ */
+export interface TypeFetchErrorLike {
+  message?: string;
+  status?: number;
+  code?: string;
+  /** typefetch's `ErrorKind`: the transport-independent classification. */
+  kind?: string;
+  [key: string]: unknown;
+}
+
 /** typefetch's `RequestEvent`, structurally. */
 export type TypeFetchRequestEvent =
   | {
@@ -108,6 +159,8 @@ export type TypeFetchRequestEvent =
       endpointId: string;
       method: string;
       url: string;
+      /** The adapter that served the call. Absent before the transport registry. */
+      transport?: string;
       input: unknown;
       timestamp: number;
     }
@@ -124,7 +177,7 @@ export type TypeFetchRequestEvent =
       requestId: string;
       endpointId: string;
       status?: number;
-      error: unknown;
+      error: TypeFetchErrorLike;
       durationMs: number;
     }
   | {

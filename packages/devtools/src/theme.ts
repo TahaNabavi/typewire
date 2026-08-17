@@ -28,9 +28,16 @@ export interface Palette {
   error: string;
   dropped: string;
   info: string;
-  // sources
+  /**
+   * One colour per wire. A mixed timeline is only scannable if REST, GraphQL
+   * and gRPC rows are distinguishable before you read the badge text, and the
+   * two adapter packages already have brand colours of their own — the banners
+   * use the same pink and cyan.
+   */
   http: string;
   ws: string;
+  graphql: string;
+  grpc: string;
   query: string;
   // json syntax
   jsonKey: string;
@@ -64,6 +71,8 @@ const DARK: Palette = {
   info: "#64748b",
   http: "#3b82f6",
   ws: "#8b5cf6",
+  graphql: "#e535ab",
+  grpc: "#06b6d4",
   query: "#10b981",
   jsonKey: "#7dd3fc",
   jsonString: "#86efac",
@@ -95,6 +104,8 @@ const LIGHT: Palette = {
   info: "#64748b",
   http: "#1d4ed8",
   ws: "#6d28d9",
+  graphql: "#be185d",
+  grpc: "#0e7490",
   query: "#047857",
   jsonKey: "#0369a1",
   jsonString: "#15803d",
