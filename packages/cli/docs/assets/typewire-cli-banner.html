@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<style>
+  :root {
+    --bg0:#0a0714; --bg1:#120c22; --bg2:#160f2a;
+    --panel:#150e28; --panel2:#110b20;
+    --border:rgba(148,163,184,.12); --border2:rgba(148,163,184,.18);
+    --text:#e8eef8; --muted:#a396bd; --dim:#786a94;
+    --accent:#a78bfa; --accent2:#8b5cf6; --accentDim:#c4b5fd;
+    --blue:#60a5fa; --cyan:#22d3ee; --green:#4ade80; --red:#f87171; --amber:#fbbf24;
+    --mono:"JetBrains Mono","Cascadia Code",Consolas,"SF Mono",Menlo,monospace;
+    --sans:-apple-system,"Segoe UI",Roboto,system-ui,"Helvetica Neue",Arial,sans-serif;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:1600px; height:850px; overflow:hidden; }
+  body {
+    font-family:var(--sans); color:var(--text); position:relative;
+    background:
+      radial-gradient(1200px 700px at 82% -8%, rgba(139,92,246,.18), transparent 60%),
+      radial-gradient(900px 600px at 10% 108%, rgba(59,130,246,.13), transparent 60%),
+      radial-gradient(700px 500px at 96% 96%, rgba(34,211,238,.06), transparent 60%),
+      linear-gradient(160deg,var(--bg0),var(--bg1) 55%,var(--bg2));
+  }
+  .grid { position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(148,163,184,.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(148,163,184,.04) 1px, transparent 1px);
+    background-size:44px 44px; mask:radial-gradient(1400px 800px at 60% 40%, #000 30%, transparent 85%); }
+  .wrap { position:relative; width:100%; height:100%; padding:56px 58px; display:flex; gap:44px; }
+  .left { width:628px; flex:none; display:flex; flex-direction:column; }
+  .right { flex:1; display:flex; flex-direction:column; gap:18px; }
+  .right > .win { flex:1; display:flex; flex-direction:column; }
+  .right > .win .flow { flex:1; display:flex; flex-direction:column; justify-content:center; }
+
+  .pill { display:inline-flex; align-items:center; gap:11px; align-self:flex-start;
+    padding:9px 16px 9px 14px; border:1px solid rgba(167,139,250,.34); border-radius:999px;
+    background:rgba(139,92,246,.09); font-size:14px; font-weight:700; letter-spacing:.06em; color:#ddd6fe; }
+  .pill .bar { width:4px; height:15px; border-radius:2px; background:linear-gradient(var(--accent),var(--cyan)); }
+
+  h1 { font-weight:800; letter-spacing:-.03em; line-height:.98; margin-top:26px; }
+  h1 .a { display:block; font-size:82px;
+    background:linear-gradient(180deg,#ffffff,#cdc2e2); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  h1 .b { display:block; font-size:82px; margin-top:2px;
+    background:linear-gradient(96deg,#a78bfa 4%,#8b5cf6 52%,#22d3ee 98%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .rule { width:118px; height:5px; border-radius:3px; margin:24px 0 16px;
+    background:linear-gradient(90deg,var(--accent2),var(--cyan) 72%, transparent); }
+  .sub { font-size:31px; font-weight:700; letter-spacing:-.01em; color:#eaf1fb; }
+  .tag { font-size:18px; color:var(--muted); margin-top:10px; font-weight:500; line-height:1.5; max-width:560px; }
+  .tag code { font-family:var(--mono); font-size:15px; color:var(--accentDim); background:rgba(167,139,250,.1); padding:1px 7px; border-radius:6px; }
+
+  .feats { margin-top:auto; display:flex; flex-direction:column; gap:18px; }
+  .feat { display:flex; gap:15px; align-items:flex-start; }
+  .ico { width:44px; height:44px; flex:none; border-radius:12px; display:grid; place-items:center; border:1px solid var(--border2); }
+  .ico svg { width:22px; height:22px; }
+  .ico.a { background:rgba(139,92,246,.14); box-shadow:inset 0 0 0 1px rgba(139,92,246,.16); }
+  .ico.b { background:rgba(96,165,250,.12); } .ico.c { background:rgba(34,211,238,.12); } .ico.p { background:rgba(74,222,128,.12); }
+  .feat .ttl { font-size:19px; font-weight:700; color:#eef4fd; }
+  .feat .dsc { font-size:14px; color:var(--muted); margin-top:2px; }
+  .feat .dsc b { color:var(--accentDim); font-weight:700; }
+  .feat .dsc code { font-family:var(--mono); font-size:13px; color:#7dd3fc; }
+
+  .win { border:1px solid var(--border); border-radius:16px; overflow:hidden;
+    background:linear-gradient(180deg,var(--panel),var(--panel2));
+    box-shadow:0 30px 70px -30px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.04); }
+  .win .bar { display:flex; align-items:center; gap:8px; padding:13px 16px; border-bottom:1px solid var(--border); background:rgba(255,255,255,.015); }
+  .dot { width:12px; height:12px; border-radius:50%; }
+  .dot.r{background:#ff5f57} .dot.y{background:#febc2e} .dot.g{background:#28c840}
+  .win .title { margin-left:8px; font-family:var(--mono); font-size:13.5px; color:var(--dim); }
+  .win .title b{ color:#c2b5d9; font-weight:600 }
+  .badge0 { margin-left:auto; font-size:12px; font-weight:700; color:var(--accentDim); letter-spacing:.02em;
+    padding:4px 10px; border-radius:999px; background:rgba(139,92,246,.10); border:1px solid rgba(139,92,246,.22); }
+
+  .flow { padding:18px 22px 22px; font-family:var(--mono); }
+  .lbl { font-family:var(--sans); font-size:11.5px; letter-spacing:.09em; color:var(--dim); font-weight:700; margin-bottom:10px; }
+  .cmd { font-size:15px; color:#e8eef8; margin-bottom:14px; }
+  .cmd .p { color:var(--accentDim); }
+  .det { display:grid; grid-template-columns:96px 1fr; font-size:13.5px; row-gap:5px; color:#b9c6d8; margin-bottom:16px; }
+  .det .dk { color:var(--dim); }
+  .det .dv b { color:#a5f3fc; font-weight:600; }
+  .q { font-family:var(--sans); font-size:15px; font-weight:700; color:#eef4fd; margin-bottom:10px; }
+  .opt { display:grid; grid-template-columns:26px 30px 1fr; align-items:center; font-size:13.5px; color:#b9c6d8; padding:3px 0; }
+  .opt .n { color:var(--dim); text-align:right; padding-right:8px; }
+  .opt .bx { color:var(--dim); }
+  .opt.on { color:#eef4fd; }
+  .opt.on .bx { color:#86efac; }
+  .opt.lk .bx { color:var(--accentDim); }
+  .opt .hint { color:var(--dim); }
+
+  .card { border:1px solid var(--border); border-radius:16px; padding:15px 18px;
+    background:linear-gradient(180deg,var(--panel),var(--panel2)); box-shadow:inset 0 1px 0 rgba(255,255,255,.03); }
+  .row { display:flex; gap:0; }
+  .cell { flex:1; padding:0 16px; border-left:1px solid var(--border); }
+  .cell:first-child { border-left:0; padding-left:0; }
+  .cell .k { font-family:var(--mono); font-size:13px; color:var(--accentDim); font-weight:700; }
+  .cell .v { font-size:13px; color:var(--muted); margin-top:3px; line-height:1.4; }
+
+  .code2 { font-family:var(--mono); font-size:13.5px; line-height:1.7; color:#cdd8e8; }
+  .code2 .kw{color:#c792ea} .code2 .fn{color:#82aaff} .code2 .pr{color:#7fdbca} .code2 .st{color:#c3e88d} .code2 .cm{color:#786a94}
+</style>
+</head>
+<body>
+<div class="grid"></div>
+<div class="wrap">
+
+  <!-- LEFT -->
+  <div class="left">
+    <span class="pill"><span class="bar"></span>@tahanabavi/typewire-cli</span>
+
+    <h1><span class="a">One command</span><span class="b">wired up</span></h1>
+    <div class="rule"></div>
+    <div class="sub">It reads your project first.</div>
+    <div class="tag">Framework, language, package manager, monorepo — detected, then <code>typewire init</code> asks what you need and scaffolds it.</div>
+
+    <div class="feats">
+      <div class="feat">
+        <div class="ico a"><svg viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 17 6-6-6-6"/><path d="M12 19h8"/></svg></div>
+        <div><div class="ttl">Detection is a default, never a decision</div><div class="dsc">Everything found is <b>shown and overridable</b></div></div>
+      </div>
+      <div class="feat">
+        <div class="ico b"><svg viewBox="0 0 24 24" fill="none" stroke="#93c5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg></div>
+        <div><div class="ttl">One config for every package</div><div class="dsc"><code>typewire.config.ts</code> — sections, <b>extends</b>, tsconfig aliases</div></div>
+      </div>
+      <div class="feat">
+        <div class="ico c"><svg viewBox="0 0 24 24" fill="none" stroke="#67e8f9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="7" height="7" rx="1.5"/><rect x="14" y="4" width="7" height="7" rx="1.5"/><rect x="3" y="15" width="7" height="5" rx="1.5"/><rect x="14" y="15" width="7" height="5" rx="1.5"/></svg></div>
+        <div><div class="ttl">Several APIs, one file</div><div class="dsc">dashboard · admin · landing — each with its own client</div></div>
+      </div>
+      <div class="feat">
+        <div class="ico p"><svg viewBox="0 0 24 24" fill="none" stroke="#86efac" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+        <div><div class="ttl">A devDependency, never shipped</div><div class="dsc">Which is what keeps <b>typefetch</b> at zero dependencies</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right">
+    <div class="win">
+      <div class="bar">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="title">~/acme-shop · <b>npx typewire init</b></span>
+        <span class="badge0">● detected, then asked</span>
+      </div>
+      <div class="flow">
+        <div class="det">
+          <span class="dk">project</span><span class="dv">acme-shop</span>
+          <span class="dk">framework</span><span class="dv"><b>Next.js</b></span>
+          <span class="dk">language</span><span class="dv">TypeScript</span>
+          <span class="dk">installer</span><span class="dv"><b>pnpm</b></span>
+          <span class="dk">source</span><span class="dv">src/</span>
+        </div>
+
+        <div class="q">What does this project need?</div>
+        <div class="opt lk"><span class="n">•</span><span class="bx">[•]</span><span>typefetch — typed HTTP client</span></div>
+        <div class="opt on"><span class="n">1</span><span class="bx">[✓]</span><span>Query layer <span class="hint">— caching, dedup, invalidation</span></span></div>
+        <div class="opt"><span class="n">2</span><span class="bx">[ ]</span><span>typesocket <span class="hint">— typed WebSocket contracts</span></span></div>
+        <div class="opt on"><span class="n">3</span><span class="bx">[✓]</span><span>Devtools panel <span class="hint">— timeline + cache</span></span></div>
+        <div class="opt"><span class="n">4</span><span class="bx">[ ]</span><span>GraphQL transport</span></div>
+        <div class="opt"><span class="n">5</span><span class="bx">[ ]</span><span>gRPC transport</span></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:auto">
+      <div class="lbl" style="margin-bottom:11px">THE FRAMEWORK CHANGES WHAT IS GENERATED, NOT JUST WHERE</div>
+      <div class="code2">
+<span class="st">"use client"</span>;&nbsp;&nbsp;<span class="cm">// Next.js only — without it the App Router fails to build</span><br>
+<span class="kw">const</span> baseUrl = process.env.<span class="pr">NEXT_PUBLIC_API_URL</span>;&nbsp;&nbsp;<span class="cm">// Vite: import.meta.env</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <div class="cell">
+          <div class="k">list · lint · diff</div>
+          <div class="v">run with no API reachable — contracts only</div>
+        </div>
+        <div class="cell">
+          <div class="k">--yes · --features</div>
+          <div class="v">reproducible in CI, and it prints what it chose</div>
+        </div>
+        <div class="cell">
+          <div class="k">exit 0 · 1 · 2</div>
+          <div class="v">ok · findings · misconfiguration</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
