@@ -1,7 +1,7 @@
 {
   "name": "@tahanabavi/typewire-nestjs",
   "version": "0.1.1",
-  "description": "NestJS integration for the TypeWire ecosystem — bind routes and validate request/response on the backend using the exact same Zod contracts your frontend consumes (typefetch HTTP today; typesocket gateways planned).",
+  "description": "NestJS integration for the TypeWire ecosystem \u2014 serve one set of Zod contracts over every wire your client speaks: REST/HTTP, gRPC (Connect JSON), GraphQL and typesocket WebSocket gateways, with request/response validation on all of them.",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -10,6 +10,21 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
       "require": "./dist/index.js"
+    },
+    "./grpc": {
+      "types": "./dist/grpc/index.d.ts",
+      "import": "./dist/grpc/index.mjs",
+      "require": "./dist/grpc/index.js"
+    },
+    "./graphql": {
+      "types": "./dist/graphql/index.d.ts",
+      "import": "./dist/graphql/index.mjs",
+      "require": "./dist/graphql/index.js"
+    },
+    "./socket": {
+      "types": "./dist/socket/index.d.ts",
+      "import": "./dist/socket/index.mjs",
+      "require": "./dist/socket/index.js"
     },
     "./package.json": "./package.json"
   },
@@ -43,13 +58,23 @@
     "rest",
     "backend",
     "full-stack",
-    "end-to-end-typesafety"
+    "end-to-end-typesafety",
+    "grpc",
+    "connect-rpc",
+    "graphql",
+    "socket.io",
+    "gateway",
+    "transport"
   ],
   "peerDependencies": {
     "@nestjs/common": "^10.0.0 || ^11.0.0",
     "@nestjs/core": "^10.0.0 || ^11.0.0",
     "@nestjs/swagger": "^7.0.0 || ^8.0.0 || ^11.0.0",
+    "@nestjs/websockets": "^10.0.0 || ^11.0.0",
     "@tahanabavi/typefetch": ">=1.7.1",
+    "@tahanabavi/typefetch-graphql": ">=0.1.0",
+    "@tahanabavi/typefetch-grpc": ">=0.1.0",
+    "@tahanabavi/typesocket": ">=2.0.0",
     "crypto-js": "^4.0.0",
     "node-forge": "^1.0.0",
     "reflect-metadata": "^0.1.13 || ^0.2.0",
@@ -58,6 +83,18 @@
   },
   "peerDependenciesMeta": {
     "@nestjs/swagger": {
+      "optional": true
+    },
+    "@nestjs/websockets": {
+      "optional": true
+    },
+    "@tahanabavi/typefetch-graphql": {
+      "optional": true
+    },
+    "@tahanabavi/typefetch-grpc": {
+      "optional": true
+    },
+    "@tahanabavi/typesocket": {
       "optional": true
     },
     "crypto-js": {
@@ -71,10 +108,15 @@
     "@nestjs/common": "^11.0.0",
     "@nestjs/core": "^11.0.0",
     "@nestjs/platform-express": "^11.0.0",
+    "@nestjs/platform-socket.io": "^11.2.1",
     "@nestjs/swagger": "^11.4.6",
     "@nestjs/testing": "^11.0.0",
+    "@nestjs/websockets": "^11.2.1",
     "@tahanabavi/type-permission": "workspace:*",
     "@tahanabavi/typefetch": "workspace:*",
+    "@tahanabavi/typefetch-graphql": "workspace:*",
+    "@tahanabavi/typefetch-grpc": "workspace:*",
+    "@tahanabavi/typesocket": "workspace:*",
     "@types/crypto-js": "^4.2.2",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.0.0",
@@ -86,6 +128,8 @@
     "reflect-metadata": "^0.2.2",
     "rimraf": "^6.0.1",
     "rxjs": "^7.8.1",
+    "socket.io": "^4.8.3",
+    "socket.io-client": "^4.8.3",
     "supertest": "^7.0.0",
     "ts-jest": "^29.4.1",
     "ts-node": "^10.9.2",
@@ -113,5 +157,18 @@
   "homepage": "https://www.tahanabavi.ir/docs/typewire-nestjs",
   "publishConfig": {
     "access": "public"
+  },
+  "typesVersions": {
+    "*": {
+      "grpc": [
+        "./dist/grpc/index.d.ts"
+      ],
+      "graphql": [
+        "./dist/graphql/index.d.ts"
+      ],
+      "socket": [
+        "./dist/socket/index.d.ts"
+      ]
+    }
   }
 }

@@ -10,7 +10,7 @@ import {
   Optional,
 } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
-import type { EndpointDefZ } from "@tahanabavi/typefetch";
+import type { AnyEndpointDefZ } from "@tahanabavi/typefetch";
 import { from, Observable } from "rxjs";
 import { mergeMap } from "rxjs/operators";
 import {
@@ -27,12 +27,17 @@ import {
   ContractResponseViolationException,
   formatZodIssues,
 } from "../exceptions";
+import {
+  shapeContractResponse,
+  validatesResponse,
+} from "../http/response-type";
 import type {
   ContractEndpointOptions,
   ParsedContractRequest,
   ResolvedContractOptions,
   TypeFetchModuleOptions,
 } from "../types";
+import { describeContractRoute, isHttpEndpoint } from "../transport";
 import { validateRequest } from "../validation/request-validator";
 
 /**
@@ -61,7 +66,7 @@ export class ContractValidationInterceptor implements NestInterceptor {
     context: ExecutionContext,
     next: CallHandler,
   ): Promise<Observable<any>> {
-    const endpoint = this.reflector.get<EndpointDefZ | undefined>(
+    const endpoint = this.reflector.get<AnyEndpointDefZ | undefined>(
       TYPEFETCH_ENDPOINT_METADATA,
       context.getHandler(),
     );
@@ -69,6 +74,7 @@ export class ContractValidationInterceptor implements NestInterceptor {
 
     const options = this.resolveOptions(context);
     const request = context.switchToHttp().getRequest();
+    const response = context.switchToHttp().getResponse();
 
     // Decrypt request fields first, so validation (and the handler) see
     // plaintext — the inverse of what the client encrypted before sending.
@@ -100,29 +106,53 @@ export class ContractValidationInterceptor implements NestInterceptor {
     }
 
     const encryptResponse = Boolean(endpoint.encryption?.response);
-    if (!options.validateResponse && !encryptResponse) return next.handle();
+
+    // A non-JSON `responseType` still needs the outbound pass even when nothing
+    // is validated: a `Buffer` handed to Nest is JSON-serialised, and a
+    // `responseType: "file"` download has no filename unless a header carries
+    // one. @see http/response-type.ts
+    const shapes = isHttpEndpoint(endpoint) && !validatesResponse(endpoint);
+
+    if (!options.validateResponse && !encryptResponse && !shapes) {
+      return next.handle();
+    }
 
     return next.handle().pipe(
       mergeMap((data) =>
-        from(this.handleResponse(endpoint, data, options, encryptResponse)),
+        from(
+          this.handleResponse(
+            endpoint,
+            data,
+            options,
+            encryptResponse,
+            response,
+          ),
+        ),
       ),
     );
   }
 
   private async handleResponse(
-    endpoint: EndpointDefZ,
+    endpoint: AnyEndpointDefZ,
     data: unknown,
     options: ResolvedContractOptions,
     encryptResponse: boolean,
+    response: unknown,
   ): Promise<unknown> {
     let result = data;
 
-    if (options.validateResponse) {
+    // `validateResponse` asks whether the *contract* should be enforced;
+    // `validatesResponse` whether it can be. `zBlob()` matches a browser `Blob`
+    // — a value that only exists after the client decodes the body, so there is
+    // nothing here to check it against.
+    const checkable = !isHttpEndpoint(endpoint) || validatesResponse(endpoint);
+
+    if (options.validateResponse && checkable) {
       const parsed = endpoint.response.safeParse(data);
       if (!parsed.success) {
         const errors = formatZodIssues(parsed.error);
         this.logger.error(
-          `Response contract violation on ${endpoint.method} ${endpoint.path}: ${JSON.stringify(errors)}`,
+          `Response contract violation on ${describeContractRoute(endpoint)}: ${JSON.stringify(errors)}`,
         );
         throw new ContractResponseViolationException(
           errors,
@@ -136,11 +166,15 @@ export class ContractValidationInterceptor implements NestInterceptor {
       result = await this.encryptResponse(endpoint, result);
     }
 
+    if (isHttpEndpoint(endpoint)) {
+      result = shapeContractResponse(endpoint, result, response);
+    }
+
     return result;
   }
 
   private async decryptBody(
-    endpoint: EndpointDefZ,
+    endpoint: AnyEndpointDefZ,
     body: unknown,
   ): Promise<unknown> {
     const encryption = this.moduleOptions?.encryption;
@@ -149,7 +183,7 @@ export class ContractValidationInterceptor implements NestInterceptor {
     if (!encryption?.keyProvider) {
       if (failClosed) {
         throw new InternalServerErrorException({
-          message: `Endpoint ${endpoint.path} requires request decryption but no encryption keyProvider is configured`,
+          message: `Endpoint ${describeContractRoute(endpoint)} requires request decryption but no encryption keyProvider is configured`,
           code: "ENCRYPTION_NOT_CONFIGURED",
         });
       }
@@ -172,14 +206,14 @@ export class ContractValidationInterceptor implements NestInterceptor {
         });
       }
       this.logger.error(
-        `Request decryption failed on ${endpoint.path}: ${String(error)}`,
+        `Request decryption failed on ${describeContractRoute(endpoint)}: ${String(error)}`,
       );
       return body;
     }
   }
 
   private async encryptResponse(
-    endpoint: EndpointDefZ,
+    endpoint: AnyEndpointDefZ,
     data: unknown,
   ): Promise<unknown> {
     const encryption = this.moduleOptions?.encryption;
@@ -188,7 +222,7 @@ export class ContractValidationInterceptor implements NestInterceptor {
     if (!encryption?.keyProvider) {
       if (failClosed) {
         throw new InternalServerErrorException({
-          message: `Endpoint ${endpoint.path} requires response encryption but no encryption keyProvider is configured`,
+          message: `Endpoint ${describeContractRoute(endpoint)} requires response encryption but no encryption keyProvider is configured`,
           code: "ENCRYPTION_NOT_CONFIGURED",
         });
       }
@@ -206,7 +240,7 @@ export class ContractValidationInterceptor implements NestInterceptor {
     } catch (error) {
       // Fail closed by default: never return plaintext that should be encrypted.
       this.logger.error(
-        `Response encryption failed on ${endpoint.path}: ${String(error)}`,
+        `Response encryption failed on ${describeContractRoute(endpoint)}: ${String(error)}`,
       );
       if (failClosed) {
         throw new InternalServerErrorException({

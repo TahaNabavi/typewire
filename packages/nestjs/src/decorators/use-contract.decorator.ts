@@ -4,7 +4,7 @@ import {
   SetMetadata,
   UseInterceptors,
 } from "@nestjs/common";
-import type { EndpointDefZ } from "@tahanabavi/typefetch";
+import type { AnyEndpointDefZ } from "@tahanabavi/typefetch";
 import {
   TYPEFETCH_ENDPOINT_METADATA,
   TYPEFETCH_OPTIONS_METADATA,
@@ -21,6 +21,11 @@ import type { ContractEndpointOptions } from "../types";
  * Prefer `@TypeFetchEndpoint()` for new code: it also derives the route
  * from the contract, so method/path can never drift.
  *
+ * Transport-agnostic on purpose — it declares no route, so it composes with a
+ * route you wrote yourself on any wire. It is what `@GrpcEndpoint()` builds on.
+ * For a non-HTTP contract the whole request body is the message: the
+ * `{ path, query, body }` split is an HTTP convention and is not applied.
+ *
  * @example
  * ⁣@Controller("users")
  * class UserController {
@@ -30,7 +35,7 @@ import type { ContractEndpointOptions } from "../types";
  * }
  */
 export function UseContract(
-  endpoint: EndpointDefZ,
+  endpoint: AnyEndpointDefZ,
   options: ContractEndpointOptions = {},
 ): MethodDecorator {
   const decorators: MethodDecorator[] = [

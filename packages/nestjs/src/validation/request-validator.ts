@@ -1,6 +1,7 @@
-import type { EndpointDefZ } from "@tahanabavi/typefetch";
+import type { AnyEndpointDefZ, EndpointDefZ } from "@tahanabavi/typefetch";
 import type { z } from "zod";
 import { ContractValidationException, formatZodIssues } from "../exceptions";
+import { isHttpEndpoint } from "../transport";
 import type { ParsedContractRequest } from "../types";
 import { coerceInput } from "./coerce";
 import {
@@ -33,17 +34,36 @@ type ValidateOptions = { coerce: boolean };
  * Validate an incoming request against a contract endpoint's `request`
  * schema. Issues from every part are collected before throwing, so a single
  * 400 reports path, query, body and header problems together.
+ *
+ * The `{ path, query, body, headers }` split is an **HTTP** convention: it
+ * exists because a URL has those parts. A gRPC unary call and a GraphQL
+ * operation each carry exactly one message, so for them the whole request *is*
+ * the body — a contract whose message happens to have a field called `query`
+ * must not be torn apart on the way in.
  */
 export function validateRequest(
-  endpoint: EndpointDefZ,
+  endpoint: AnyEndpointDefZ,
   raw: RawRequestParts,
   options: ValidateOptions,
 ): ParsedContractRequest {
+  // Read before narrowing: `request` is the one schema every transport
+  // declares, and with no adapter package installed `AnyEndpointDefZ` *is* the
+  // http variant — so the non-http branch narrows to `never` and could not
+  // reach a field through it.
+  const requestSchema = endpoint.request;
+
+  if (!isHttpEndpoint(endpoint)) {
+    // No `body.` prefix on the issue paths: on a wire with one message there is
+    // no body to distinguish from a path or a query, and `body.id` would name a
+    // part of the request that does not exist.
+    return validateFlat(requestSchema, raw, options, false);
+  }
+
   const formData = endpoint.bodyType === "form-data";
   if (isStructuredRequestSchema(endpoint.request)) {
     return validateStructured(endpoint.request, raw, options, formData);
   }
-  return validateFlat(endpoint.request, raw, options, formData);
+  return validateFlat(endpoint.request, raw, options, formData, "body");
 }
 
 function validateStructured(
@@ -151,6 +171,12 @@ function validateFlat(
   raw: RawRequestParts,
   options: ValidateOptions,
   formData: boolean,
+  /**
+   * Issue-path prefix. `"body"` over HTTP, absent on a single-message wire —
+   * where there is no body to distinguish from a path or a query, and `body.id`
+   * would name a part of the request that does not exist.
+   */
+  prefix?: string,
 ): ParsedContractRequest {
   if (formData) {
     const { data, errors } = validateFormDataBody(
@@ -172,7 +198,7 @@ function validateFlat(
 
   const result = parseWithEmptyBodyFallback(requestSchema, value);
   if (!result.success) {
-    throw new ContractValidationException(formatZodIssues(result.error, "body"));
+    throw new ContractValidationException(formatZodIssues(result.error, prefix));
   }
 
   return {
