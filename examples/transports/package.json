@@ -1,0 +1,26 @@
+{
+  "name": "@typewire-examples/transports",
+  "version": "0.0.1",
+  "private": true,
+  "description": "One client, three wires — REST, GraphQL and gRPC on a single contract, with errors that normalize across all of them.",
+  "type": "module",
+  "scripts": {
+    "build:deps": "pnpm --filter \"@typewire-examples/transports^...\" build",
+    "start": "pnpm build:deps && tsx main.ts",
+    "test": "tsx main.ts",
+    "list": "pnpm build:deps && typewire list",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@tahanabavi/typefetch": "workspace:*",
+    "@tahanabavi/typefetch-graphql": "workspace:*",
+    "@tahanabavi/typefetch-grpc": "workspace:*",
+    "zod": "^4.1.5"
+  },
+  "devDependencies": {
+    "@tahanabavi/typewire-cli": "workspace:*",
+    "@types/node": "^24.3.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.9.2"
+  }
+}
