@@ -3,6 +3,8 @@ import {
   Contracts,
   EndpointDef,
   EndpointDefZ,
+  AnyEndpointDefZ,
+  HttpDriver,
   Middleware,
   ErrorLike,
   EndpointMethods,
@@ -13,95 +15,26 @@ import {
   Instrumentation,
   Override,
   RequestEvent,
-  ResponseType,
+  Method,
   TransferProgress,
+  ErrorKind,
 } from "./types";
 import { isXhrAvailable, xhrRequest } from "./transport/xhr";
+import { kindFromHttpStatus, kindFromThrown } from "./utils/error-kind";
 import { safeProgress } from "./utils/progress";
+import { withDownloadProgress } from "./utils/response-body";
+import { RichError, isContractError } from "./errors";
+import { allowsDownloadProgress, httpTransport } from "./transport/http";
 import {
-  decodeResponse,
-  readErrorBody,
-  withDownloadProgress,
-} from "./utils/response-body";
+  TRANSPORT_API_VERSION,
+  type TransportAdapter,
+  type TransportContext,
+} from "./transport/adapter";
 
-/**
- * Response types whose bodies belong to the caller. Download progress and the
- * wrapper/transform pipeline both stay off these — counting bytes would mean
- * draining the stream the caller asked to own.
- */
-const UNDRAINED_RESPONSE_TYPES = new Set<ResponseType>(["stream", "response"]);
-
-/** Response types the `responseWrapper` / `responseTransform` pipeline applies to. */
-const ENVELOPE_RESPONSE_TYPES = new Set<ResponseType>(["json", "text"]);
-
-export class RichError extends Error implements ErrorLike {
-  status?: number;
-  code?: string;
-  title?: string;
-  detail?: string;
-  errors?: Record<string, string[]>;
-  /**
-   * Parsed error body. When the failed request's status matches a schema in
-   * the endpoint's `errors` map, this holds the parsed/typed body; otherwise
-   * it falls back to the raw JSON body.
-   */
-  data?: unknown;
-  /**
-   * Whether `data` was validated against the endpoint's declared schema for
-   * this status. `true` only when a schema existed for `status` and the body
-   * passed it — i.e. `data` is guaranteed to match the declared error type.
-   * Absent/`false` when no schema was declared or the body failed validation
-   * (fail-open: `data` then holds the raw JSON). `isContractError` requires
-   * this to be `true`, so it never narrows to a type the body doesn't match.
-   */
-  dataParsed?: boolean;
-
-  constructor(error: Partial<ErrorLike> & { message: string }) {
-    super(error.message);
-    Object.assign(this, error);
-  }
-}
-
-/**
- * isContractError
- * ===============
- * Typed guard that narrows a caught error to a `RichError` of a specific
- * declared status, resolving the error body type from the endpoint's `errors`
- * map so `error.data` becomes fully typed at the point of use.
- *
- * TypeScript `catch` clauses are `unknown` and can't be narrowed by control
- * flow alone, so the guard references the endpoint to recover the body type
- * from the status literal.
- *
- * It narrows only when the error is a `RichError`, its `status` matches, AND
- * the body actually validated against the declared schema (`dataParsed`). The
- * last check keeps the narrowed type honest: if the server returns that status
- * with a body that doesn't match the contract, parsing fails open and this
- * returns `false` rather than claiming `data` has a shape it doesn't.
- *
- * @example
- * try {
- *   await api.user.createUser({ body });
- * } catch (e) {
- *   if (isContractError(contracts.user.createUser, e, 409)) {
- *     e.data.conflictField; // fully typed from the 409 schema
- *   }
- * }
- */
-export function isContractError<
-  E extends EndpointDefZ,
-  S extends keyof NonNullable<E["errors"]> & number,
->(
-  endpoint: E,
-  error: unknown,
-  status: S,
-): error is RichError & { status: S; data: InferError<E, S> } {
-  return (
-    error instanceof RichError &&
-    error.status === status &&
-    error.dataParsed === true
-  );
-}
+// Re-exported so `import { RichError } from "@tahanabavi/typefetch"` and every
+// existing deep import keep resolving; the definitions moved to `errors.ts` only
+// because transport adapters construct them and would otherwise close a cycle.
+export { RichError, isContractError };
 
 /** The correlation state one in-flight request carries for instrumentation. */
 type RequestTrace = {
@@ -109,22 +42,6 @@ type RequestTrace = {
   endpointId: string;
   startedAt: number;
 };
-
-type ParsedRequestParts = {
-  path?: Record<string, any>;
-  query?: Record<string, any>;
-  body?: any;
-  headers: Record<string, string>;
-  isStructured: boolean;
-};
-
-const REQUEST_PART_KEYS = new Set([
-  "path",
-  "query",
-  "body",
-  "headers",
-  "header",
-]);
 
 export class ApiClient<C extends Contracts, E extends ErrorLike = RichError> {
   private middlewares: Array<{ fn: Middleware; options?: any }> = [];
@@ -138,6 +55,10 @@ export class ApiClient<C extends Contracts, E extends ErrorLike = RichError> {
   private requestCounter = 0;
   /** Latches the one-time "no XMLHttpRequest here" warning. */
   private warnedNoXhr = false;
+  /** Latches the one-time `driver: "xhr"` fallback warning. */
+  private warnedNoXhrDriver = false;
+  /** Latches per-transport capability warnings, keyed `"kind:phase"`. */
+  private readonly warnedTransportCapability = new Set<string>();
 
   /**
    * Errors already handed to `onError`.
@@ -157,6 +78,16 @@ export class ApiClient<C extends Contracts, E extends ErrorLike = RichError> {
 
   private _modules!: { [M in keyof C]: EndpointMethods<C[M]> };
 
+  /**
+   * Registered transports, keyed by their `transport` value.
+   *
+   * `http` is always present because it is what this client already was.
+   * Everything else is passed in at the setup site, which is what keeps a
+   * REST-only app from paying for a transport it never uses — an unregistered
+   * adapter is never imported, so it tree-shakes out.
+   */
+  private readonly transports = new Map<string, TransportAdapter>();
+
   constructor(
     private config: {
       baseUrl: string;
@@ -164,12 +95,64 @@ export class ApiClient<C extends Contracts, E extends ErrorLike = RichError> {
       tokenProvider?: TokenProvider;
       useMockData?: boolean;
       mockDelay?: { min: number; max: number };
+      /** Default transport for endpoints that do not declare one. */
+      transport?: string;
+      /** Additional transports, from their adapter packages. */
+      transports?: TransportAdapter<any>[];
     },
     private contracts: C,
   ) {
     this.useMockData = config.useMockData || false;
     this.mockDelay = config.mockDelay || { min: 100, max: 1000 };
     this.tokenProvider = config.tokenProvider;
+
+    this.register(httpTransport as TransportAdapter);
+    for (const adapter of config.transports ?? []) {
+      this.register(adapter as TransportAdapter);
+    }
+  }
+
+  /**
+   * Add a transport.
+   *
+   * The version check is not ceremony: adapters are separate packages compiled
+   * against a published interface, so a stale one would otherwise fail somewhere
+   * deep in a request with a missing-method error rather than here, at
+   * construction, naming the package.
+   */
+  private register(adapter: TransportAdapter) {
+    if (adapter.apiVersion !== TRANSPORT_API_VERSION) {
+      throw new Error(
+        `[typefetch] Transport "${adapter.kind}" was built against transport ` +
+          `API version ${adapter.apiVersion}, but this client speaks ` +
+          `${TRANSPORT_API_VERSION}. Update the transport package.`,
+      );
+    }
+
+    this.transports.set(adapter.kind, adapter);
+  }
+
+  /**
+   * The adapter serving an endpoint: its own `transport`, else the client
+   * default, else `http`.
+   */
+  private adapterFor(endpoint: AnyEndpointDefZ, endpointId: string) {
+    const kind =
+      (endpoint as { transport?: string }).transport ??
+      this.config.transport ??
+      "http";
+
+    const adapter = this.transports.get(kind);
+
+    if (!adapter) {
+      throw new Error(
+        `[typefetch] Endpoint "${endpointId}" uses transport "${kind}", which ` +
+          `is not registered. Install its package and pass it in ` +
+          `\`transports\` when constructing the client.`,
+      );
+    }
+
+    return adapter;
   }
 
   init() {
@@ -183,6 +166,12 @@ export class ApiClient<C extends Contracts, E extends ErrorLike = RichError> {
         const endpoint = module[endpointName] as EndpointDefZ;
         const endpointId = `${moduleName}.${endpointName}`;
 
+        // Resolve and check the contract once, here — a route pointing at an
+        // unregistered transport, or missing a field its transport requires,
+        // should fail at client construction with its id in the message rather
+        // than on the first call in production.
+        this.adapterFor(endpoint, endpointId).validate?.(endpoint, endpointId);
+
         const method = (input: any, options?: RequestOptions) =>
           this.request(endpoint as any, input, options, endpointId);
         // Attach stable, additive metadata used by higher layers (query
@@ -195,6 +184,17 @@ export class ApiClient<C extends Contracts, E extends ErrorLike = RichError> {
     }
 
     this._modules = modules;
+  }
+
+  /**
+   * How a route identifies itself, asked of its transport.
+   *
+   * The transport registry is open, so `endpoint.method` and `endpoint.path` do
+   * not exist on every endpoint. Tooling that needs to name a route calls this
+   * and keeps working for transports written after it shipped.
+   */
+  describe(endpoint: AnyEndpointDefZ, endpointId = "") {
+    return this.adapterFor(endpoint, endpointId).describe(endpoint);
   }
 
   get modules() {
@@ -260,10 +260,21 @@ export class ApiClient<C extends Contracts, E extends ErrorLike = RichError> {
     // Resolve a runtime override (devtools) without mutating the contract.
     const override = this.resolveOverride(endpointId, input);
     const activeEndpoint = this.applyOverrideSchemas(endpoint, override);
+    const adapter = this.adapterFor(activeEndpoint as AnyEndpointDefZ, endpointId);
 
-    const parsedInput = activeEndpoint.request.parse(input);
+    const parsedInput = this.parseInput(
+      activeEndpoint,
+      adapter,
+      input,
+      endpointId,
+    );
 
-    const trace = this.startTrace(endpointId, activeEndpoint, parsedInput);
+    const trace = this.startTrace(
+      endpointId,
+      activeEndpoint as AnyEndpointDefZ,
+      adapter,
+      parsedInput,
+    );
 
     try {
       if (override?.latencyMs) {
@@ -276,7 +287,10 @@ export class ApiClient<C extends Contracts, E extends ErrorLike = RichError> {
           this.createError({
             message:
               override.error.message ??
-              `Forced error for ${endpointId || activeEndpoint.path}`,
+              `Forced error for ${
+                endpointId ||
+                adapter.describe(activeEndpoint as AnyEndpointDefZ).target
+              }`,
             status: override.error.status,
             code: override.error.code ?? "OVERRIDE_ERROR",
             data: override.error.body,
@@ -303,18 +317,11 @@ export class ApiClient<C extends Contracts, E extends ErrorLike = RichError> {
         return data;
       }
 
-      const built = this.buildUrlAndBody(
-        activeEndpoint as EndpointDefZ,
-        parsedInput,
-      );
-
       const data = await this.performRequestLogic(
         activeEndpoint,
+        adapter,
         parsedInput,
-        built.url,
-        built.body,
-        built.headers,
-        built.parts,
+        endpointId,
         options,
         trace,
       );
@@ -323,6 +330,50 @@ export class ApiClient<C extends Contracts, E extends ErrorLike = RichError> {
     } catch (err) {
       this.failTrace(trace, err);
       throw err;
+    }
+  }
+
+  /**
+   * Validate a request input, failing the same way everything else fails.
+   *
+   * A bad **input** used to escape as a raw `ZodError`: it never became a
+   * `RichError`, never carried a `kind`, never reached `onError`, and never
+   * appeared in an inspector — while a bad **output**, one line further down the
+   * same request, did all four. That asymmetry meant a global error handler
+   * silently missed an entire class of failure, and the fix is to give both ends
+   * of the contract the same treatment.
+   *
+   * Zod's field errors are carried across into `RichError.errors`, which already
+   * exists for exactly this shape, so nothing the `ZodError` knew is lost by
+   * normalising it.
+   */
+  private parseInput<TReq extends z.ZodTypeAny>(
+    endpoint: EndpointDef<TReq, z.ZodTypeAny>,
+    adapter: TransportAdapter,
+    input: unknown,
+    endpointId: string,
+  ): z.infer<TReq> {
+    try {
+      return endpoint.request.parse(input);
+    } catch (err) {
+      const error = this.report(this.normalizeError(err));
+
+      // The request never reaches the wire, so there is no trace yet — but it
+      // is still a failed request from the caller's side. Emitting the pair
+      // keeps an inspector's timeline complete instead of showing a toast with
+      // no row behind it. The raw input is what is reported because there is no
+      // parsed one; that is the whole reason this failed.
+      this.failTrace(
+        this.startTrace(
+          endpointId,
+          endpoint as AnyEndpointDefZ,
+          adapter,
+          input,
+        ),
+        error,
+      );
+
+      throw error;
     }
   }
 
@@ -365,18 +416,24 @@ export class ApiClient<C extends Contracts, E extends ErrorLike = RichError> {
 
   private startTrace(
     endpointId: string,
-    endpoint: EndpointDefZ,
+    endpoint: AnyEndpointDefZ,
+    adapter: TransportAdapter,
     input: unknown,
   ): RequestTrace | null {
     if (!this.instrumentations.length) return null;
     const requestId = `tf_${++this.requestCounter}`;
     const startedAt = this.nowMs();
+    // Asked of the transport rather than read off the endpoint: `method` and
+    // `path` do not exist on every variant once a second transport is
+    // registered, and an inspector still needs a label for the row.
+    const described = adapter.describe(endpoint);
     this.emit({
       type: "start",
       requestId,
       endpointId,
-      method: endpoint.method,
-      url: this.config.baseUrl + endpoint.path,
+      method: described.operation as Method,
+      url: this.config.baseUrl + described.target,
+      transport: adapter.kind,
       input,
       timestamp: startedAt,
     });
@@ -420,73 +477,77 @@ export class ApiClient<C extends Contracts, E extends ErrorLike = RichError> {
     TRes extends z.ZodTypeAny,
   >(
     endpoint: EndpointDef<TReq, TRes>,
+    adapter: TransportAdapter,
     parsedInput: z.infer<TReq>,
-    url: string,
-    body: BodyInit | undefined,
-    requestHeaders: Record<string, string>,
-    requestParts: ParsedRequestParts,
+    endpointId: string,
     options?: RequestOptions,
     trace?: RequestTrace | null,
   ): Promise<z.infer<TRes>> {
-    const headers: Record<string, string> = {};
+    const anyEndpoint = endpoint as AnyEndpointDefZ;
 
-    if (endpoint.bodyType !== "form-data") {
-      headers["Content-Type"] = "application/json";
-    }
-
-    const endpointHeaders =
-      typeof endpoint.headers === "function"
-        ? endpoint.headers(parsedInput)
-        : endpoint.headers;
-
-    Object.assign(
-      headers,
-      this.normalizeHeaders(endpointHeaders),
-      requestHeaders,
-    );
+    // Resolved here rather than in the adapter so token providers behave
+    // identically on every wire; *applying* it is the transport's job, because
+    // "an Authorization header" is not universal.
+    let token: string | undefined;
 
     if (endpoint.auth) {
-      const token = await this.getCurrentToken();
+      token = await this.getCurrentToken();
 
       if (!token) {
         // Thrown before the request is under way, so it never reaches the catch
         // below and is reported here instead.
         throw this.report(
           this.createError({
-            message: `Missing token for ${endpoint.path}`,
+            message: `Missing token for ${adapter.describe(anyEndpoint).target}`,
             status: 401,
             code: "NO_TOKEN",
           }),
         );
       }
-
-      headers["Authorization"] = `Bearer ${token}`;
     }
 
+    const transportCtx: TransportContext = {
+      endpoint: anyEndpoint,
+      endpointId,
+      input: parsedInput,
+      baseUrl: this.config.baseUrl,
+      token,
+      options,
+    };
+
+    const built = adapter.build(transportCtx);
+
     const ctx = {
-      url,
-      init: { method: endpoint.method, headers, body } as RequestInit,
+      url: built.url,
+      init: built.init,
       endpoint: endpoint as never,
+      route: { ...adapter.describe(anyEndpoint), transport: adapter.kind },
       request: {
-        ...requestParts,
+        ...built.parts,
         rawInput: parsedInput,
       },
     } satisfies MiddlewareContext;
 
     let controller: AbortController | undefined;
     let timeoutId: any;
+    // The client implements `timeout` by aborting, so the failure that comes
+    // back is indistinguishable from a caller-initiated cancel. Remembering
+    // which one fired is what lets the two be reported as different `kind`s —
+    // a distinction a retry policy needs, since a timeout is worth retrying and
+    // a user navigating away is not.
+    let timedOut = false;
 
     if (options?.timeout) {
       controller = new AbortController();
-      timeoutId = setTimeout(() => controller!.abort(), options.timeout);
+      timeoutId = setTimeout(() => {
+        timedOut = true;
+        controller!.abort();
+      }, options.timeout);
     }
 
     if (options?.signal || controller) {
       ctx.init.signal = options?.signal || controller?.signal;
     }
-
-    const responseType: ResponseType =
-      (endpoint as EndpointDefZ).responseType ?? "json";
 
     // Progress handlers are wired only when the caller asked for them — never
     // merely because instrumentation is attached. Opening devtools must not
@@ -497,66 +558,88 @@ export class ApiClient<C extends Contracts, E extends ErrorLike = RichError> {
       trace,
     );
 
-    const useXhr = Boolean(onUpload) && isXhrAvailable();
-    if (onUpload && !useXhr) this.warnUploadProgressUnavailable();
+    if (onUpload) this.checkProgressSupport(adapter, "upload");
+    if (onDownload) this.checkProgressSupport(adapter, "download");
+
+    // Asked of the adapter rather than read off the endpoint: `driver` lives on
+    // the http registry entry, and the core never reads a transport-specific
+    // field. A transport with no opinion inherits "auto".
+    const driver = adapter.resolveDriver?.(endpoint as AnyEndpointDefZ) ?? "auto";
+    const useXhr = this.shouldUseXhr(driver, Boolean(onUpload), adapter);
+
+    if (onUpload && !adapter.send && !useXhr) {
+      this.warnUploadProgressUnavailable();
+    }
+
+    // A transport with its own terminal sender replaces `fetch` at the end of
+    // the chain; every middleware above it is unaware of the swap, exactly as
+    // with the XHR path.
+    const send = adapter.send;
+    const terminal = send
+      ? () => send(ctx.url, ctx.init, { onUploadProgress: onUpload })
+      : useXhr
+        ? () => xhrRequest(ctx.url, ctx.init, { onUploadProgress: onUpload })
+        : () => fetch(ctx.url, ctx.init);
 
     const runner = this.middlewares.reduceRight(
       (next, mw) => () => mw.fn(ctx, next, mw.options),
-      useXhr
-        ? () => xhrRequest(ctx.url, ctx.init, { onUploadProgress: onUpload })
-        : () => fetch(ctx.url, ctx.init),
+      terminal,
     );
 
     const execute = async () => {
       let res = await runner();
 
-      // Failure is handled before any decoding. The declared `responseType`
-      // describes the *success* body only — an endpoint returning a Blob still
-      // reports its 404 as JSON — and reading the error body defensively is what
-      // keeps a non-JSON failure (an HTML 502, an empty 401) reporting its
-      // status instead of surfacing as a bare SyntaxError.
+      // Failure is handled before any decoding. A transport's declared success
+      // decoding describes the *success* body only — an endpoint returning a
+      // Blob still reports its 404 as JSON — and reading the error body
+      // defensively is what keeps a non-JSON failure (an HTML 502, an empty 401)
+      // reporting its status instead of surfacing as a bare SyntaxError.
       if (!res.ok) {
-        const { body: errorBody, wasJson } = await readErrorBody(res);
+        const failure = await adapter.fail(res, transportCtx);
 
         // An envelope API answering `{ success: false, message }` alongside a
         // 4xx put its message here before this reordering, and that message is
         // the useful one. Consulted with `safeParse`, so a failure body that
         // doesn't fit the envelope falls through to the status-based error
         // instead of throwing a validation error over it.
-        if (
-          wasJson &&
-          this.responseWrapper &&
-          ENVELOPE_RESPONSE_TYPES.has(responseType)
-        ) {
+        if (failure.wasJson && failure.enveloped && this.responseWrapper) {
           const enveloped = this.responseWrapper(endpoint.response).safeParse(
-            errorBody,
+            failure.body,
           );
           if (enveloped.success && (enveloped.data as any)?.success === false) {
             throw this.buildEnvelopeFailure(enveloped.data as any, res.status);
           }
         }
 
-        throw this.buildFailure(endpoint as EndpointDefZ, res, errorBody);
+        throw this.createError(failure.error);
       }
 
-      if (onDownload && !UNDRAINED_RESPONSE_TYPES.has(responseType)) {
+      // Gated on the capability as well as the response type: warning that a
+      // transport cannot report download progress and then re-streaming its body
+      // to count bytes anyway would pay the cost for a handler that is never
+      // called.
+      if (
+        onDownload &&
+        adapter.capabilities?.downloadProgress !== false &&
+        allowsDownloadProgress(anyEndpoint)
+      ) {
         res = withDownloadProgress(res, onDownload);
       }
 
-      const decoded = await decodeResponse(res, responseType);
+      const decoded = await adapter.decode(res, transportCtx);
 
       // Envelopes and the global response transform are JSON/text concepts.
       // Unwrapping a Blob, or handing one to a transform written for records,
       // would corrupt exactly the payloads that motivated these response types.
-      if (!ENVELOPE_RESPONSE_TYPES.has(responseType)) {
-        return endpoint.response.parse(decoded);
+      if (!decoded.enveloped) {
+        return endpoint.response.parse(decoded.value);
       }
 
-      let responseData = decoded;
+      let responseData = decoded.value;
 
       if (this.responseWrapper) {
         const wrappedSchema = this.responseWrapper(endpoint.response);
-        const parsedWrapped = wrappedSchema.parse(decoded) as any;
+        const parsedWrapped = wrappedSchema.parse(decoded.value) as any;
 
         if (parsedWrapped.success === false) {
           throw this.buildEnvelopeFailure(parsedWrapped, res.status);
@@ -578,7 +661,11 @@ export class ApiClient<C extends Contracts, E extends ErrorLike = RichError> {
       // The single reporting point for anything that fails once the request is
       // under way: HTTP failures, envelope failures, schema failures, network
       // errors, timeouts, and retry exhaustion.
-      throw this.report(this.normalizeError(err));
+      const error = this.normalizeError(err);
+      if (timedOut && error.kind === "cancelled") {
+        error.kind = "deadline_exceeded";
+      }
+      throw this.report(error);
     }
   }
 
@@ -623,209 +710,36 @@ export class ApiClient<C extends Contracts, E extends ErrorLike = RichError> {
     }
   }
 
-  private buildUrlAndBody(endpoint: EndpointDefZ, input: any) {
-    const parts = this.extractRequestParts(input);
-
-    let url = this.config.baseUrl + endpoint.path;
-    url = this.applyPathParams(url, parts.path);
-    url = this.appendQueryParams(url, parts.query);
-
-    let body: BodyInit | undefined;
-    const payload = parts.isStructured ? parts.body : input;
-
-    if (endpoint.method !== "GET" && payload !== undefined) {
-      if (endpoint.bodyType === "form-data") {
-        if (typeof FormData !== "undefined" && payload instanceof FormData) {
-          body = payload;
-        } else {
-          const form = new FormData();
-
-          if (this.isObjectRecord(payload)) {
-            for (const [key, value] of Object.entries(payload)) {
-              this.appendFormValue(form, key, value);
-            }
-          } else if (payload != null) {
-            form.append("value", String(payload));
-          }
-
-          body = form;
-        }
-      } else {
-        body = JSON.stringify(payload);
-      }
-    }
-
-    return { url, body, headers: parts.headers, parts };
-  }
-
-  private extractRequestParts(input: any): ParsedRequestParts {
-    if (this.isStructuredRequestInput(input)) {
-      return {
-        path: this.isObjectRecord(input.path) ? input.path : undefined,
-        query: this.isObjectRecord(input.query) ? input.query : undefined,
-        body: input.body,
-        headers: this.normalizeHeaders(input.headers ?? input.header),
-        isStructured: true,
-      };
-    }
-
-    return {
-      body: input,
-      headers: {},
-      isStructured: false,
-    };
-  }
-
-  private isStructuredRequestInput(
-    input: unknown,
-  ): input is Record<string, any> {
-    if (!this.isObjectRecord(input)) return false;
-
-    const keys = Object.keys(input);
-    if (keys.length === 0) return false;
-
-    return (
-      keys.some((key) => REQUEST_PART_KEYS.has(key)) &&
-      keys.every((key) => REQUEST_PART_KEYS.has(key))
-    );
-  }
-
-  private isObjectRecord(value: unknown): value is Record<string, any> {
-    return typeof value === "object" && value !== null && !Array.isArray(value);
-  }
-
-  private applyPathParams(
-    fullUrl: string,
-    pathParams?: Record<string, any>,
-  ): string {
-    const url = new URL(fullUrl);
-
-    const replacedPathname = url.pathname.replace(
-      /:([A-Za-z0-9_]+)/g,
-      (_, key: string) => {
-        const value = pathParams?.[key];
-
-        if (value === undefined || value === null) {
-          throw this.createError({
-            message: `Missing path param "${key}"`,
-            code: "MISSING_PATH_PARAM",
-          });
-        }
-
-        return encodeURIComponent(String(value));
-      },
-    );
-
-    return `${url.origin}${replacedPathname}${url.search}${url.hash}`;
-  }
-
-  private appendQueryParams(url: string, query?: Record<string, any>): string {
-    if (!query) return url;
-
-    const params = new URLSearchParams();
-
-    for (const [key, value] of Object.entries(query)) {
-      this.appendQueryValue(params, key, value);
-    }
-
-    const queryString = params.toString();
-    if (!queryString) return url;
-
-    return `${url}${url.includes("?") ? "&" : "?"}${queryString}`;
-  }
-
-  private appendQueryValue(params: URLSearchParams, key: string, value: any) {
-    if (value === undefined || value === null) return;
-
-    if (Array.isArray(value)) {
-      for (const item of value) this.appendQueryValue(params, key, item);
-      return;
-    }
-
-    if (value instanceof Date) {
-      params.append(key, value.toISOString());
-      return;
-    }
-
-    if (typeof value === "object") {
-      params.append(key, JSON.stringify(value));
-      return;
-    }
-
-    params.append(key, String(value));
-  }
-
-  private appendFormValue(form: FormData, key: string, value: any) {
-    if (value === undefined || value === null) return;
-
-    if (Array.isArray(value)) {
-      for (const item of value) this.appendFormValue(form, key, item);
-      return;
-    }
-
-    if (value instanceof Date) {
-      form.append(key, value.toISOString());
-      return;
-    }
-
-    const isBlob = typeof Blob !== "undefined" && value instanceof Blob;
-
-    if (typeof value === "object" && !isBlob) {
-      form.append(key, JSON.stringify(value));
-      return;
-    }
-
-    form.append(key, value as any);
-  }
-
-  private normalizeHeaders(headers: unknown): Record<string, string> {
-    if (!this.isObjectRecord(headers)) return {};
-
-    const normalized: Record<string, string> = {};
-
-    for (const [key, value] of Object.entries(headers)) {
-      if (value === undefined || value === null) continue;
-      normalized[key] = String(value);
-    }
-
-    return normalized;
-  }
-
   /**
-   * Build the error for a non-2xx response.
+   * Warn when a request asks for progress a transport cannot report.
    *
-   * `errorBody` has already been read defensively — it is the parsed JSON when
-   * the server sent JSON, and `{ detail: <raw text> }` when it sent anything
-   * else — so every field read here is safe on an HTML or empty body.
-   *
-   * Fail open on typing: when a schema is declared for this status, parse and
-   * attach the typed body; otherwise keep the raw body. Error-typing must never
-   * throw and mask the real error.
+   * A capability the wire does not have is otherwise a silent no-op, and a
+   * progress bar frozen at zero on a transfer that is in fact working reads as
+   * a hung app — the same reasoning as the "no XMLHttpRequest here" warning.
    */
-  private buildFailure(
-    endpoint: EndpointDefZ,
-    res: Response,
-    errorBody: any,
-  ): RichError {
-    const errorSchema = endpoint.errors?.[res.status];
-    const parsed = errorSchema?.safeParse(errorBody);
+  private checkProgressSupport(
+    adapter: TransportAdapter,
+    phase: "upload" | "download",
+  ) {
+    const capabilities = adapter.capabilities;
+    if (!capabilities) return;
 
-    const error = this.createError({
-      message: errorBody.message || res.statusText || `HTTP ${res.status}`,
-      status: res.status,
-      code: errorBody.code,
-      title: errorBody.title,
-      detail: errorBody.detail,
-      errors: errorBody.errors,
-      data: parsed?.success ? parsed.data : errorBody,
-      dataParsed: parsed?.success === true,
-    });
+    const supported =
+      phase === "upload"
+        ? capabilities.uploadProgress
+        : capabilities.downloadProgress;
+    if (supported) return;
 
-    // Not reported here: this runs inside the retry loop, so an endpoint
-    // configured with `maxRetries: 2` would fire `onError` three times for one
-    // failed request. `performRequestLogic`'s catch reports it once, after
-    // retries are exhausted.
-    return error;
+    const key = `${adapter.kind}:${phase}`;
+    if (this.warnedTransportCapability.has(key)) return;
+    this.warnedTransportCapability.add(key);
+
+    console.warn(
+      `[typefetch] on${phase === "upload" ? "Upload" : "Download"}Progress was ` +
+        `provided for a "${adapter.kind}" endpoint, but that transport cannot ` +
+        `report ${phase} progress. The request still runs; the handler will not ` +
+        `be called.`,
+    );
   }
 
   /** The error for an envelope that reports `success: false`. */
@@ -875,6 +789,49 @@ export class ApiClient<C extends Contracts, E extends ErrorLike = RichError> {
   }
 
   /**
+   * Resolve the terminal sender for one request.
+   *
+   * A transport supplying its own `send` owns the wire outright, so the driver
+   * is not consulted for it at all — honouring `driver: "xhr"` there would mean
+   * overriding the very thing that adapter exists to do.
+   */
+  private shouldUseXhr(
+    driver: HttpDriver,
+    wantsUploadProgress: boolean,
+    adapter: TransportAdapter,
+  ): boolean {
+    if (adapter.send) return false;
+
+    const available = isXhrAvailable();
+
+    if (driver === "fetch") return false;
+
+    if (driver === "xhr") {
+      if (!available) this.warnXhrDriverUnavailable();
+      return available;
+    }
+
+    // "auto": the historical rule — XHR exists only to report upload progress,
+    // so a request that did not ask for it takes the unchanged fetch path.
+    return wantsUploadProgress && available;
+  }
+
+  /**
+   * Warn once when a contract pinned `driver: "xhr"` somewhere XHR does not
+   * exist. Falling back silently would hide the reason a request behaves
+   * differently in SSR than it does in the browser.
+   */
+  private warnXhrDriverUnavailable() {
+    if (this.warnedNoXhrDriver) return;
+    this.warnedNoXhrDriver = true;
+    console.warn(
+      '[typefetch] An endpoint declares driver: "xhr", but XMLHttpRequest is ' +
+        "not available in this environment (Node/SSR). The request falls back " +
+        "to fetch.",
+    );
+  }
+
+  /**
    * Warn once when upload progress was asked for somewhere it cannot work.
    *
    * Silently never calling the handler is the worst outcome: a progress bar
@@ -912,8 +869,18 @@ export class ApiClient<C extends Contracts, E extends ErrorLike = RichError> {
     return error;
   }
 
+  /**
+   * Build a `RichError`, classifying it if the caller did not.
+   *
+   * Defaulting `kind` here rather than at each call site is what makes the
+   * guarantee "every error the client produces carries a `kind`" true by
+   * construction — a new failure path cannot forget to classify itself.
+   */
   private createError(error: Partial<RichError> & { message: string }) {
-    return new RichError(error);
+    return new RichError({
+      ...error,
+      kind: error.kind ?? kindFromHttpStatus(error.status),
+    });
   }
 
   private normalizeError(err: any) {
@@ -922,9 +889,17 @@ export class ApiClient<C extends Contracts, E extends ErrorLike = RichError> {
       return this.createError({
         message: `Validation error: ${err.issues.map((e) => e.message).join(", ")}`,
         code: "VALIDATION_ERROR",
+        kind: "validation",
+        // `errors` is already `Record<string, string[]>`, which is exactly what
+        // Zod's flattened field errors are — so the per-field detail a caller
+        // would have read off the `ZodError` survives normalisation.
+        errors: z.flattenError(err).fieldErrors as Record<string, string[]>,
       });
     }
-    return this.createError({ message: err.message || "Unknown error" });
+    return this.createError({
+      message: err?.message || "Unknown error",
+      kind: kindFromThrown(err),
+    });
   }
 
   private async handleMockRequest(endpoint: any) {

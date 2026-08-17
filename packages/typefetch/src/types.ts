@@ -161,14 +161,65 @@ export type PermissionRequirement = {
 /**
  * ErrorResponsesMap
  * =================
- * Optional map of declared error responses for an endpoint, keyed by HTTP
- * status code. Each value is a Zod schema describing that status's error body.
+ * Optional map of declared error responses for an endpoint. Each value is a Zod
+ * schema describing that key's error body.
  *
- * Keying by status code maps 1:1 to OpenAPI `responses` and to
- * `RichError.status`. If a single status can carry multiple distinct bodies,
- * the schema value itself can be a `z.discriminatedUnion(...)`.
+ * **The key space belongs to the endpoint's transport**, which is unambiguous
+ * because an endpoint has exactly one:
+ *
+ * - `http` — the HTTP status code (`404`). Maps 1:1 to OpenAPI `responses`.
+ * - `grpc` — the gRPC status code (`5` for `NOT_FOUND`).
+ * - `graphql` — the `extensions.code` string (`"UNAUTHENTICATED"`).
+ *
+ * String keys are why this is `number | string` rather than the `number` it was
+ * before transports became pluggable; `Record<number, …>` remains assignable, so
+ * every existing contract is unaffected.
+ *
+ * If a single key can carry multiple distinct bodies, the schema value itself
+ * can be a `z.discriminatedUnion(...)`.
  */
-export type ErrorResponsesMap = Record<number, z.ZodTypeAny>;
+export type ErrorResponsesMap = Record<number | string, z.ZodTypeAny>;
+
+/**
+ * ErrorKind
+ * =========
+ * The **normalized** failure taxonomy, shared by every transport.
+ *
+ * The whole point of one client over several wires is that application code
+ * stops caring which wire it is on. That fails immediately if "not found" is
+ * `404` here, `5` there and `"NOT_FOUND"` somewhere else — so every failure is
+ * also classified into one of these, and a global handler ("redirect on
+ * `unauthenticated`") works identically for all of them.
+ *
+ * The gRPC status set is the canonical taxonomy: it is the best-designed of the
+ * three, and both HTTP status codes and GraphQL `extensions.code` map onto it
+ * cleanly. `network` and `validation` are added for failures that never reached
+ * a server or never left the client.
+ *
+ * `RichError.data` remains the transport-specific, contract-typed body — this
+ * is the coarse classification above it, not a replacement for it.
+ */
+export type ErrorKind =
+  | "cancelled"
+  | "invalid_argument"
+  | "deadline_exceeded"
+  | "not_found"
+  | "already_exists"
+  | "permission_denied"
+  | "unauthenticated"
+  | "resource_exhausted"
+  | "failed_precondition"
+  | "aborted"
+  | "out_of_range"
+  | "unimplemented"
+  | "internal"
+  | "unavailable"
+  | "data_loss"
+  /** The request never reached a server (DNS, TLS, offline, CORS preflight). */
+  | "network"
+  /** Input or output failed its own contract schema. */
+  | "validation"
+  | "unknown";
 
 /**
  * EndpointTestContext
@@ -228,26 +279,21 @@ export type EndpointTestConfig<TReq, TRes> = {
 };
 
 /**
- * EndpointDef
+ * EndpointBase
  * ============
- * Defines the structure of a **single API endpoint**, including:
- * - HTTP method and path
- * - request/response validation schemas
- * - optional authentication requirement
- * - optional mock or static mock data
- * - optional custom headers and body format
+ * Everything a **single API endpoint** declares that has nothing to do with the
+ * wire it travels over: schemas, auth, permission, mocks, encryption, headers
+ * and contract tests.
+ *
+ * Kept separate from the transport-specific fields so a capability added later
+ * lands in one place for every transport at once, rather than being copied into
+ * each variant and drifting.
  */
-export type EndpointDef<
+export type EndpointBase<
   TReq extends RequestSchema,
   TRes extends ResponseSchema,
   TErr extends ErrorResponsesMap = {},
 > = {
-  /** HTTP method used by this endpoint */
-  method: Method;
-
-  /** URL path for this endpoint, e.g. "/users/:id" */
-  path: string;
-
   /** Whether this endpoint requires an Authorization token */
   auth?: boolean;
 
@@ -267,24 +313,16 @@ export type EndpointDef<
   response: TRes;
 
   /**
-   * How the success body is decoded before `response` validates it.
-   * Defaults to `"json"` — omitting it preserves the original behavior exactly.
-   *
-   * Pair it with the matching schema helper so validation stays honest:
-   * `responseType: "blob"` with `response: zBlob()`, `"file"` with `zFile()`.
-   *
-   * @see {@link ResponseType}
-   */
-  responseType?: ResponseType;
-
-  /**
-   * Optional map of error response schemas keyed by HTTP status code, e.g.
-   * `{ 404: schema, 409: schema }`. Purely additive: endpoints without
-   * `errors` behave exactly as before.
+   * Optional map of error response schemas, keyed by this endpoint's transport
+   * key space — HTTP status for `http`, gRPC code for `grpc`, `extensions.code`
+   * for `graphql`, e.g. `{ 404: schema, 409: schema }`. Purely additive:
+   * endpoints without `errors` behave exactly as before.
    *
    * Used by the client to parse and TYPE a failed request's body (see
    * `RichError.data` and `isContractError`), and by external tools (such as
    * `@tahanabavi/typefetch-nestjs`) to document/validate error responses.
+   *
+   * @see {@link ErrorResponsesMap}
    */
   errors?: TErr;
 
@@ -311,6 +349,66 @@ export type EndpointDef<
     | ((input: z.infer<TReq>) => Record<string, string>);
 
   /**
+   * Optional contract-driven tests used by the TypeFetch test runner.
+   */
+  test?: EndpointTestConfig<z.infer<TReq>, z.infer<TRes>>;
+};
+
+/**
+ * TransportRegistry
+ * =================
+ * The set of wires an endpoint may be declared for, and the addressing fields
+ * each one requires. `http` is built in; every other transport is added by
+ * **installing its package**, which augments this interface by declaration
+ * merging:
+ *
+ * ```ts
+ * // @tahanabavi/typefetch-grpc
+ * declare module "@tahanabavi/typefetch" {
+ *   interface TransportRegistry {
+ *     grpc: { service: string; rpc: string; deadlineMs?: number };
+ *   }
+ * }
+ * ```
+ *
+ * It is an open `interface` rather than a closed union on purpose. Transports
+ * ship as separate packages so the core can stay dependency-free, and a closed
+ * union would force this file to name fields that live in packages it must
+ * never import. The consequence is the good one: `transport: "grpc"` does not
+ * compile until `@tahanabavi/typefetch-grpc` is a dependency, and once it is,
+ * the route is fully type-checked — including that it may not carry `path`.
+ *
+ * Because the registry is open, **the core never reads a transport-specific
+ * field**. Anything that needs to describe a route asks its adapter.
+ */
+export interface TransportRegistry {
+  http: HttpEndpointFields;
+}
+
+/**
+ * The addressing and wire-format fields an `http` endpoint declares. These are
+ * exactly the keys that stop making sense on another transport: a gRPC call has
+ * no path template and no `form-data`, and a GraphQL response is never a `Blob`.
+ */
+export type HttpEndpointFields = {
+  /** HTTP method used by this endpoint */
+  method: Method;
+
+  /** URL path for this endpoint, e.g. "/users/:id" */
+  path: string;
+
+  /**
+   * How the success body is decoded before `response` validates it.
+   * Defaults to `"json"` — omitting it preserves the original behavior exactly.
+   *
+   * Pair it with the matching schema helper so validation stays honest:
+   * `responseType: "blob"` with `response: zBlob()`, `"file"` with `zFile()`.
+   *
+   * @see {@link ResponseType}
+   */
+  responseType?: ResponseType;
+
+  /**
    * Defines how the request body should be sent:
    * - `"json"` (default): serialized as JSON
    * - `"form-data"`: multipart form
@@ -318,10 +416,98 @@ export type EndpointDef<
   bodyType?: "json" | "form-data";
 
   /**
-   * Optional contract-driven tests used by the TypeFetch test runner.
+   * Which terminal sender carries this endpoint's requests.
+   *
+   * Declared on the contract rather than per call because it is a property of
+   * the endpoint's environment, not of one invocation — an upload route that
+   * needs XHR needs it every time.
+   *
+   * @see {@link HttpDriver}
    */
-  test?: EndpointTestConfig<z.infer<TReq>, z.infer<TRes>>;
+  driver?: HttpDriver;
 };
+
+/**
+ * HttpDriver
+ * ==========
+ * How an http request reaches the network.
+ *
+ * - `"auto"` (default) — `fetch`, switching to `XMLHttpRequest` only for a
+ *   request that asked for upload progress. Unchanged legacy behaviour.
+ * - `"fetch"` — always `fetch`. Pins the modern path where a proxy or polyfill
+ *   makes the XHR swap undesirable; upload progress then cannot be reported and
+ *   the client warns rather than going quiet.
+ * - `"xhr"` — always `XMLHttpRequest` where it exists. The escape hatch for
+ *   environments whose `fetch` is broken or instrumented, and the way to get
+ *   upload progress without threading a handler through every call site. Falls
+ *   back to `fetch` with a warning where XHR does not exist (Node, most SSR).
+ *
+ * Note what `"xhr"` costs: XHR has no equivalent for `cache`, `mode`,
+ * `redirect`, `referrerPolicy`, `integrity` or `duplex`, so those `RequestInit`
+ * fields are dropped rather than silently misapplied.
+ */
+export type HttpDriver = "auto" | "fetch" | "xhr";
+
+/** Every transport currently installed, as a string union. */
+export type TransportKind = keyof TransportRegistry & string;
+
+/**
+ * The discriminant an endpoint carries for transport `K`.
+ *
+ * `http` is optional so that **omitting `transport` means HTTP** — which is what
+ * keeps every contract written before transports existed compiling and behaving
+ * byte-for-byte the same.
+ */
+export type TransportDiscriminant<K extends TransportKind> = K extends "http"
+  ? { transport?: "http" }
+  : { transport: K };
+
+/**
+ * EndpointFor
+ * ===========
+ * A single endpoint declared for one specific transport: the shared
+ * {@link EndpointBase}, plus that transport's addressing fields, plus its
+ * discriminant.
+ */
+export type EndpointFor<
+  K extends TransportKind,
+  TReq extends RequestSchema,
+  TRes extends ResponseSchema,
+  TErr extends ErrorResponsesMap = {},
+> = EndpointBase<TReq, TRes, TErr> &
+  TransportRegistry[K] &
+  TransportDiscriminant<K>;
+
+/**
+ * EndpointDef
+ * ============
+ * An HTTP endpoint — unchanged in name and in meaning. Contracts written before
+ * transports were pluggable resolve to exactly this type, so nothing about them
+ * moves.
+ *
+ * Use {@link AnyEndpointDef} for code that must accept an endpoint on **any**
+ * transport.
+ */
+export type EndpointDef<
+  TReq extends RequestSchema,
+  TRes extends ResponseSchema,
+  TErr extends ErrorResponsesMap = {},
+> = EndpointFor<"http", TReq, TRes, TErr>;
+
+/**
+ * AnyEndpointDef
+ * ==============
+ * An endpoint on any installed transport. This grows automatically as adapter
+ * packages augment {@link TransportRegistry} — with only the built-in `http`
+ * transport installed it is identical to {@link EndpointDef}.
+ */
+export type AnyEndpointDef<
+  TReq extends RequestSchema,
+  TRes extends ResponseSchema,
+  TErr extends ErrorResponsesMap = {},
+> = {
+  [K in TransportKind]: EndpointFor<K, TReq, TRes, TErr>;
+}[TransportKind];
 
 /**
  * Contracts
@@ -343,7 +529,7 @@ export type EndpointDef<
  */
 export type Contracts = {
   [ModuleName: string]: {
-    [EndpointName: string]: EndpointDef<RequestSchema, ResponseSchema>;
+    [EndpointName: string]: AnyEndpointDef<RequestSchema, ResponseSchema>;
   };
 };
 
@@ -361,10 +547,22 @@ export type EndpointDefZ = EndpointDef<
 >;
 
 /**
+ * The {@link EndpointDefZ} equivalent for an endpoint on any installed
+ * transport. This is what generic machinery — the client, tooling, adapters —
+ * accepts, so it keeps working when a transport package is added.
+ */
+export type AnyEndpointDefZ = AnyEndpointDef<
+  RequestSchema,
+  ResponseSchema,
+  ErrorResponsesMap
+>;
+
+/**
  * InferErrors<E>
  * ==============
- * Infers `{ [status]: <body type> }` for an endpoint's declared error
- * responses. Resolves to `{}` when the endpoint declares no `errors`.
+ * Infers `{ [key]: <body type> }` for an endpoint's declared error responses.
+ * Resolves to `{}` when the endpoint declares no `errors`. The key space is the
+ * endpoint's transport's — see {@link ErrorResponsesMap}.
  */
 export type InferErrors<E> = E extends {
   errors: infer M extends ErrorResponsesMap;
@@ -375,10 +573,14 @@ export type InferErrors<E> = E extends {
 /**
  * InferError<E, S>
  * ================
- * Infers the error body type of a single status code `S` for an endpoint.
- * Resolves to `never` when the endpoint declares no `errors` for that status.
+ * Infers the error body type of a single error key `S` for an endpoint.
+ * Resolves to `never` when the endpoint declares no `errors` for that key.
+ *
+ * `S` allows strings as well as numbers because a transport's key space may be
+ * either — an HTTP status (`404`) or a GraphQL `extensions.code`
+ * (`"UNAUTHENTICATED"`).
  */
-export type InferError<E, S extends number> = E extends {
+export type InferError<E, S extends number | string> = E extends {
   errors: infer M extends ErrorResponsesMap;
 }
   ? S extends keyof M
@@ -400,13 +602,48 @@ export type RequestParts = {
   rawInput?: unknown;
 };
 
+/**
+ * How a route identifies itself, as its transport describes it.
+ *
+ * The transport registry is open, so the core can never read a
+ * transport-specific field — `endpoint.method` does not exist on every variant.
+ * Anything that needs to name a route (a CLI listing, a permission denial's
+ * audit payload, a devtools row) reads this instead, and keeps working for
+ * transports written after it shipped.
+ */
+export type TransportDescription = {
+  /** Wire family, for display: `"HTTP"`, `"gRPC"`, `"GraphQL"`. */
+  protocol: string;
+  /** The operation within it: `"GET"`, `"unary"`, `"query"`. */
+  operation: string;
+  /** What it addresses: `"/users/:id"`, `"user.v1.UserService/GetUser"`. */
+  target: string;
+};
+
 export interface MiddlewareContext<
   TReq extends RequestSchema = RequestSchema,
   TRes extends ResponseSchema = ResponseSchema,
 > {
   url: string;
   init: RequestInit;
-  endpoint: EndpointDef<TReq, TRes>;
+  /**
+   * The route as its transport describes it, plus which transport that was.
+   *
+   * Optional because middleware is routinely constructed by hand in tests, and
+   * because a middleware that only needs the wire method or URL should read
+   * `ctx.init.method` and `ctx.url` — both populated on every transport.
+   */
+  route?: TransportDescription & { transport: string };
+  /**
+   * The contract definition, on whatever transport it was declared for.
+   *
+   * Reading a transport-specific field (`endpoint.method`, `endpoint.path`)
+   * requires narrowing on `endpoint.transport` once a non-HTTP transport package
+   * is installed, because those fields do not exist on every variant. Middleware
+   * that only needs the wire method or URL should read `ctx.init.method` and
+   * `ctx.url`, which are populated for every transport.
+   */
+  endpoint: AnyEndpointDef<TReq, TRes>;
   request?: RequestParts;
 }
 
@@ -451,6 +688,14 @@ export type ErrorLike = {
   message: string; // Human-readable error message
   status?: number; // HTTP status code (optional)
   code?: string; // Application-level error code (optional)
+  /**
+   * Transport-independent classification of the failure. Always populated by
+   * the client, so a global handler can switch on it without knowing which wire
+   * the request used.
+   *
+   * @see {@link ErrorKind}
+   */
+  kind?: ErrorKind;
   [key: string]: any; // Any additional arbitrary fields
 };
 
@@ -519,7 +764,7 @@ export type RequestOptions = {
  * The extra properties are purely additive — the value is still callable
  * exactly as before.
  */
-export type EndpointMethod<E extends EndpointDefZ> = {
+export type EndpointMethod<E extends AnyEndpointDefZ> = {
   (
     input: z.infer<E["request"]>, // Auto‑derived input type from Zod schema
     options?: RequestOptions, // Optional timeout/cancel options
@@ -541,7 +786,7 @@ export type EndpointMethod<E extends EndpointDefZ> = {
  * - Returns a Promise of the parsed and validated response type
  * - Carries `endpointId` / `endpoint` metadata for higher layers
  */
-export type EndpointMethods<M extends Record<string, EndpointDefZ>> = {
+export type EndpointMethods<M extends Record<string, AnyEndpointDefZ>> = {
   [K in keyof M]: EndpointMethod<M[K]>;
 };
 
@@ -573,9 +818,18 @@ export type RequestEvent =
       requestId: string;
       /** Stable `"module.endpoint"` identifier (may be empty for direct calls). */
       endpointId: string;
+      /**
+       * The operation, as the transport names it: an HTTP method, `"unary"` for
+       * a gRPC call, `"query"` for GraphQL.
+       */
       method: Method;
-      /** Best-effort URL: `baseUrl + path` template (params not yet resolved). */
+      /** Best-effort URL: `baseUrl + target` template (params not yet resolved). */
       url: string;
+      /**
+       * Which transport served this request (`"http"`, `"grpc"`, `"graphql"`).
+       * Additive — a consumer that ignores it behaves exactly as before.
+       */
+      transport?: string;
       /** The validated request input. */
       input: unknown;
       /** High-resolution start timestamp (ms). */
