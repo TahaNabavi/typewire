@@ -39,8 +39,8 @@ import {
   usePrefersDark,
   usePrefersReducedMotion,
 } from "./theme";
-import { Timeline } from "./timeline";
-import { useInspectorEvents } from "./use-inspector";
+import { Timeline, transportOf } from "./timeline";
+import { useInspectorEvents, useInspectorProgress } from "./use-inspector";
 
 export interface TypeDevtoolsProps {
   /** The transport timeline (HTTP / WS). */
@@ -53,9 +53,17 @@ export interface TypeDevtoolsProps {
 }
 
 type Tab = "timeline" | "cache" | "settings";
-type SourceFilter = "all" | "http" | "ws";
+/** `"all"` or one wire's name. Open, because the transport registry is. */
+type TransportFilter = "all" | (string & {});
 type StatusFilter = "all" | "pending" | "success" | "error";
 type Size = "normal" | "large" | "full";
+
+/**
+ * Display order for the filter chips. Anything not listed — a third-party
+ * adapter — sorts after these, alphabetically, so the row of chips stays stable
+ * as traffic arrives instead of reordering itself under the cursor.
+ */
+const TRANSPORT_ORDER = ["http", "graphql", "grpc", "ws"];
 
 const SIZES: Record<Size, { width: string; height: string }> = {
   normal: {
@@ -107,14 +115,18 @@ export function TypeDevtools({
   }, [settings.soundVolume]);
 
   const events = useInspectorEvents(bridge);
-  const entries = useMemo(() => selectEntries(events), [events]);
+  const progress = useInspectorProgress(bridge);
+  const entries = useMemo(
+    () => selectEntries(events, progress),
+    [events, progress],
+  );
   const overrides = useOverrides(bridge);
   const cacheCount = useOptionalQueryCount(queries);
 
   const [open, setOpen] = useState(defaultOpen);
   const [tab, setTab] = useState<Tab>("timeline");
   const [size, setSize] = useState<Size>("normal");
-  const [sourceFilter, setSourceFilter] = useState<SourceFilter>("all");
+  const [transportFilter, setTransportFilter] = useState<TransportFilter>("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [search, setSearch] = useState("");
   const [paused, setPaused] = useState(false);
@@ -140,13 +152,21 @@ export function TypeDevtools({
     const term = search.trim().toLowerCase();
     const rows = source.filter(
       (entry) =>
-        (sourceFilter === "all" || entry.source === sourceFilter) &&
+        (transportFilter === "all" || transportOf(entry) === transportFilter) &&
         (statusFilter === "all" || entry.status === statusFilter) &&
         (term === "" || matchesEntry(entry, term)),
     );
     // Newest first: the row you care about is the one that just happened.
     return [...rows].reverse();
-  }, [source, sourceFilter, statusFilter, search]);
+  }, [source, transportFilter, statusFilter, search]);
+
+  // Derived from the traffic rather than hard-coded: which wires an app speaks
+  // is its own business, and a REST-only app has no use for a `graphql` chip it
+  // can never select.
+  const transports = useMemo(
+    () => transportOptions(source, transportFilter),
+    [source, transportFilter],
+  );
 
   const selected = entries.find((e) => e.key === selectedKey) ?? null;
   const stats = useMemo(() => summarize(entries), [entries]);
@@ -236,18 +256,25 @@ export function TypeDevtools({
           <div style={styles.toolbar}>
             {tab === "timeline" && (
               <>
-                <div style={styles.filters}>
-                  {(["all", "http", "ws"] as const).map((value) => (
-                    <Chip
-                      key={value}
-                      testId={`typewire-filter-${value}`}
-                      active={sourceFilter === value}
-                      onClick={() => setSourceFilter(value)}
-                    >
-                      {value}
-                    </Chip>
-                  ))}
-                </div>
+                {/*
+                  Hidden while an app speaks a single wire — a filter with one
+                  option filters nothing. Kept visible whenever a filter is
+                  active, so the chip that turns it back off can never vanish.
+                */}
+                {(transports.length > 2 || transportFilter !== "all") && (
+                  <div style={styles.filters}>
+                    {transports.map((value) => (
+                      <Chip
+                        key={value}
+                        testId={`typewire-filter-${value}`}
+                        active={transportFilter === value}
+                        onClick={() => setTransportFilter(value)}
+                      >
+                        {value}
+                      </Chip>
+                    ))}
+                  </div>
+                )}
                 <div style={styles.filters}>
                   {(["all", "pending", "success", "error"] as const).map((value) => (
                     <Chip
@@ -397,8 +424,35 @@ function useOptionalQueryCount(inspector?: QueryInspector): number {
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
 
+/**
+ * `["all", …wires seen]`, or just `["all"]` when there is nothing to choose
+ * between — the caller hides a group that short.
+ *
+ * The active filter is always included even when its traffic is gone, otherwise
+ * clearing the timeline while filtered would remove the only chip that could
+ * turn the filter back off, and the panel would look permanently empty.
+ */
+function transportOptions(
+  entries: InspectorEntry[],
+  active: TransportFilter,
+): TransportFilter[] {
+  const seen = new Set(entries.map(transportOf));
+  if (active !== "all") seen.add(active);
+  const sorted = [...seen].sort((a, b) => {
+    const ai = TRANSPORT_ORDER.indexOf(a);
+    const bi = TRANSPORT_ORDER.indexOf(b);
+    if (ai !== bi) return (ai < 0 ? Infinity : ai) - (bi < 0 ? Infinity : bi);
+    return a.localeCompare(b);
+  });
+  return ["all", ...sorted];
+}
+
 function matchesEntry(entry: InspectorEntry, term: string): boolean {
   if (entry.label.toLowerCase().includes(term)) return true;
+  // Searchable, so "not_found" or "grpc" narrows the list the same way an
+  // endpoint name does — the two things you actually type when hunting a bug.
+  if (entry.errorKind?.toLowerCase().includes(term)) return true;
+  if (transportOf(entry).toLowerCase().includes(term)) return true;
   for (const value of [entry.input, entry.output, entry.error]) {
     if (
       value !== undefined &&

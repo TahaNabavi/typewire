@@ -398,6 +398,15 @@ export function makeStyles(palette: Palette, density: Density) {
       whiteSpace: "nowrap",
     },
     statusText: { fontWeight: 700, fontSize: 10 },
+    /** The normalized `ErrorKind`, shown beside the status on failed rows. */
+    kindTag: {
+      fontSize: 10,
+      opacity: 0.85,
+      whiteSpace: "nowrap",
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      maxWidth: 120,
+    },
     duration: {
       color: palette.textFaint,
       minWidth: 46,

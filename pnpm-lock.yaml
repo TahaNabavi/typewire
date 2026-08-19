@@ -241,6 +241,12 @@ importers:
       '@tahanabavi/typefetch':
         specifier: workspace:*
         version: link:../typefetch
+      '@tahanabavi/typefetch-graphql':
+        specifier: workspace:*
+        version: link:../graphql
+      '@tahanabavi/typefetch-grpc':
+        specifier: workspace:*
+        version: link:../grpc
       '@tahanabavi/typesocket':
         specifier: workspace:*
         version: link:../typesocket

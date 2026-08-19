@@ -44,6 +44,7 @@ export type {
   QueryInspectorSnapshot,
   QuerySnapshot,
   QueryStateLike,
+  TypeFetchErrorLike,
   TypeFetchOverride,
   TypeFetchRequestEvent,
   TypeSocketEvent,
