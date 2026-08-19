@@ -1,4 +1,5 @@
 import type { Contracts, EndpointDefZ } from "@tahanabavi/typefetch";
+import { isHttpEndpoint } from "../transport";
 import type { z } from "zod";
 import {
   getObjectShape,
@@ -55,8 +56,14 @@ export function buildOpenApiDocument(
     tags.add(moduleName);
 
     for (const [endpointName, endpoint] of Object.entries(module)) {
+      // OpenAPI describes HTTP. A gRPC or GraphQL endpoint has no method and no
+      // path to key a `paths` entry on, and inventing one would document a
+      // route that does not exist — so mixed contracts document their HTTP half
+      // and leave the rest to each wire's own schema language.
+      if (!isHttpEndpoint(endpoint)) continue;
+
       const operation = buildOperation(
-        endpoint as EndpointDefZ,
+        endpoint,
         moduleName,
         endpointName,
         { bearerAuth, includeValidationError, successStatus: options.successStatus },

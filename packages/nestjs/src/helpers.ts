@@ -1,5 +1,5 @@
 import type { ExecutionContext } from "@nestjs/common";
-import type { EndpointDefZ } from "@tahanabavi/typefetch";
+import type { AnyEndpointDefZ } from "@tahanabavi/typefetch";
 import { TYPEFETCH_ENDPOINT_METADATA } from "./constants";
 
 /**
@@ -19,7 +19,7 @@ import { TYPEFETCH_ENDPOINT_METADATA } from "./constants";
  */
 export function getContractEndpoint(
   context: ExecutionContext,
-): EndpointDefZ | undefined {
+): AnyEndpointDefZ | undefined {
   return Reflect.getMetadata(
     TYPEFETCH_ENDPOINT_METADATA,
     context.getHandler(),

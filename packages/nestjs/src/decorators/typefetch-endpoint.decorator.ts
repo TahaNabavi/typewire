@@ -7,6 +7,7 @@ import {
   Put,
 } from "@nestjs/common";
 import type { EndpointDefZ, Method } from "@tahanabavi/typefetch";
+import { assertTransport } from "../transport";
 import type { ContractEndpointOptions } from "../types";
 import { UseContract } from "./use-contract.decorator";
 
@@ -30,6 +31,12 @@ const METHOD_DECORATORS: Record<
  * Contract paths are absolute, so use it on a prefix-less `@Controller()`
  * (or make sure the controller prefix + contract path compose correctly).
  *
+ * **HTTP endpoints only.** A gRPC or GraphQL contract has no method and no
+ * path, so it is bound by its own decorator — `@GrpcEndpoint()` from
+ * `@tahanabavi/typewire-nestjs/grpc`, `@GraphQLEndpoint()` from
+ * `.../graphql`. Passing one here throws while the module is loading rather
+ * than 404-ing on the first request.
+ *
  * @example
  * ⁣@Controller()
  * class UserController {
@@ -45,10 +52,12 @@ export function TypeFetchEndpoint(
   endpoint: EndpointDefZ,
   options: ContractEndpointOptions = {},
 ): MethodDecorator {
+  assertTransport(endpoint, "http", "@TypeFetchEndpoint()");
+
   const routeDecorator = METHOD_DECORATORS[endpoint.method];
   if (!routeDecorator) {
     throw new Error(
-      `[typefetch-nestjs] Unsupported HTTP method "${endpoint.method}" on contract path "${endpoint.path}"`,
+      `[typewire-nestjs] Unsupported HTTP method "${endpoint.method}" on contract path "${endpoint.path}"`,
     );
   }
 

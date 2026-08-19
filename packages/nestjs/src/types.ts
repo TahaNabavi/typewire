@@ -1,22 +1,27 @@
-import type { EndpointDefZ } from "@tahanabavi/typefetch";
+import type { AnyEndpointDefZ } from "@tahanabavi/typefetch";
 import type { z } from "zod";
 import type { BackendEncryptionOptions } from "./encryption/types";
 
 /**
- * Infer the full (structured) request input type of a contract endpoint —
- * the same type the typefetch client accepts for this endpoint.
+ * Infer the full request input type of a contract endpoint — the same type the
+ * typefetch client accepts for this endpoint.
+ *
+ * Constrained to an endpoint on **any** transport, because a handler bound with
+ * `@GrpcEndpoint()` or `@GraphQLEndpoint()` needs it exactly as an HTTP one
+ * does. For HTTP that is the structured `{ path, query, body, headers }` shape;
+ * on every other wire it is the single message the call carries.
  *
  * @example
  * type Input = InferRequest<typeof contracts.user.getUser>;
  * // { path?: { id: string }, query?: ..., body: ..., headers?: ... }
  */
-export type InferRequest<E extends EndpointDefZ> = z.infer<E["request"]>;
+export type InferRequest<E extends AnyEndpointDefZ> = z.infer<E["request"]>;
 
 /**
  * Infer the response type of a contract endpoint — the exact type the
  * handler must return so the frontend receives what the contract promises.
  */
-export type InferResponse<E extends EndpointDefZ> = z.infer<E["response"]>;
+export type InferResponse<E extends AnyEndpointDefZ> = z.infer<E["response"]>;
 
 /**
  * Signature a controller handler must satisfy for a given endpoint.
@@ -26,7 +31,7 @@ export type InferResponse<E extends EndpointDefZ> = z.infer<E["response"]>;
  * getUser = (async (input) => ({ id: input.path.id, name: "Taha" }))
  *   satisfies ContractHandler<typeof contracts.user.getUser>;
  */
-export type ContractHandler<E extends EndpointDefZ> = (
+export type ContractHandler<E extends AnyEndpointDefZ> = (
   input: InferRequest<E>,
 ) => InferResponse<E> | Promise<InferResponse<E>>;
 
