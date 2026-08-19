@@ -1,6 +1,6 @@
 {
   "name": "@tahanabavi/type-permission",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": false,
   "description": "Framework-less, dependency-free capability permissions: one shared bit map, evaluated identically on client and server, with layered resolution, codecs, a lock file and contract-linkable requirements.",
   "author": {
@@ -31,7 +31,9 @@
       "require": "./dist/index.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "sideEffects": false,
   "scripts": {
     "build": "tsup",

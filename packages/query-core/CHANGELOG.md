@@ -1,6 +1,6 @@
-# @tahanabavi/typefetch
+# @tahanabavi/typefetch-query-core
 
-## 1.10.0
+## 1.1.0
 
 ### Minor Changes
 
@@ -58,55 +58,37 @@
   message, now via `safeParse` so a non-envelope failure body falls through to the
   status error instead of throwing a validation error over it.
 
-## 1.9.0
+## 1.0.0
 
-### Minor Changes
+### Major Changes
 
-- 03ecc58: Client-side permission enforcement, mirroring the server's `createPermissionGuard`.
+- 9602c04: **1.0.0 — the query layer and cross-transport devtools go stable.**
 
-  - **typefetch** — `createPermissionMiddleware({ getPermissions, authorize, onDeny? })`
-    returns a `Middleware` that reads `ctx.endpoint.permission`, evaluates it with the
-    injected `authorize` (pass `P.authorize`), and throws `PermissionDeniedError`
-    (`{ status: 403, missing, missingAny? }`) before the request is sent. Endpoints
-    with no `permission` key pass through. `authorize` is injected, so typefetch keeps
-    no dependency on `@tahanabavi/type-permission`.
+  Four packages reach their first release together, because they only make sense
+  together: one Zod contract now flows client → cache → inspector.
 
-  - **typesocket** — `createPermissionMiddleware({ getPermissions, authorize, onDeny? })`
-    builds a pre-emit guard registered via the new `authorizeOutbound` client option
-    (or `client.setOutboundAuthorizer()`). A denied emit throws `PermissionDeniedError`
-    — an ack'd emit rejects, a fire-and-forget one throws synchronously. It uses
-    `authorizeOutbound` rather than `client.use()` because a `SocketMiddleware` can only
-    drop a frame silently; `getPermissions` is synchronous so a `void` emit can fail at
-    the call site. New: `OutboundAuthorizer` type, `authorizeOutbound` option,
-    `client.setOutboundAuthorizer()`.
+  **`typefetch-query-core`** — a framework-agnostic query engine: cache, dedup,
+  staleness, mutations, retry, and **declared invalidation** (`relations`, no
+  hand-written cache keys). It imports no framework and no transport — it needs
+  only a callable endpoint carrying a stable id, so the same client drives
+  typefetch HTTP and typesocket acked events. Everything is exposed behind an
+  `Observable` (`subscribe` / `getSnapshot`) contract.
 
-  Both are additive and dependency-free; client checks are UX only — the server
-  (`@tahanabavi/typewire-nestjs`) remains the enforcement point.
+  **`typefetch-react`** — a thin React adapter: `useQuery`, `useMutation`, and
+  `TypeFetchProvider`, each the engine's contract handed to `useSyncExternalStore`.
 
-## 1.8.0
+  **`type-devtools-core`** — the transport-agnostic inspector core: `InspectorBridge`
+  (one timeline for HTTP **and** WS), a runtime override registry, and a new
+  `QueryInspector` / `connectQueryClient` that mirrors a query cache and drives its
+  refetch / invalidate / remove. The client is typed structurally, so the package
+  keeps **zero dependencies**.
 
-### Minor Changes
-
-- ecf70c7: Contract-linked permissions (opt-in, additive). Endpoints and `client->server`
-  socket events may now carry an optional `permission` requirement
-  (`{ require?, any?, reason? }`) written once on the contract:
-
-  - **typefetch** — `EndpointDef.permission`
-  - **typesocket** — `ClientToServerDef.permission` (client authorizes what it sends)
-
-  Both types are redeclared structurally, so the transports stay dependency-free.
-
-  **typewire-nestjs** gains `createPermissionGuard({ getPermissions, authorize })`
-  — a NestJS guard that reads the requirement off the contract metadata and
-  rejects with a 403 naming the missing flags — plus a `@RequirePermission()`
-  decorator for contract-less routes. Pass `@tahanabavi/type-permission`'s
-  `P.authorize` straight through; a route with no requirement is never blocked.
-
-## 1.7.1
-
-### Patch Changes
-
-- 84c00be: Update package manifest metadata — author contact (email/URL), homepage, and
-  keywords — with no runtime or API changes. typesocket additionally corrects its
-  license to MIT and now ships its README and LICENSE in the published tarball
-  (previously `dist` only).
+  **`type-devtools`** — the React panel: timeline with source/status filters,
+  search, and pause; an **override editor** (mock / force-error / latency / drop);
+  a **Cache tab** (query state, one-click refetch/invalidate/remove, recent
+  mutations); a collapsible, syntax-colored **JSON tree** with per-node copy;
+  copy-as-JSON / copy-as-cURL / export; a summary bar and WS connection indicator;
+  and a **Settings tab** (persisted to `sessionStorage`) for theme (dark / light /
+  auto), density, animations (respecting `prefers-reduced-motion`), and Web
+  Audio–synthesized **sound cues** (off by default). Still dependency-free and
+  inline-styled — the only injected CSS is one `@keyframes` block.
