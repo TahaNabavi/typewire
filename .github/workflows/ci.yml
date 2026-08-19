@@ -68,7 +68,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [18, 20, 22, 24]
+        node: [22, 24]
     name: node ${{ matrix.node }}
     steps:
       - uses: actions/checkout@v4
