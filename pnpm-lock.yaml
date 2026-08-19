@@ -625,12 +625,6 @@ importers:
 
   packages/typefetch:
     devDependencies:
-      '@tahanabavi/typefetch-encryption':
-        specifier: workspace:*
-        version: link:../encryption
-      '@tahanabavi/typewire-cli':
-        specifier: workspace:*
-        version: link:../cli
       '@types/jest':
         specifier: ^30.0.0
         version: 30.0.0
