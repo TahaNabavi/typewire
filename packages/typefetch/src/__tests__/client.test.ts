@@ -198,10 +198,19 @@ describe("ApiClient", () => {
     expect(res).toEqual({ id: "1", name: "John" });
   });
 
-  it("should throw validation error if input is invalid", async () => {
-    await expect(client.modules.user.getUser({} as any)).rejects.toBeInstanceOf(
-      ZodError,
-    );
+  // Was "should throw validation error if input is invalid", asserting a raw
+  // `ZodError`. Input validation now fails the same way output validation
+  // always did — a classified `RichError` that reaches `onError` — so the two
+  // ends of the contract behave identically. Zod's field errors are preserved
+  // on `RichError.errors`; see `error-kind.test.ts` for the full regression set.
+  it("should throw a classified validation error if input is invalid", async () => {
+    const error = await client.modules.user
+      .getUser({} as any)
+      .catch((e) => e);
+
+    expect(error).toBeInstanceOf(RichError);
+    expect(error).not.toBeInstanceOf(ZodError);
+    expect(error.kind).toBe("validation");
   });
 
   it("should handle auth header when token is provided", async () => {

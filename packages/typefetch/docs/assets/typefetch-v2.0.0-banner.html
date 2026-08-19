@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<style>
+  :root {
+    --bg0:#060a14; --bg1:#0a1120; --bg2:#0b1424;
+    --panel:#0d1626; --panel2:#0b1322;
+    --border:rgba(148,163,184,.12); --border2:rgba(148,163,184,.18);
+    --text:#e8eef8; --muted:#94a3b8; --dim:#5a6b83;
+    --blue:#60a5fa; --blue2:#3b82f6;
+    --purple:#a78bfa; --purple2:#8b5cf6;
+    --green:#4ade80; --green2:#22c55e;
+    --cyan:#22d3ee; --red:#f87171; --amber:#fbbf24;
+    --mono:"JetBrains Mono","Cascadia Code",Consolas,"SF Mono",Menlo,monospace;
+    --sans:-apple-system,"Segoe UI",Roboto,system-ui,"Helvetica Neue",Arial,sans-serif;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:1600px; height:850px; overflow:hidden; }
+  body {
+    font-family:var(--sans); color:var(--text);
+    background:
+      radial-gradient(1200px 700px at 82% -8%, rgba(59,130,246,.15), transparent 60%),
+      radial-gradient(900px 600px at 10% 108%, rgba(34,197,94,.14), transparent 60%),
+      radial-gradient(700px 500px at 96% 96%, rgba(139,92,246,.10), transparent 60%),
+      linear-gradient(160deg,var(--bg0),var(--bg1) 55%,var(--bg2));
+    position:relative;
+  }
+  .grid { position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(148,163,184,.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(148,163,184,.04) 1px, transparent 1px);
+    background-size:44px 44px; mask:radial-gradient(1400px 800px at 60% 40%, #000 30%, transparent 85%); }
+  .wrap { position:relative; width:100%; height:100%; padding:54px 56px; display:flex; gap:40px; }
+  .left { width:632px; flex:none; display:flex; flex-direction:column; }
+  .right { flex:1; display:flex; flex-direction:column; gap:16px; }
+
+  .pill { display:inline-flex; align-items:center; gap:11px; align-self:flex-start;
+    padding:9px 16px 9px 14px; border:1px solid rgba(96,165,250,.35); border-radius:999px;
+    background:rgba(59,130,246,.08); font-size:14.5px; font-weight:700; letter-spacing:.16em; color:#cfe0f7; }
+  .pill .bar { width:4px; height:15px; border-radius:2px; background:linear-gradient(var(--blue),var(--green)); }
+
+  h1 { font-weight:800; letter-spacing:-.03em; line-height:.98; margin-top:26px; }
+  h1 .tf { display:block; font-size:112px;
+    background:linear-gradient(180deg,#ffffff, #b9c6dc); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  h1 .ver { display:block; font-size:112px; margin-top:2px;
+    background:linear-gradient(96deg,#63a4ff 6%, #22c55e 62%, #4ade80 96%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .rule { width:118px; height:5px; border-radius:3px; margin:22px 0 16px;
+    background:linear-gradient(90deg,var(--blue2),var(--green2) 70%, transparent); }
+  .sub { font-size:33px; font-weight:700; letter-spacing:-.01em; color:#eaf1fb; }
+  .tag { font-size:18.5px; color:var(--muted); margin-top:9px; font-weight:500; }
+
+  .feats { margin-top:40px; display:flex; flex-direction:column; gap:18px; }
+  .feat { display:flex; gap:15px; align-items:flex-start; }
+  .ico { width:44px; height:44px; flex:none; border-radius:12px; display:grid; place-items:center; border:1px solid var(--border2); }
+  .ico svg { width:22px; height:22px; }
+  .ico.b { background:rgba(59,130,246,.12); box-shadow:inset 0 0 0 1px rgba(59,130,246,.15); }
+  .ico.p { background:rgba(139,92,246,.12); }
+  .ico.g { background:rgba(34,197,94,.12); }
+  .ico.c { background:rgba(34,211,238,.12); }
+  .feat .ttl { font-size:19.5px; font-weight:700; color:#eef4fd; }
+  .feat .dsc { font-size:14.5px; color:var(--muted); margin-top:2px; }
+  .feat .dsc b { color:#bfe6cd; font-weight:700; }
+  .feat .dsc code { font-family:var(--mono); font-size:13px; color:#9fd0ff; }
+
+  .win { border:1px solid var(--border); border-radius:16px; overflow:hidden;
+    background:linear-gradient(180deg,var(--panel),var(--panel2));
+    box-shadow:0 30px 70px -30px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.04); }
+  .win .bar { display:flex; align-items:center; gap:8px; padding:13px 16px; border-bottom:1px solid var(--border); background:rgba(255,255,255,.015); }
+  .dot { width:12px; height:12px; border-radius:50%; }
+  .dot.r{background:#ff5f57} .dot.y{background:#febc2e} .dot.g{background:#28c840}
+  .win .title { margin-left:8px; font-family:var(--mono); font-size:13.5px; color:var(--dim); }
+  .win .title b{ color:#9fb0c7; font-weight:600 }
+  .badge0 { margin-left:auto; font-size:12px; font-weight:700; color:#8ad0a0; letter-spacing:.02em;
+    padding:4px 10px; border-radius:999px; background:rgba(34,197,94,.10); border:1px solid rgba(34,197,94,.22); }
+
+  .tl { padding:8px 6px 10px; font-family:var(--mono); font-size:14px; }
+  /* One row per wire — the release's whole subject is that these are three
+     different protocols reaching the same client through one contract. */
+  .row { display:grid; grid-template-columns:96px 1fr 128px; align-items:center; gap:12px; padding:10px 16px; border-radius:9px; }
+  .row + .row { margin-top:1px; }
+  .row.head { color:var(--dim); font-size:11.5px; letter-spacing:.07em; padding-bottom:4px; }
+  .row.hl { background:linear-gradient(90deg, rgba(96,165,250,.13), rgba(96,165,250,.02)); box-shadow:inset 0 0 0 1px rgba(96,165,250,.22); }
+
+  .proto { font-weight:700; font-size:12px; letter-spacing:.04em; text-align:center;
+    padding:4px 0; border-radius:6px; }
+  .proto.http { color:#7dd3fc; background:rgba(56,189,248,.12); box-shadow:inset 0 0 0 1px rgba(56,189,248,.22); }
+  .proto.grpc { color:#c4b5fd; background:rgba(167,139,250,.12); box-shadow:inset 0 0 0 1px rgba(167,139,250,.22); }
+  .proto.gql  { color:#f0abfc; background:rgba(232,121,249,.12); box-shadow:inset 0 0 0 1px rgba(232,121,249,.22); }
+
+  .ep { color:#c7d3e6; } .ep .ns{ color:var(--dim) }
+  .tgt { color:var(--dim); font-size:12.5px; }
+  .kindb { text-align:right; font-size:12.5px; font-weight:700; color:#8fa3bd; }
+
+  /* The point of the footer: three protocols, one id space, one error shape. */
+  .unify { display:flex; align-items:center; gap:14px; padding:11px 18px 13px;
+    border-top:1px solid var(--border); background:rgba(96,165,250,.045); font-family:var(--mono); font-size:12.5px; }
+  .unify .lbl { color:var(--dim); letter-spacing:.06em; font-size:11px; }
+  .unify .val { color:#9fd0ff; }
+  .unify .sep { color:#33445c; }
+
+  .cards { display:flex; gap:16px; }
+  .card { flex:1; border:1px solid var(--border); border-radius:16px; padding:16px 17px;
+    background:linear-gradient(180deg,var(--panel),var(--panel2)); box-shadow:inset 0 1px 0 rgba(255,255,255,.03); }
+  .card .ch { display:flex; align-items:center; gap:9px; font-size:14px; color:#a9b7cc; font-weight:600; }
+  .card .ch .k { margin-left:auto; font-family:var(--mono); font-size:11.5px; color:var(--dim); padding:3px 8px; border-radius:6px; background:rgba(148,163,184,.08); }
+  .code { font-family:var(--mono); font-size:12.5px; line-height:1.62; margin-top:12px; color:#cdd8e8; }
+  .code .kw{color:#c792ea} .code .fn{color:#82aaff} .code .pr{color:#7fdbca} .code .st{color:#c3e88d} .code .cm{color:#5a6b83} .code .nm{color:#86efac}
+
+  .strip { border:1px solid var(--border); border-radius:16px; padding:16px 20px; display:flex;
+    background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0)); gap:14px; }
+  .qi { flex:1; display:flex; align-items:center; gap:12px; }
+  .qi + .qi { border-left:1px solid var(--border); padding-left:18px; }
+  .qi .qc { width:34px; height:34px; border-radius:9px; flex:none; display:grid; place-items:center; background:rgba(148,163,184,.08); border:1px solid var(--border2); }
+  .qi .qc svg{ width:17px; height:17px }
+  .qi .qt { font-size:15px; font-weight:700; color:#eaf1fb; }
+  .qi .qd { font-size:12.5px; color:var(--muted); margin-top:1px; }
+</style>
+</head>
+<body>
+<div class="grid"></div>
+<div class="wrap">
+
+  <div class="left">
+    <span class="pill"><span class="bar"></span>MAJOR&nbsp;RELEASE</span>
+
+    <h1>
+      <span class="tf">TypeFetch</span>
+      <span class="ver">v2.0.0</span>
+    </h1>
+    <div class="rule"></div>
+    <div class="sub">Pluggable Transports</div>
+    <div class="tag">One contract layer over REST, gRPC and GraphQL.</div>
+
+    <div class="feats">
+      <div class="feat">
+        <div class="ico b"><svg viewBox="0 0 24 24" fill="none" stroke="#7dd3fc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="10" rx="2"/><path d="M6 12h.01M10 12h.01M14 12h.01M18 12h.01"/></svg></div>
+        <div><div class="ttl">Any wire, one client</div><div class="dsc">HTTP built in · <code>gRPC</code> and <code>GraphQL</code> as optional packages</div></div>
+      </div>
+      <div class="feat">
+        <div class="ico g"><svg viewBox="0 0 24 24" fill="none" stroke="#86efac" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+        <div><div class="ttl">Zero runtime dependencies</div><div class="dsc"><b>Not "few" — zero.</b> Crypto and the CLI moved to their own packages</div></div>
+      </div>
+      <div class="feat">
+        <div class="ico p"><svg viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg></div>
+        <div><div class="ttl">Errors normalize</div><div class="dsc">One <code>kind</code> across all three — 401 · gRPC 16 · <code>UNAUTHENTICATED</code></div></div>
+      </div>
+      <div class="feat">
+        <div class="ico c"><svg viewBox="0 0 24 24" fill="none" stroke="#67e8f9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M5 8h14"/><path d="M7 21h10"/><circle cx="12" cy="8" r="0"/></svg></div>
+        <div><div class="ttl">GraphQL without codegen</div><div class="dsc">The selection set is generated <b>from your Zod schema</b> — it cannot drift</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="right">
+    <div class="win">
+      <div class="bar">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="title">typefetch · <b>contracts</b></span>
+        <span class="badge0">● one client</span>
+      </div>
+      <div class="tl">
+        <div class="row head"><span>TRANSPORT</span><span>ENDPOINT</span><span style="text-align:right">TARGET</span></div>
+        <div class="row"><span class="proto http">HTTP</span><span class="ep"><span class="ns">user.</span>getUser</span><span class="kindb">GET /users/:id</span></div>
+        <div class="row hl"><span class="proto grpc">gRPC</span><span class="ep"><span class="ns">user.</span>syncUser</span><span class="kindb">UserService/Sync</span></div>
+        <div class="row"><span class="proto gql">GraphQL</span><span class="ep"><span class="ns">user.</span>userProfile</span><span class="kindb">query · user</span></div>
+      </div>
+      <div class="unify">
+        <span class="lbl">SHARED</span>
+        <span class="val">endpointId</span><span class="sep">·</span>
+        <span class="val">middleware</span><span class="sep">·</span>
+        <span class="val">retry</span><span class="sep">·</span>
+        <span class="val">auth</span><span class="sep">·</span>
+        <span class="val">mocks</span><span class="sep">·</span>
+        <span class="val">devtools</span>
+      </div>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <div class="ch">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>
+          on the contract
+          <span class="k">EndpointDef</span>
+        </div>
+        <div class="code">
+<span class="pr">syncUser</span>: {<br>
+&nbsp;&nbsp;<span class="pr">transport</span>: <span class="st">"grpc"</span>,<br>
+&nbsp;&nbsp;<span class="pr">service</span>: <span class="st">"user.v1.UserService"</span>,<br>
+&nbsp;&nbsp;<span class="pr">rpc</span>: <span class="st">"SyncUser"</span>, <span class="pr">request</span>, <span class="pr">response</span>,<br>
+}
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#86efac" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20"/></svg>
+          at the setup site
+        </div>
+        <div class="code">
+<span class="cm">// unused transports tree-shake out</span><br>
+<span class="kw">new</span> <span class="fn">ApiClient</span>({ baseUrl, <span class="pr">transports</span>: [<br>
+&nbsp;&nbsp;<span class="fn">grpcTransport</span>(), <span class="fn">graphqlTransport</span>(),<br>
+] }, contracts);
+        </div>
+      </div>
+    </div>
+
+    <div class="strip">
+      <div class="qi"><div class="qc"><svg viewBox="0 0 24 24" fill="none" stroke="#86efac" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div><div><div class="qt">Contracts unchanged</div><div class="qd">no key means http</div></div></div>
+      <div class="qi"><div class="qc"><svg viewBox="0 0 24 24" fill="none" stroke="#7dd3fc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 6v6c0 5 3.4 8.6 8 10 4.6-1.4 8-5 8-10V6Z"/></svg></div><div><div class="qt">Typed at install</div><div class="qd">registry augmentation</div></div></div>
+      <div class="qi"><div class="qc"><svg viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></div><div><div class="qt">Query &amp; devtools</div><div class="qd">work untouched</div></div></div>
+      <div class="qi"><div class="qc"><svg viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16"/><path d="M4 4v16"/><path d="m8 14 3-4 3 3 4-6"/></svg></div><div><div class="qt">Validated at init()</div><div class="qd">not in production</div></div></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

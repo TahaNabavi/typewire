@@ -27,6 +27,10 @@ function makeCtx(permission?: PermissionRequirement): MiddlewareContext {
   return {
     url: "http://api.test/messages/1",
     init: { method: "DELETE" },
+    // Populated by the client for every request, from the endpoint's transport.
+    // The audit payload reads it rather than `endpoint.method`/`.path`, which do
+    // not exist on every endpoint variant once another transport is installed.
+    route: { protocol: "HTTP", operation: "DELETE", target: "/messages/:id", transport: "http" },
     endpoint: {
       method: "DELETE",
       path: "/messages/:id",

@@ -1,6 +1,6 @@
 # TypeFetch
 
-![TypeFetch v1.9.0 — Response Types & Transfer Progress](./docs/assets/typefetch-v1.9.0-banner.png)
+![TypeFetch v2.0.0 — Pluggable Transports: one contract layer over REST, gRPC and GraphQL](./docs/assets/typefetch-v2.0.0-banner.png)
 
 **TypeFetch** is a strongly typed HTTP client for TypeScript projects, built around **Zod** contracts.
 
@@ -37,14 +37,77 @@ const user = await api.user.getUser({
 * Stable endpoint identifiers and contract metadata on every generated method
 * Runtime instrumentation with structured request lifecycle events
 * Per-request runtime overrides for mock, error, latency, and schema swapping
-* Field-level encryption middleware
+* Pluggable transports — HTTP built in, gRPC and GraphQL as optional packages
+* Normalized error taxonomy (`RichError.kind`) shared across every transport
+* Zero runtime dependencies
+* Field-level encryption middleware (optional package)
 * Backward-compatible flat request schemas
 * Contract-driven API test runner
 * Automatic test input generation from Zod schemas
 * Schema, mock, live, and full API test modes
 * Markdown, HTML, and JSON test reports
-* CLI commands for project setup, endpoint listing, API testing, and release documentation
+* CLI commands for project setup, endpoint listing, API testing, and release documentation (optional package)
 * Versioned release documentation under `docs/releases`
+
+---
+
+## What's New in v2.0.0
+
+**Pluggable transports.** TypeFetch spoke one wire; it now speaks any. gRPC and
+GraphQL ship as separate installable packages that feed the same contract, the
+same middleware chain, the same `onError` and the same devtools timeline — so
+application code stops caring which wire it is on.
+
+```ts
+import { ApiClient } from "@tahanabavi/typefetch";
+import { graphqlTransport } from "@tahanabavi/typefetch-graphql";
+import { grpcTransport } from "@tahanabavi/typefetch-grpc";
+
+const client = new ApiClient(
+  {
+    baseUrl: "https://api.example.com",
+    transports: [graphqlTransport(), grpcTransport()],
+  },
+  contracts,
+);
+```
+
+```ts
+// http — unchanged; omitting `transport` means "http"
+getUser:  { method: "GET", path: "/users/:id", request, response },
+
+// grpc
+getUser:  { transport: "grpc", service: "user.v1.UserService", rpc: "GetUser",
+            request, response },
+
+// graphql — the selection set is generated from `response`
+getUser:  { transport: "graphql", operation: "query", root: "user",
+            request: z.object({ id: z.string() }), response: User },
+```
+
+`transport: "grpc"` does not compile until the package is installed: transports
+merge themselves into an open `TransportRegistry`, so installing one is what
+unlocks its contract shape — and its required fields are then fully checked.
+
+**Errors normalize across every wire.** `RichError.kind` classifies every failure
+into one shared taxonomy, so a single handler covers all three protocols:
+
+```ts
+client.onError((error) => {
+  if (error.kind === "unauthenticated") redirectToLogin();  // 401 · gRPC 16 · UNAUTHENTICATED
+});
+```
+
+**Zero runtime dependencies.** `crypto-js`, `node-forge` and `jiti` moved to
+`@tahanabavi/typefetch-encryption` and `@tahanabavi/typewire-cli`.
+
+**Fixed:** a request input that failed its own `request` schema used to escape as
+a raw `ZodError` — no `kind`, never passed to `onError`, invisible to
+instrumentation — while a bad *response* one line later did all four. Both ends
+of the contract now fail identically.
+
+See [`docs/releases/v2.0.0.md`](./docs/releases/v2.0.0.md) for the full migration
+table and the behaviour changes to plan for.
 
 ---
 
@@ -158,12 +221,21 @@ Supported modes:
 
 ### CLI
 
-The CLI provides a simple workflow for setting up and running contract tests.
+The CLI provides a simple workflow for setting up and running contract tests. It
+ships as a separate dev dependency, so a production bundle never carries it:
 
 ```bash
-typefetch init
-typefetch test --mode full --format markdown,json,html --output ./typefetch-report/report
-typefetch list
+npm install -D @tahanabavi/typewire-cli
+```
+
+> **Moved in v2.0.0.** The CLI bin used to live in the core package (as
+> `typefetch`; the command is now `typewire`),
+> which meant every consumer installed `jiti` to get a client library.
+
+```bash
+npx typewire init
+npx typewire test --mode full --format markdown,json,html --output ./typefetch-report/report
+npx typewire list
 ```
 
 ### Endpoint test metadata
@@ -213,6 +285,20 @@ Or with pnpm:
 ```bash
 pnpm add @tahanabavi/typefetch zod
 ```
+
+`zod` is the only peer dependency. The core itself has **zero runtime
+dependencies**.
+
+### Optional packages
+
+Install only what you use — nothing below is bundled unless you register it.
+
+| Package | Add when you need |
+| --- | --- |
+| `@tahanabavi/typefetch-graphql` | GraphQL routes |
+| `@tahanabavi/typefetch-grpc` | gRPC / Connect routes |
+| `@tahanabavi/typefetch-encryption` | `encryptionMiddleware` |
+| `@tahanabavi/typewire-cli` | the `typewire` command |
 
 ---
 
@@ -533,6 +619,148 @@ const client = new ApiClient(
 | `mockDelay`     | `{ min: number; max: number }`    | Simulated mock latency |
 
 When both `token` and `tokenProvider` are provided, `tokenProvider` takes priority.
+
+---
+
+## Transports
+
+An endpoint's `transport` decides which wire it travels over. HTTP is built in
+and is the default, so **omitting `transport` means `"http"`** and every contract
+written before v2.0.0 is unchanged.
+
+```ts
+export const contracts = {
+  user: {
+    // http — the default; no `transport` key needed
+    getUser: {
+      method: "GET",
+      path: "/users/:id",
+      request: z.object({ path: z.object({ id: z.string() }) }),
+      response: User,
+    },
+
+    // grpc — needs @tahanabavi/typefetch-grpc
+    syncUser: {
+      transport: "grpc",
+      service: "user.v1.UserService",
+      rpc: "SyncUser",
+      request: z.object({ id: z.string() }),
+      response: User,
+      deadlineMs: 5_000,
+    },
+
+    // graphql — needs @tahanabavi/typefetch-graphql
+    userProfile: {
+      transport: "graphql",
+      operation: "query",
+      root: "user",
+      request: z.object({ id: z.string() }),
+      response: User,
+    },
+  },
+};
+```
+
+### Registering
+
+Adapters are passed explicitly at the setup site, so an app that never registers
+a transport never ships a byte of it:
+
+```ts
+import { ApiClient } from "@tahanabavi/typefetch";
+import { graphqlTransport } from "@tahanabavi/typefetch-graphql";
+import { grpcTransport } from "@tahanabavi/typefetch-grpc";
+
+const client = new ApiClient(
+  {
+    baseUrl: "https://api.example.com",
+    transports: [
+      graphqlTransport({ url: "https://api.example.com/graphql" }),
+      grpcTransport({ baseUrl: "https://grpc.example.com" }),
+    ],
+  },
+  contracts,
+);
+
+client.init();
+```
+
+A route naming a transport with no adapter registered fails at `init()` with the
+endpoint id in the message — never on the first call in production. Each adapter
+also validates its own routes there, so a gRPC endpoint missing `service`, or a
+GraphQL response schema whose selection set cannot be generated, stops the client
+being built.
+
+### Why the type only appears once installed
+
+Transports merge themselves into an open registry:
+
+```ts
+// inside @tahanabavi/typefetch-grpc
+declare module "@tahanabavi/typefetch" {
+  interface TransportRegistry {
+    grpc: { service: string; rpc: string; deadlineMs?: number; codec?: GrpcCodec };
+  }
+}
+```
+
+So `transport: "grpc"` is a type error until the package is a dependency, and
+once it is, the route is fully checked — including that a gRPC route may **not**
+carry `path`, `method`, `bodyType` or `responseType`. None of those mean anything
+for a unary RPC.
+
+### What is shared
+
+Everything except the four things that genuinely differ per wire. Retry, `auth`
+and token providers, `timeout`, `AbortSignal`, mock mode, forced mocks,
+`instrument()` events and overrides, and the entire middleware chain are
+transport-independent.
+
+`endpointId` is also unchanged, which is why `typefetch-query-core` and
+`type-devtools` work with every transport without knowing any of them exist.
+
+### Identifying a route
+
+Tooling must never read `method` or `path` directly, since those exist only on
+HTTP routes. Ask the transport instead:
+
+```ts
+import { describeEndpoint } from "@tahanabavi/typefetch";
+
+describeEndpoint(contracts.user.syncUser);
+// { protocol: "gRPC", operation: "unary", target: "user.v1.UserService/SyncUser" }
+```
+
+### Capabilities
+
+A transport declares what it cannot do, so the client warns rather than silently
+doing nothing. `onUploadProgress` on a gRPC or GraphQL route logs a warning
+instead of leaving a progress bar frozen at zero.
+
+### `driver` — pinning the sender on an http route
+
+`fetch` cannot report upload progress, so the client switches to
+`XMLHttpRequest` for any request that asks for it. `driver` makes that choice
+explicit per endpoint:
+
+```ts
+uploadAvatar: {
+  method: "POST",
+  path: "/avatar",
+  driver: "xhr",     // always XHR, so progress works without a per-call handler
+  request, response,
+}
+```
+
+| `driver` | Behaviour |
+| --- | --- |
+| `"auto"` *(default)* | `fetch`, switching to XHR only when a call asks for upload progress |
+| `"fetch"` | Always `fetch` — pins the modern path when a proxy or polyfill makes the swap undesirable |
+| `"xhr"` | Always `XMLHttpRequest` where it exists, falling back to `fetch` with a one-time warning |
+
+XHR has no equivalent for `cache`, `mode`, `redirect`, `referrerPolicy`,
+`integrity` or `duplex`, so those `RequestInit` fields are dropped on the XHR
+path rather than silently misapplied.
 
 ---
 
@@ -1233,7 +1461,16 @@ request to XHR, download tracking re-streams the response body.
 
 ## Encryption Middleware
 
-TypeFetch includes optional field-level encryption through `encryptionMiddleware`.
+Field-level encryption is available through `encryptionMiddleware`, which ships
+as a separate package so the core stays dependency-free:
+
+```bash
+npm install @tahanabavi/typefetch-encryption
+```
+
+> **Moved in v2.0.0.** This used to be exported from `@tahanabavi/typefetch`,
+> which meant every consumer installed `crypto-js` and `node-forge` whether or
+> not they encrypted anything.
 
 It can:
 
@@ -1253,7 +1490,7 @@ type EncryptionMethod = "AES" | "DES" | "RSA" | "Base64" | "Custom";
 ### Registering the Middleware
 
 ```ts
-import { encryptionMiddleware } from "@tahanabavi/typefetch/middlewares";
+import { encryptionMiddleware } from "@tahanabavi/typefetch-encryption";
 
 client.use(encryptionMiddleware, {
   keyProvider: async () => ({
@@ -1709,19 +1946,20 @@ const user = await api.user.getUser({
 expect(user.name).toBe("Taha");
 ```
 
-Contract-driven API testing can also be run through the TypeFetch CLI.
+Contract-driven API testing can also be run through the TypeFetch CLI
+(`@tahanabavi/typewire-cli`).
 
 ```bash
-typefetch init
-typefetch test --mode schema
-typefetch test --mode mock
-typefetch test --mode live --base-url http://localhost:3000
+npx typewire init
+npx typewire test --mode schema
+npx typewire test --mode mock
+npx typewire test --mode live --base-url http://localhost:3000
 ```
 
 Generated reports can be exported as Markdown, HTML, or JSON:
 
 ```bash
-typefetch test --mode full --format markdown,json,html --output ./typefetch-report/report
+npx typewire test --mode full --format markdown,json,html --output ./typefetch-report/report
 ```
 
 Recommended test coverage:
@@ -1826,7 +2064,11 @@ docs/
     v1.7.0.md
     v1.8.0.md
     v1.9.0.md
+    v2.0.0.md
 ```
+
+The v2.0.0 document carries the full migration table for pluggable transports and
+the package split — read it before upgrading.
 
 ## Notes
 
@@ -1842,7 +2084,7 @@ docs/
 * Every generated method exposes `endpointId` and `endpoint` metadata.
 * Instrumentation is opt-in; with no hook registered, request handling is unchanged.
 * Runtime overrides change a single request without mutating the contract.
-* Use `typefetch test --mode schema` for fast contract validation.
+* Use `npx typewire test --mode schema` for fast contract validation.
 * Keep detailed release documentation in `docs/releases`.
 
 ---
