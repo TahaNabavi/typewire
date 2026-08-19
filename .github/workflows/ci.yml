@@ -82,7 +82,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build all
-        run: pnpm -r build
+        run: pnpm -r --sort build
 
       - name: Test all
         run: pnpm -r test
@@ -109,7 +109,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build all
-        run: pnpm -r build
+        run: pnpm -r --sort build
 
       - uses: oven-sh/setup-bun@v2
         if: matrix.runtime == 'bun'
