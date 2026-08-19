@@ -41,7 +41,82 @@ jobs:
       - name: Test all
         run: pnpm -r test
 
+      # A dependency added to a published package, or an accidental re-export,
+      # shows up here as a red check rather than six releases later.
+      - name: Gzipped size budget
+        run: node scripts/size-budget.mjs
+
+      # The core's headline claim, asserted rather than trusted.
+      - name: Assert zero runtime dependencies in the core
+        run: node scripts/assert-no-deps.mjs
+
       # Informational: shows the release plan / whether a changeset is present.
       - name: Changeset status
         run: pnpm changeset status --since=origin/main
         continue-on-error: true
+
+  # These packages run in browsers, on servers and at the edge. A single Node 22
+  # job proves none of that — and the gaps are real: React Native has no
+  # ReadableStream (no download progress), Workers have no XMLHttpRequest (no
+  # upload progress). Testing across runtimes is what keeps those documented
+  # gaps honest.
+  runtimes:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [18, 20, 22, 24]
+    name: node ${{ matrix.node }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build all
+        run: pnpm -r build
+
+      - name: Test all
+        run: pnpm -r test
+
+  # Non-Node runtimes matter for a client library: Bun and Deno resolve exports
+  # and globals differently, and an ESM/CJS mistake that Node tolerates fails
+  # loudly here.
+  alt-runtimes:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        runtime: [bun, deno]
+    name: ${{ matrix.runtime }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build all
+        run: pnpm -r build
+
+      - uses: oven-sh/setup-bun@v2
+        if: matrix.runtime == 'bun'
+
+      - uses: denoland/setup-deno@v2
+        if: matrix.runtime == 'deno'
+        with:
+          deno-version: v2.x
+
+      # Import the built ESM entries and exercise a request end to end. This is
+      # a smoke test of module resolution and globals, not a second test suite.
+      - name: Smoke test
+        run: node scripts/runtime-smoke.mjs --runner=${{ matrix.runtime }}

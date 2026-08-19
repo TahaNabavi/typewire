@@ -1,0 +1,20 @@
+{
+  "$comment": [
+    "Gzipped ceilings for each package's ESM entry, in bytes. CI fails when one is exceeded.",
+    "The point is not the absolute number — it is that a dependency or an accidental",
+    "re-export shows up as a red check instead of being noticed six releases later.",
+    "Headroom is deliberately modest (~10-15%); raise a budget in the same PR that",
+    "justifies the growth, so the increase is reviewed rather than absorbed."
+  ],
+  "budgets": [
+    { "package": "typefetch", "entry": "dist/index.mjs", "maxGzip": 21500 },
+    { "package": "graphql", "entry": "dist/index.mjs", "maxGzip": 5400 },
+    { "package": "grpc", "entry": "dist/index.mjs", "maxGzip": 4400 },
+    { "package": "encryption", "entry": "dist/index.mjs", "maxGzip": 2300 },
+    { "package": "typesocket", "entry": "dist/index.mjs", "maxGzip": 9000 },
+    { "package": "query-core", "entry": "dist/index.mjs", "maxGzip": 8300 },
+    { "package": "react", "entry": "dist/index.mjs", "maxGzip": 1000 },
+    { "package": "devtools-core", "entry": "dist/index.mjs", "maxGzip": 4000 },
+    { "package": "permission", "entry": "dist/index.mjs", "maxGzip": 5900 }
+  ]
+}

@@ -22,6 +22,11 @@
     "build": "pnpm -r build",
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck",
+    "size": "node scripts/size-budget.mjs",
+    "size:update": "node scripts/size-budget.mjs --update",
+    "deps:assert": "node scripts/assert-no-deps.mjs",
+    "smoke": "node scripts/runtime-smoke.mjs",
+    "verify": "pnpm -r build && pnpm -r typecheck && pnpm -r test && pnpm size && pnpm deps:assert && pnpm smoke",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "pnpm -r build && changeset publish"
@@ -29,6 +34,7 @@
   "devDependencies": {
     "@changesets/cli": "^2.27.9",
     "tsup": "^8.5.0",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "zod": "^4.1.5"
   }
 }
