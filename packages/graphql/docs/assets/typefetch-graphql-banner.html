@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<style>
+  :root {
+    --bg0:#0a0612; --bg1:#140a1f; --bg2:#180c24;
+    --panel:#170e24; --panel2:#130b1e;
+    --border:rgba(148,163,184,.12); --border2:rgba(148,163,184,.18);
+    --text:#e8eef8; --muted:#a394b5; --dim:#7a6b8c;
+    --accent:#f472b6; --accent2:#ec4899; --accentDim:#f9a8d4;
+    --blue:#60a5fa; --purple:#a78bfa; --cyan:#22d3ee; --red:#f87171; --amber:#fbbf24;
+    --mono:"JetBrains Mono","Cascadia Code",Consolas,"SF Mono",Menlo,monospace;
+    --sans:-apple-system,"Segoe UI",Roboto,system-ui,"Helvetica Neue",Arial,sans-serif;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:1600px; height:850px; overflow:hidden; }
+  body {
+    font-family:var(--sans); color:var(--text); position:relative;
+    background:
+      radial-gradient(1200px 700px at 82% -8%, rgba(236,72,153,.18), transparent 60%),
+      radial-gradient(900px 600px at 10% 108%, rgba(167,139,250,.14), transparent 60%),
+      radial-gradient(700px 500px at 96% 96%, rgba(34,211,238,.06), transparent 60%),
+      linear-gradient(160deg,var(--bg0),var(--bg1) 55%,var(--bg2));
+  }
+  .grid { position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(148,163,184,.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(148,163,184,.04) 1px, transparent 1px);
+    background-size:44px 44px; mask:radial-gradient(1400px 800px at 60% 40%, #000 30%, transparent 85%); }
+  .wrap { position:relative; width:100%; height:100%; padding:56px 58px; display:flex; gap:44px; }
+  .left { width:628px; flex:none; display:flex; flex-direction:column; }
+  .right { flex:1; display:flex; flex-direction:column; gap:18px; }
+
+  .pill { display:inline-flex; align-items:center; gap:11px; align-self:flex-start;
+    padding:9px 16px 9px 14px; border:1px solid rgba(244,114,182,.34); border-radius:999px;
+    background:rgba(236,72,153,.09); font-size:14px; font-weight:700; letter-spacing:.06em; color:#fbcfe8; }
+  .pill .bar { width:4px; height:15px; border-radius:2px; background:linear-gradient(var(--accent),var(--purple)); }
+
+  h1 { font-weight:800; letter-spacing:-.03em; line-height:.98; margin-top:26px; }
+  h1 .a { display:block; font-size:104px;
+    background:linear-gradient(180deg,#ffffff,#d9c8e2); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  h1 .b { display:block; font-size:104px; margin-top:2px;
+    background:linear-gradient(96deg,#f472b6 4%,#ec4899 52%,#a78bfa 98%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .rule { width:118px; height:5px; border-radius:3px; margin:24px 0 16px;
+    background:linear-gradient(90deg,var(--accent2),var(--purple) 72%, transparent); }
+  .sub { font-size:31px; font-weight:700; letter-spacing:-.01em; color:#eaf1fb; }
+  .tag { font-size:18px; color:var(--muted); margin-top:10px; font-weight:500; line-height:1.5; max-width:560px; }
+  .tag code { font-family:var(--mono); font-size:15px; color:var(--accentDim); background:rgba(244,114,182,.1); padding:1px 7px; border-radius:6px; }
+
+  .feats { margin-top:auto; display:flex; flex-direction:column; gap:18px; }
+  .right > .win { flex:1; display:flex; flex-direction:column; }
+  .right > .win .flow { flex:1; display:flex; flex-direction:column; justify-content:center; }
+  .feat { display:flex; gap:15px; align-items:flex-start; }
+  .ico { width:44px; height:44px; flex:none; border-radius:12px; display:grid; place-items:center; border:1px solid var(--border2); }
+  .ico svg { width:22px; height:22px; }
+  .ico.a { background:rgba(236,72,153,.14); box-shadow:inset 0 0 0 1px rgba(236,72,153,.16); }
+  .ico.b { background:rgba(96,165,250,.12); } .ico.c { background:rgba(34,211,238,.12); } .ico.p { background:rgba(167,139,250,.12); }
+  .feat .ttl { font-size:19px; font-weight:700; color:#eef4fd; }
+  .feat .dsc { font-size:14px; color:var(--muted); margin-top:2px; }
+  .feat .dsc b { color:var(--accentDim); font-weight:700; }
+  .feat .dsc code { font-family:var(--mono); font-size:13px; color:#c4b5fd; }
+
+  .win { border:1px solid var(--border); border-radius:16px; overflow:hidden;
+    background:linear-gradient(180deg,var(--panel),var(--panel2));
+    box-shadow:0 30px 70px -30px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.04); }
+  .win .bar { display:flex; align-items:center; gap:8px; padding:13px 16px; border-bottom:1px solid var(--border); background:rgba(255,255,255,.015); }
+  .dot { width:12px; height:12px; border-radius:50%; }
+  .dot.r{background:#ff5f57} .dot.y{background:#febc2e} .dot.g{background:#28c840}
+  .win .title { margin-left:8px; font-family:var(--mono); font-size:13.5px; color:var(--dim); }
+  .win .title b{ color:#c9b8d7; font-weight:600 }
+  .badge0 { margin-left:auto; font-size:12px; font-weight:700; color:var(--accentDim); letter-spacing:.02em;
+    padding:4px 10px; border-radius:999px; background:rgba(236,72,153,.10); border:1px solid rgba(236,72,153,.22); }
+
+  .flow { padding:20px 22px 26px; }
+  .step { font-family:var(--mono); font-size:14.5px; line-height:1.6; color:#cdd8e8; }
+  .lbl { font-family:var(--sans); font-size:11.5px; letter-spacing:.09em; color:var(--dim); font-weight:700; margin-bottom:9px; }
+  .kw{color:#c792ea} .fn{color:#82aaff} .pr{color:#7fdbca} .st{color:#c3e88d} .cm{color:#6b5b7c} .nm{color:var(--accentDim)}
+  .arrow { display:flex; align-items:center; gap:12px; margin:15px 0 13px; }
+  .arrow .ln { flex:1; height:2px; border-radius:2px; background:linear-gradient(90deg,transparent,rgba(244,114,182,.75),transparent); }
+  .arrow .txt { font-size:12px; font-weight:700; letter-spacing:.08em; color:var(--accentDim);
+    padding:5px 12px; border-radius:999px; background:rgba(236,72,153,.11); border:1px solid rgba(236,72,153,.24); white-space:nowrap; }
+  .gql { font-family:var(--mono); font-size:16px; line-height:1.85; color:#e8eef8;
+    padding:15px 17px; border-radius:11px; background:rgba(236,72,153,.07); border:1px solid rgba(236,72,153,.2); }
+  .gql .op{color:#c792ea} .gql .nm2{color:#f9a8d4} .gql .vr{color:#82aaff} .gql .fl{color:#c3e88d}
+  .hl { position:relative; }
+  .hl::after { content:""; position:absolute; left:0; right:0; bottom:-2px; height:2px;
+    background:linear-gradient(90deg,var(--accent),transparent); border-radius:2px; }
+
+  .card { border:1px solid var(--border); border-radius:16px; padding:15px 18px;
+    background:linear-gradient(180deg,var(--panel),var(--panel2)); box-shadow:inset 0 1px 0 rgba(255,255,255,.03); }
+  .row { display:flex; gap:0; }
+  .cell { flex:1; padding:0 16px; border-left:1px solid var(--border); }
+  .cell:first-child { border-left:0; padding-left:0; }
+  .cell .k { font-family:var(--mono); font-size:13px; color:var(--accentDim); font-weight:700; }
+  .cell .v { font-size:13px; color:var(--muted); margin-top:3px; line-height:1.4; }
+
+  .maps { display:flex; flex-direction:column; gap:7px; }
+  .map { display:grid; grid-template-columns:215px 26px 1fr; align-items:center; font-family:var(--mono); font-size:14px; }
+  .map .gq { color:#f9a8d4; }
+  .map .ar { color:var(--dim); text-align:center; }
+  .map .ek { color:#7fdbca; }
+  .note { font-size:13px; color:var(--muted); margin-top:12px; padding-top:11px; border-top:1px solid var(--border); }
+  .note b { color:#c4b5fd; font-family:var(--mono); font-size:12.5px; }
+</style>
+</head>
+<body>
+<div class="grid"></div>
+<div class="wrap">
+
+  <!-- LEFT -->
+  <div class="left">
+    <span class="pill"><span class="bar"></span>@tahanabavi/typefetch-graphql</span>
+
+    <h1><span class="a">GraphQL</span><span class="b">no codegen</span></h1>
+    <div class="rule"></div>
+    <div class="sub">The query writes itself.</div>
+    <div class="tag">A GraphQL route in an ordinary <code>typefetch</code> contract — same client, same middleware, same <code>onError</code>. No second cache, no second auth setup.</div>
+
+    <div class="feats">
+      <div class="feat">
+        <div class="ico a"><svg viewBox="0 0 24 24" fill="none" stroke="#f9a8d4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 3 7v10l9 5 9-5V7l-9-5Z"/><path d="M12 22V12M3 7l9 5 9-5"/></svg></div>
+        <div><div class="ttl">Selection set from your schema</div><div class="dsc">Generated from <b>response</b> — the query cannot drift from the type</div></div>
+      </div>
+      <div class="feat">
+        <div class="ico b"><svg viewBox="0 0 24 24" fill="none" stroke="#93c5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h9"/></svg></div>
+        <div><div class="ttl">Both response shapes</div><div class="dsc">200-with-errors <b>and</b> <code>graphql-response+json</code></div></div>
+      </div>
+      <div class="feat">
+        <div class="ico c"><svg viewBox="0 0 24 24" fill="none" stroke="#67e8f9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg></div>
+        <div><div class="ttl">Errors normalize</div><div class="dsc"><code>extensions.code</code> → one shared <b>ErrorKind</b></div></div>
+      </div>
+      <div class="feat">
+        <div class="ico p"><svg viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+        <div><div class="ttl">Zero runtime dependencies</div><div class="dsc">Asserted in CI — a transport must not outweigh its core</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right">
+    <div class="win">
+      <div class="bar">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="title">contract · <b>user.profile</b></span>
+        <span class="badge0">● no document written</span>
+      </div>
+      <div class="flow">
+        <div class="lbl">YOU WRITE — ONE SCHEMA</div>
+        <div class="step">
+<span class="pr">transport</span>: <span class="st">"graphql"</span>, <span class="pr">operation</span>: <span class="st">"query"</span>, <span class="pr">root</span>: <span class="st">"user"</span>,<br>
+<span class="pr">request</span>:&nbsp; z.<span class="fn">object</span>({ <span class="nm">id</span>: z.<span class="fn">string</span>() }),<br>
+<span class="pr">response</span>: z.<span class="fn">object</span>({ <span class="hl"><span class="nm">id</span>, <span class="nm">name</span>, <span class="nm">email</span></span> }),
+        </div>
+
+        <div class="arrow"><span class="ln"></span><span class="txt">z.toJSONSchema()</span><span class="ln"></span></div>
+
+        <div class="lbl">TYPEFETCH SENDS</div>
+        <div class="gql">
+<span class="op">query</span> <span class="nm2">UserProfile</span>(<span class="vr">$id</span>: String!) {<br>
+&nbsp;&nbsp;user(id: <span class="vr">$id</span>) { <span class="fl">id name email</span> }<br>
+}
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:auto; margin-bottom:0">
+      <div class="lbl" style="margin-bottom:12px">EXTENSIONS.CODE → ONE SHARED ERRORKIND</div>
+      <div class="maps">
+        <div class="map"><span class="gq">UNAUTHENTICATED</span><span class="ar">→</span><span class="ek">unauthenticated</span></div>
+        <div class="map"><span class="gq">BAD_USER_INPUT</span><span class="ar">→</span><span class="ek">invalid_argument</span></div>
+        <div class="map"><span class="gq">NOT_FOUND</span><span class="ar">→</span><span class="ek">not_found</span></div>
+      </div>
+      <div class="note">the same kind an HTTP <b>401</b> and a gRPC <b>16</b> produce — one handler, every wire</div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <div class="cell">
+          <div class="k">add a field</div>
+          <div class="v">the query asks for it — nothing to keep in sync</div>
+        </div>
+        <div class="cell">
+          <div class="k">errorPolicy</div>
+          <div class="v">partial data, with the dropped reason reported</div>
+        </div>
+        <div class="cell">
+          <div class="k">document</div>
+          <div class="v">still yours, for fragments · aliases · unions</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
