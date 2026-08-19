@@ -36,7 +36,7 @@ jobs:
       # Build in topological order — dependents build against their dependency's
       # freshly emitted types, so a breaking change surfaces immediately.
       - name: Build all (cross-package integrity)
-        run: pnpm -r build
+        run: pnpm -r --sort build
 
       - name: Typecheck all
         run: pnpm -r typecheck
