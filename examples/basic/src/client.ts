@@ -12,7 +12,7 @@ export async function runClient(port: number) {
   );
 
   // ── Instrumentation ────────────────────────────────────────────────────────
-  // The devtools seam. Every frame, with its parsed payload and a `frameId`
+  // The devtools seam. Every frame, with its parsed payload and a `frameId`.
   // that pairs an outbound emit with its ack.
   client.instrument({
     on(event) {
