@@ -1,8 +1,8 @@
 {
   "name": "@tahanabavi/typefetch-grpc",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": false,
-  "description": "gRPC transport for TypeFetch contracts \u2014 Connect unary JSON out of the box, binary grpc-web behind a codec seam, zero dependencies.",
+  "description": "gRPC transport for TypeFetch contracts — Connect unary JSON out of the box, binary grpc-web behind a codec seam, zero dependencies.",
   "author": {
     "name": "Taha Nabavi",
     "email": "sayyedtahanabavi@gmail.com",
