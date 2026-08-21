@@ -1,5 +1,5 @@
 /* ============================================================================
- * CONTRACT — the shared bit map
+ * CONTRACT — the shared bit map.
  *
  * This file is imported by frontend *and* backend (and any other project that
  * speaks the same permissions). It declares the vocabulary; it never opens a
