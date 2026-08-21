@@ -1,7 +1,7 @@
 {
   "name": "@tahanabavi/typewire-nestjs",
-  "version": "0.1.1",
-  "description": "NestJS integration for the TypeWire ecosystem \u2014 serve one set of Zod contracts over every wire your client speaks: REST/HTTP, gRPC (Connect JSON), GraphQL and typesocket WebSocket gateways, with request/response validation on all of them.",
+  "version": "1.0.0",
+  "description": "NestJS integration for the TypeWire ecosystem — serve one set of Zod contracts over every wire your client speaks: REST/HTTP, gRPC (Connect JSON), GraphQL and typesocket WebSocket gateways, with request/response validation on all of them.",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -71,7 +71,7 @@
     "@nestjs/core": "^10.0.0 || ^11.0.0",
     "@nestjs/swagger": "^7.0.0 || ^8.0.0 || ^11.0.0",
     "@nestjs/websockets": "^10.0.0 || ^11.0.0",
-    "@tahanabavi/typefetch": ">=1.7.1",
+    "@tahanabavi/typefetch": ">=2.0.0",
     "@tahanabavi/typefetch-graphql": ">=0.1.0",
     "@tahanabavi/typefetch-grpc": ">=0.1.0",
     "@tahanabavi/typesocket": ">=2.0.0",
