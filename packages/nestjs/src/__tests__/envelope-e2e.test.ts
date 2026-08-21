@@ -13,6 +13,7 @@ import {
   ContractInput,
   InferRequest,
   InferResponse,
+  SkipEnvelope,
   TypeFetchEndpoint,
   TypeFetchModule,
 } from "../index";
@@ -62,6 +63,20 @@ class AppController {
   @TypeFetchEndpoint(contracts.broken.badResponse)
   broken() {
     return { wrong: "shape" } as any;
+  }
+
+  // A route whose body shape belongs to someone else — a load balancer's
+  // health probe, a webhook receipt, an OAuth callback.
+  @Get("healthz")
+  @SkipEnvelope()
+  healthz() {
+    return { status: "ok" };
+  }
+
+  @Get("healthz/fail")
+  @SkipEnvelope()
+  healthzFail(): never {
+    throw new NotFoundException("probe target missing");
   }
 
   // a plain, non-contract route: the envelope must wrap it too
@@ -183,5 +198,48 @@ describe("response envelope — custom shape + errorStatus 200", () => {
       .get("/missing")
       .expect(200);
     expect(res.body).toEqual({ ok: false, reason: "no such thing" });
+  });
+});
+
+describe("@SkipEnvelope()", () => {
+  let app: INestApplication;
+
+  beforeAll(async () => {
+    const moduleRef = await Test.createTestingModule({
+      imports: [TypeFetchModule.forRoot({ envelope: true })],
+      controllers: [AppController],
+    }).compile();
+
+    app = moduleRef.createNestApplication();
+    app.useLogger(false);
+    await app.init();
+  });
+
+  afterAll(async () => {
+    await app?.close();
+  });
+
+  it("leaves an exempt route's success body alone", async () => {
+    const res = await request(app.getHttpServer()).get("/healthz");
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ status: "ok" });
+  });
+
+  // The success wrapper and the error branch are one decision: a probe that
+  // parses `{ status }` on 200 and `{ success: false }` on 404 has two shapes
+  // to handle, which is the thing the exemption exists to avoid.
+  it("leaves an exempt route's error body alone too", async () => {
+    const res = await request(app.getHttpServer()).get("/healthz/fail");
+
+    expect(res.status).toBe(404);
+    expect(res.body).not.toHaveProperty("success");
+    expect(res.body.message).toBe("probe target missing");
+  });
+
+  it("still wraps everything else", async () => {
+    const res = await request(app.getHttpServer()).get("/ping");
+
+    expect(res.body).toEqual({ success: true, data: { pong: true } });
   });
 });

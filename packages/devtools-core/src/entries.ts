@@ -40,6 +40,11 @@ export function selectEntries(
       ordered.push(entry);
     }
     entry.events.push(event);
+    // Only the opening event carries the wire, so the first one to name it wins
+    // for the whole row rather than the last.
+    if (entry.transport === undefined && event.transport !== undefined) {
+      entry.transport = event.transport;
+    }
     apply(entry, event);
   }
 
@@ -71,6 +76,10 @@ function apply(entry: InspectorEntry, event: InspectorEvent): void {
       entry.status = "error";
       entry.error = event.payload;
       entry.durationMs = event.durationMs ?? entry.durationMs;
+      // Read from `meta` rather than off `payload`, so a connector decides what
+      // counts as the normalized kind for its transport and this stays a
+      // transport-agnostic hoist.
+      if (typeof event.meta?.kind === "string") entry.errorKind = event.meta.kind;
       return;
 
     // typesocket

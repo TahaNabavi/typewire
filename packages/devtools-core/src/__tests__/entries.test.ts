@@ -155,6 +155,32 @@ describe("selectEntries", () => {
     expect(entries[0]).toMatchObject({ status: "info", label: "socket" });
   });
 
+  it("hoists the wire from the event that opened the call", () => {
+    const entries = selectEntries([
+      event({ kind: "start", id: "r1", transport: "graphql" }),
+      // The concluding event names no wire — the row must keep the one it had
+      // rather than falling back to undefined halfway through.
+      event({ kind: "success", id: "r1" }),
+    ]);
+
+    expect(entries[0]?.transport).toBe("graphql");
+  });
+
+  it("leaves the wire unset when nothing reported one", () => {
+    const entries = selectEntries([event({ source: "ws", kind: "outbound", id: "f1" })]);
+
+    expect(entries[0]?.transport).toBeUndefined();
+  });
+
+  it("hoists the normalized error kind out of the failing event", () => {
+    const entries = selectEntries([
+      event({ kind: "start", id: "r1" }),
+      event({ kind: "error", id: "r1", meta: { status: 404, kind: "not_found" } }),
+    ]);
+
+    expect(entries[0]).toMatchObject({ status: "error", errorKind: "not_found" });
+  });
+
   it("preserves first-seen order across transports", () => {
     const entries = selectEntries([
       event({ source: "ws", kind: "outbound", id: "f1", ts: 1 }),

@@ -1,28 +1,15 @@
 import { defineConfig } from "tsup";
 
-export default defineConfig([
-  {
-    entry: {
-      index: "src/index.ts",
-    },
-    format: ["cjs", "esm"],
-    dts: true,
-    sourcemap: true,
-    clean: true,
-    target: "es2020",
+// One entry, one bundle. The CLI used to be a second `node`-platform entry here;
+// it now ships as `@tahanabavi/typewire-cli` so the core has no bin and no
+// runtime dependencies.
+export default defineConfig({
+  entry: {
+    index: "src/index.ts",
   },
-  {
-    entry: {
-      "cli/index": "src/cli/index.ts",
-    },
-    format: ["cjs"],
-    dts: false,
-    sourcemap: true,
-    clean: false,
-    platform: "node",
-    target: "node18",
-    banner: {
-      js: "#!/usr/bin/env node",
-    },
-  },
-]);
+  format: ["cjs", "esm"],
+  dts: true,
+  sourcemap: true,
+  clean: true,
+  target: "es2020",
+});

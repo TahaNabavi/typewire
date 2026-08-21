@@ -1,4 +1,4 @@
-import type { Middleware, PermissionRequirement } from "@/types";
+import type { Method, Middleware, PermissionRequirement } from "@/types";
 
 /**
  * The decision shape the middleware needs from `authorize`. Declared structurally
@@ -116,9 +116,13 @@ export function createPermissionMiddleware(
     const decision = config.authorize(perms, requirement);
     if (decision.granted) return next();
 
+    // Read off `ctx.route` rather than the endpoint: the transport registry is
+    // open, so `method`/`path` do not exist on every endpoint variant. For an
+    // http route these are the same two values; for another transport they are
+    // its operation and target, which is the right analogue in an audit log.
     const info: PermissionDenyInfo = {
-      method: ctx.endpoint.method,
-      path: ctx.endpoint.path,
+      method: (ctx.route?.operation ?? ctx.init.method) as Method,
+      path: ctx.route?.target ?? ctx.url,
       requirement,
       decision,
     };

@@ -8,6 +8,10 @@ import type {
 } from "@/types";
 import { TypeFetchTestContext } from "./context";
 import { generateInput } from "./generate-input";
+// Relative, not `@/`: that alias is only ever used for type-only imports here,
+// which are erased before Jest resolves anything. A value import must be a real
+// path.
+import { describeEndpoint } from "../../transport/describe";
 import type {
   ApiTestMode,
   ApiTestReport,
@@ -98,8 +102,8 @@ export class ApiTestRunner<C extends Contracts> {
     const baseMeta = {
       module: item.moduleName,
       endpoint: item.endpointName,
-      method: endpoint.method,
-      path: endpoint.path,
+      method: describeEndpoint(endpoint).operation,
+      path: describeEndpoint(endpoint).target,
       tags,
       destructive,
     };
@@ -237,8 +241,8 @@ export class ApiTestRunner<C extends Contracts> {
       endpoint: endpointName,
       caseName,
       phase,
-      method: endpoint.method,
-      path: endpoint.path,
+      method: describeEndpoint(endpoint).operation,
+      path: describeEndpoint(endpoint).target,
       tags: endpoint.test?.tags ?? [],
       destructive: Boolean(endpoint.test?.destructive),
     };

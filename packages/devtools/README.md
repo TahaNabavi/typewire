@@ -2,9 +2,10 @@
 
 ![type-devtools — the React inspector panel: timeline, query cache, override editor, colored JSON tree](./docs/assets/type-devtools-banner.png)
 
-A React inspector panel for the TypeWire ecosystem. One timeline for **HTTP and
-WebSocket** traffic, a live **query cache** view, a runtime **override editor**,
-and a **settings** tab — dropped into your app as a single component.
+A React inspector panel for the TypeWire ecosystem. One timeline for **REST,
+GraphQL, gRPC and WebSocket** traffic, a live **query cache** view, a runtime
+**override editor**, and a **settings** tab — dropped into your app as a single
+component.
 
 It renders any bridge from
 [`@tahanabavi/type-devtools-core`](../devtools-core), so adding a transport is
@@ -57,10 +58,27 @@ function Root() {
 
 ## What's in it
 
-**Timeline.** One row per call, tagged by source, newest first. Filter by
-source (`all` / `http` / `ws`) and status (`pending` / `success` / `error`),
-search across labels *and* payloads, and **pause** to freeze the stream while
-you read. Select a row for the full input / output / error.
+**Timeline.** One row per call, tagged by the **wire it travelled on**, newest
+first. Filter by wire and status (`pending` / `success` / `error`), search across
+labels, payloads, error kinds *and* transports, and **pause** to freeze the
+stream while you read. Select a row for the full input / output / error.
+
+Since typefetch grew a transport registry, one client speaks REST, GraphQL and
+gRPC — so the badge shows `http` / `graphql` / `grpc` / `ws`, and the wire filter
+is built from the traffic that actually arrived. An app that speaks one wire
+never sees a filter it can't use; an app that registers a transport of its own
+gets a badge for it without a change in here.
+
+**Normalized failures.** A failed row shows typefetch's `ErrorKind` beside its
+status, so `404`, gRPC code `5` and GraphQL `extensions.code: "NOT_FOUND"` all
+read as `not_found`. That is the field to scan on a mixed timeline: gRPC and
+GraphQL carry no HTTP status, so without it a row could only say "error".
+
+**Live transfers.** A call reporting upload or download progress draws a bar
+under its row and an `↑ 62% · 1.2 MB / 2.0 MB` readout in the detail. Chunked
+responses report no total, so those get a moving indeterminate bar rather than
+one stuck at zero. Progress is stored latest-only, outside the event log — a
+single large upload would otherwise evict a whole session's history.
 
 **Override editor.** The override engine was always wired through the bridge and
 both connectors — now it's buttons. From a selected row: **force an error**, add
@@ -76,8 +94,11 @@ recent-mutations list. Driven entirely by the query client's event bus.
 search-match highlighting. `Error`, `Map`, `Set`, `Date` and `BigInt` are
 normalized; cycles render as `[Circular]` instead of throwing.
 
-**Copy / export.** Copy any entry as JSON, an HTTP entry as **cURL**, or export
-the whole timeline to a `.json` file.
+**Copy / export.** Copy any entry as JSON, a **REST** entry as **cURL**, or
+export the whole timeline to a `.json` file. cURL is offered for REST only: on
+GraphQL the operation is `query` and the target is a root field, so the command
+would not run — rebuilding the real POST means rebuilding the document and the
+envelope, which belongs to the adapter, not the panel.
 
 **Settings** (persisted to `sessionStorage` for the session):
 
@@ -96,11 +117,19 @@ runtime dependencies beyond React and `type-devtools-core`.
 
 ## Build your own
 
-The panel is one consumer of the primitives, not the only way in. The hooks and
-the tree are exported for a custom inspector:
+The panel is one consumer of the primitives, not the only way in. The hooks, the
+tree and the row colors are exported for a custom inspector:
 
 ```tsx
-import { useInspectorEntries, useQueryInspector, JsonTree } from "@tahanabavi/type-devtools";
+import {
+  useInspectorEntries,   // rows, with live progress already joined on
+  useInspectorProgress,  // the progress store on its own
+  useQueryInspector,
+  JsonTree,
+  transportOf,           // the wire a row used, falling back to its source
+  transportColor,
+  statusColor,
+} from "@tahanabavi/type-devtools";
 ```
 
 ## License

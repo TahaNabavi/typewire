@@ -47,7 +47,12 @@ export type ApiTestCaseMeta = {
   endpoint: string;
   caseName: string;
   phase: ApiTestMode | "schema" | "mock" | "live";
-  method: Method;
+  /**
+   * The operation as its transport names it — an HTTP method, `"unary"` for a
+   * gRPC call, `"query"` for GraphQL. A plain string rather than `Method`,
+   * because the transport registry is open and not every wire has HTTP verbs.
+   */
+  method: string;
   path: string;
   tags: string[];
   destructive: boolean;

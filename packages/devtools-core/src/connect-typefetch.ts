@@ -33,6 +33,11 @@ export function connectTypeFetch(
             label: event.endpointId,
             ts: event.timestamp,
             payload: event.input,
+            // Defaulted, not left blank: a typefetch older than the transport
+            // registry reports none, and every call it could possibly make was
+            // HTTP. Showing "http" is the truth there; showing nothing would
+            // read as "unknown wire" for a client that only ever had one.
+            transport: event.transport ?? "http",
             meta: { method: event.method, url: event.url },
           });
           return;
@@ -58,7 +63,11 @@ export function connectTypeFetch(
             ts: Date.now(),
             payload: event.error,
             durationMs: event.durationMs,
-            meta: { status: event.status },
+            // `kind` is lifted out of the error rather than left inside it.
+            // `status` is meaningless on gRPC and GraphQL, so it is the only
+            // field an inspector can rely on to say what went wrong — it has to
+            // be reachable without walking a transport-specific body.
+            meta: { status: event.status, kind: event.error?.kind },
           });
           return;
         case "progress":
