@@ -1,8 +1,8 @@
 {
   "name": "@tahanabavi/typewire-cli",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": false,
-  "description": "Command-line tools for TypeWire contracts \u2014 contract test runner, scaffolding, and reports.",
+  "description": "Command-line tools for TypeWire contracts — contract test runner, scaffolding, and reports.",
   "author": {
     "name": "Taha Nabavi",
     "email": "sayyedtahanabavi@gmail.com",
