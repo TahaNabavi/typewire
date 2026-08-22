@@ -1,8 +1,8 @@
 # @tahanabavi/typewire-nestjs
 
-## 1.0.0
+## 4.0.0
 
-### Minor Changes
+### Major Changes
 
 - dd0bca8: One contract file, served over every wire — plus the permission guard, which had
   not shipped either.

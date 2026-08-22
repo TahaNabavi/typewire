@@ -44,7 +44,7 @@
     "test:coverage": "jest --coverage"
   },
   "peerDependencies": {
-    "@tahanabavi/typefetch": ">=2.0.0",
+    "@tahanabavi/typefetch": "^2.0.0",
     "zod": "^4.0.0"
   },
   "devDependencies": {
