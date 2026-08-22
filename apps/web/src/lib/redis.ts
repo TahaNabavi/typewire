@@ -15,8 +15,30 @@ import { send, sendAll, tcpConfigured } from "@/lib/redis-tcp";
  * Env — development: REDIS_HOST, REDIS_PORT (default 6379), REDIS_PASSWORD
  */
 
-const REST_URL = process.env.UPSTASH_REDIS_REST_URL;
-const REST_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+/**
+ * The REST endpoint, under whichever name provisioned it.
+ *
+ * Upstash's own dashboard calls these UPSTASH_REDIS_REST_*. The Vercel
+ * marketplace integration injects the same two values as UPSTASH_KV_REST_API_*,
+ * and the older Vercel KV product used KV_REST_API_*. They are the same
+ * endpoint and the same credential, so all three are accepted rather than
+ * asking anyone to copy a secret into a second variable to satisfy this file.
+ *
+ * Note which token: the read-write one. The integration also injects
+ * UPSTASH_KV_REST_API_READ_ONLY_TOKEN, and it is deliberately not consulted
+ * here — every counter this app keeps is a write (INCR, PFADD, ZINCRBY,
+ * EXPIRE), and a read-only credential would turn all of them into silently
+ * discarded errors while the panel still reported Redis as configured.
+ */
+const REST_URL =
+  process.env.UPSTASH_REDIS_REST_URL ??
+  process.env.UPSTASH_KV_REST_API_URL ??
+  process.env.KV_REST_API_URL;
+
+const REST_TOKEN =
+  process.env.UPSTASH_REDIS_REST_TOKEN ??
+  process.env.UPSTASH_KV_REST_API_TOKEN ??
+  process.env.KV_REST_API_TOKEN;
 
 const restConfigured = Boolean(REST_URL && REST_TOKEN);
 
