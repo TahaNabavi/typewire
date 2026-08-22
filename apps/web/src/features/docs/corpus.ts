@@ -28,9 +28,33 @@ export interface DocSection {
   text: string;
 }
 
+/**
+ * Strip HTML tags, repeatedly.
+ *
+ * One pass is not enough: removing the tags in `<scr<script>ipt>` splices the
+ * remainder into a new tag the pass has already moved past. Looping until the
+ * text stops changing is the only version of this that terminates on the right
+ * answer.
+ */
+function stripTags(text: string): string {
+  let out = text;
+  for (let previous = ""; out !== previous; ) {
+    previous = out;
+    out = out.replace(/<[^>]+>/g, "");
+  }
+  return out;
+}
+
+/**
+ * A heading's anchor.
+ *
+ * Tags are stripped first so their attributes do not end up in the slug — the
+ * `[^a-z0-9]+` pass below would otherwise turn `<b>Hi</b>` into `-b-hi-b-`.
+ * That pass is also what makes the result safe to put in an href: it is an
+ * allowlist, so nothing outside `[a-z0-9-]` survives it.
+ */
 function slugify(text: string): string {
-  return text
-    .replace(/<[^>]+>/g, "")
+  return stripTags(text)
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");

@@ -360,7 +360,7 @@ function readHeadings(md) {
 async function fetchNpmVersion(name) {
   if (process.env.TYPEWIRE_OFFLINE === "1") return { version: null, checked: false };
   try {
-    const res = await fetch(`https://registry.npmjs.org/${name.replace("/", "%2f")}/latest`, {
+    const res = await fetch(`https://registry.npmjs.org/${name.replaceAll("/", "%2f")}/latest`, {
       signal: AbortSignal.timeout(10_000),
       headers: { Accept: "application/json" },
     });
