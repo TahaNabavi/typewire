@@ -12,7 +12,7 @@ import { Support } from "@/features/support";
 import { Transports } from "@/features/transports";
 import { packages } from "@/lib/registry";
 
-/** Section order follows docs/website/DESIGN-PROMPT.md §4. */
+/** The order a reader meets the argument: claim, mechanism, proof, invitation. */
 export function HomePage() {
   // Only the select options cross to the client — not the whole registry.
   const feedbackOptions = packages.map((p) => ({ npm: p.npm, short: p.short }));
