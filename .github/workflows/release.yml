@@ -75,6 +75,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      # `changeset publish` treats "this version is already on the registry" as
+      # a skip, not an error, so a rolled-back version lets this job report
+      # success while shipping nothing. Assert the outcome instead of trusting
+      # the exit code. Runs even when the publish step did not, because the
+      # state it checks is wrong either way.
+      - name: Assert every package reached the registry
+        if: always()
+        run: node scripts/assert-published.mjs
+
   # One-time (repeatable) backfill: publish every package's CURRENT version to
   # GitHub Packages, so all packages appear in the repo's "Packages" sidebar
   # without waiting for their next release. `pnpm -r publish` checks the registry

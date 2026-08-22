@@ -53,6 +53,12 @@ jobs:
       - name: Assert zero runtime dependencies in the core
         run: node scripts/assert-no-deps.mjs
 
+      # A version that has gone backwards is invisible in a diff review and
+      # only surfaces when a release silently skips the package. Catch it on
+      # the PR that introduces it, not a day after the publish that dropped it.
+      - name: Assert no package is behind its npm release
+        run: node scripts/assert-published.mjs
+
       # Informational: shows the release plan / whether a changeset is present.
       - name: Changeset status
         run: pnpm changeset status --since=origin/main
