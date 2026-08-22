@@ -1,6 +1,6 @@
 {
   "name": "@tahanabavi/typewire-nestjs",
-  "version": "1.0.0",
+  "version": "4.0.0",
   "description": "NestJS integration for the TypeWire ecosystem — serve one set of Zod contracts over every wire your client speaks: REST/HTTP, gRPC (Connect JSON), GraphQL and typesocket WebSocket gateways, with request/response validation on all of them.",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
