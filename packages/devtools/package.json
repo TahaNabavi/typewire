@@ -72,6 +72,10 @@
     "url": "https://github.com/TahaNabavi/typewire/issues"
   },
   "homepage": "https://www.tahanabavi.ir/docs/type-devtools",
+  "typewire": {
+    "category": "devtools",
+    "transports": ["http", "graphql", "grpc", "ws"]
+  },
   "publishConfig": {
     "access": "public"
   }
