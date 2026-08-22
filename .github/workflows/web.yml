@@ -1,0 +1,57 @@
+name: Web
+
+# The website is built by its own workflow rather than by `pnpm -r build`, so a
+# broken marketing page can never block a package release. It still has to
+# build: this check is required on changes under apps/web/**.
+on:
+  pull_request:
+    paths:
+      - "apps/web/**"
+      - "packages/*/package.json"
+      - "packages/*/README.md"
+      - "packages/*/docs/**"
+      - "size-budget.json"
+      - "README.md"
+      - ".github/workflows/web.yml"
+  push:
+    branches-ignore:
+      - main
+    paths:
+      - "apps/web/**"
+      - "packages/*/package.json"
+      - "packages/*/README.md"
+      - "packages/*/docs/**"
+      - "size-budget.json"
+      - "README.md"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: web-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Derives the package registry from the monorepo, then builds. The
+      # generator asks npm which packages are published; GITHUB_TOKEN lifts the
+      # GitHub rate limit for the repo-stats fetches during static generation.
+      - name: Build site
+        run: pnpm --filter @typewire/web build:site
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Typecheck
+        run: pnpm --filter @typewire/web typecheck
