@@ -1,6 +1,13 @@
 packages:
   - "packages/*"
   - "examples/*"
+  - "apps/*"
+
+# Some registry mirrors ignore the abbreviated-metadata header and return the
+# full packument — tens of MB for a package with a long release history. The
+# 60s default aborts those mid-download; this only raises the ceiling, so a
+# healthy connection is unaffected.
+fetchTimeout: 900000
 
 # Post-install build scripts are blocked by default (pnpm). Allow the trusted
 # build-time tools; explicitly skip @scarf/scarf (NestJS telemetry — no real
@@ -8,6 +15,11 @@ packages:
 onlyBuiltDependencies:
   - esbuild
   - unrs-resolver
+  # Prisma's postinstall is what places its query engine; without it the
+  # generated client has nothing to talk to.
+  - "@prisma/client"
+  - "@prisma/engines"
+  - prisma
 
 ignoredBuiltDependencies:
   - "@scarf/scarf"
@@ -16,3 +28,5 @@ allowBuilds:
   esbuild: true
   unrs-resolver: true
   "@scarf/scarf": false
+  '@prisma/engines': true
+  prisma: true

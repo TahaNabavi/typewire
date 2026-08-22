@@ -1,0 +1,49 @@
+{
+  "$schema": "../../../docs/docs.schema.json",
+  "documentsVersion": "0.0.0",
+  "pages": [
+    {
+      "slug": "overview",
+      "title": "Overview",
+      "readme": true,
+      "intro": true,
+      "sections": [
+        "Why it is a separate package"
+      ]
+    },
+    {
+      "slug": "commands",
+      "title": "Commands",
+      "readme": true,
+      "sections": [
+        "Commands"
+      ]
+    },
+    {
+      "slug": "config",
+      "title": "Config",
+      "readme": true,
+      "sections": [
+        "Config"
+      ]
+    },
+    {
+      "slug": "migration",
+      "title": "Migration",
+      "readme": true,
+      "sections": [
+        "Migration"
+      ]
+    },
+    {
+      "slug": "reference",
+      "title": "Reference",
+      "readme": true,
+      "sections": [
+        "Exit codes",
+        "Exports",
+        "License"
+      ]
+    }
+  ]
+}

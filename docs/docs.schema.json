@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://typewire.tahanabavi.ir/schemas/docs.json",
+  "title": "TypeWire package docs manifest",
+  "description": "packages/<pkg>/docs/docs.json — what the website renders for this package, and which version of it those pages describe. Enforced by scripts/check-docs.mjs.",
+  "type": "object",
+  "required": [
+    "documentsVersion",
+    "pages"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "documentsVersion": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+",
+      "description": "The package version these pages were last reviewed against. CI fails when the package's major or minor moves past it; a patch bump does not require a docs change."
+    },
+    "summary": {
+      "type": "string",
+      "description": "One line shown under the package name in the docs index. Falls back to the package description."
+    },
+    "pages": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Ordered — this is the sidebar.",
+      "items": {
+        "type": "object",
+        "required": [
+          "slug",
+          "title"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "slug": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "description": "Becomes the URL segment: /docs/<package>/<slug>."
+          },
+          "title": {
+            "type": "string"
+          },
+          "file": {
+            "type": "string",
+            "description": "Markdown file relative to the docs/ directory. Mutually exclusive with `readme`."
+          },
+          "readme": {
+            "type": "boolean",
+            "description": "Render the package's own README.md. Mutually exclusive with `file` — copying the README into docs/ would guarantee the two drift. Pair with `sections` to render only part of it."
+          },
+          "sections": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            },
+            "description": "H2 headings from the source file, in the order this page should render them. Splits one long README into several pages without copying a byte of it: the README stays the whole story for npm and GitHub, and the site renders it as a sequence. Omit to render the whole file. scripts/check-docs.mjs fails when a heading is listed twice, is missing from the source, or exists in the source but appears on no page."
+          },
+          "intro": {
+            "type": "boolean",
+            "description": "Also render everything above the first H2 — the badges and opening paragraph. Only meaningful with `sections`, and only on the page that should open the package."
+          },
+          "omit": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Headings of the source file that this package deliberately does not render on the site. The escape hatch for content that earns its place in the README but not here — a hand-written table of contents, which the sidebar already is. Listing it keeps the coverage check meaningful: everything else must appear on a page."
+          }
+        }
+      }
+    }
+  }
+}

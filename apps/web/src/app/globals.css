@@ -1,0 +1,496 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/*
+ * One token system, two vocabularies.
+ *
+ * shadcn's semantic names (background, card, primary, muted-foreground, …) are
+ * the base layer, so every shadcn component inherits the TypeWire palette with
+ * no per-component overrides. On top of that sit the brand's own tokens — the
+ * wire colours, the hairline borders, the panel gradient — which shadcn has no
+ * concept of and which carry this project's identity.
+ *
+ * Palette source: docs/website/DESIGN-PROMPT.md §2.
+ *
+ * Light is the default; dark is a deliberate choice a reader makes and we
+ * remember. `data-theme` is the switch (set before paint in the layout), so the
+ * dark variant is rewired off shadcn's default `.dark` class below.
+ */
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+@theme inline {
+  /* shadcn semantics */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Brand surfaces. `canvas` and `fg` are aliases kept for readability at
+     call sites that talk about the page rather than a component. */
+  --color-canvas: var(--background);
+  --color-fg: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-alt: var(--surface-alt);
+  --color-panel: var(--panel);
+  --color-panel-2: var(--panel-2);
+  --color-hair: var(--hair);
+  --color-hair-strong: var(--hair-strong);
+  --color-dim: var(--dim);
+
+  /* The code panel keeps its dark surface in both themes — a dark editor on a
+     light page is right for a developer tool. See `.code-surface` below. */
+  --color-code: var(--code-bg);
+  --color-code-fg: var(--code-fg);
+
+  /* Brand accents */
+  --color-blue: var(--blue);
+  --color-blue-strong: var(--blue-strong);
+  --color-purple: var(--purple);
+  --color-purple-strong: var(--purple-strong);
+  --color-cyan: var(--cyan);
+  --color-green: var(--green);
+  --color-amber: var(--amber);
+  --color-red: var(--red);
+
+  /* The one hard visual rule: a wire always gets the same colour. */
+  --color-wire-http: var(--wire-http);
+  --color-wire-graphql: var(--wire-graphql);
+  --color-wire-grpc: var(--wire-grpc);
+  --color-wire-ws: var(--wire-ws);
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-geist-mono), "JetBrains Mono", "Cascadia Code", Consolas, Menlo, monospace;
+  --font-heading: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+
+  /* Motion. Every duration and curve on the site is named here so nothing is
+     chosen twice — see docs/website/DESIGN-PROMPT-02-MOTION-KIT.md §4. */
+  --motion-tap: 120ms;
+  --motion-ui: 180ms;
+  --motion-panel: 280ms;
+  --motion-enter: 480ms;
+  --motion-wire: 2400ms;
+  --motion-reveal: 1400ms;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.22, 1.4, 0.36, 1);
+
+  /* The WireFan's 2600ms branch cycle is a JS interval and lives in the
+     component: reading a theme token from JS costs a getComputedStyle round
+     trip for a number that is written once. */
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+}
+
+/* Shape, not colour: the corner radius is identical in both themes, so it is
+   declared once here rather than inside either of them. Living in the dark
+   block is what silently squared every card the moment light became the
+   default — every `--radius-*` calc resolved against nothing. */
+:root {
+  --radius: 0.75rem;
+}
+
+/* ---------------------------------------------------------------------------
+   Dark — the theme the brand was drawn in, and what every code panel wears
+   whatever the page around it is doing.
+   --------------------------------------------------------------------------- */
+:root[data-theme="dark"],
+.code-surface {
+  --background: #060a14;
+  --foreground: #e8eef8;
+
+  --surface: #0a1120;
+  --surface-alt: #0b1424;
+  --panel: #0d1626;
+  --panel-2: #0b1322;
+
+  --card: #0d1626;
+  --card-foreground: #e8eef8;
+  --popover: #111a2b;
+  --popover-foreground: #e8eef8;
+
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
+  --secondary: #0b1424;
+  --secondary-foreground: #e8eef8;
+
+  /* shadcn's `muted` is a surface; `muted-foreground` is the quiet text that
+     most of this site's prose uses. */
+  --muted: #0b1424;
+  --muted-foreground: #94a3b8;
+  --dim: #5a6b83;
+
+  --accent: color-mix(in oklab, #22d3ee 12%, transparent);
+  --accent-foreground: #22d3ee;
+  --destructive: #f87171;
+
+  --hair: rgba(148, 163, 184, 0.12);
+  --hair-strong: rgba(148, 163, 184, 0.2);
+  --border: rgba(148, 163, 184, 0.12);
+  --input: rgba(148, 163, 184, 0.2);
+  --ring: #22d3ee;
+
+  --blue: #60a5fa;
+  --blue-strong: #3b82f6;
+  --purple: #a78bfa;
+  --purple-strong: #8b5cf6;
+  --cyan: #22d3ee;
+  --green: #4ade80;
+  --amber: #fbbf24;
+  --red: #f87171;
+
+  --wire-http: #3b82f6;
+  --wire-graphql: #8b5cf6;
+  --wire-grpc: #22d3ee;
+  --wire-ws: #4ade80;
+
+  --code-bg: #0b1322;
+  --code-fg: #cdd8e8;
+
+  /* The thumb is a lifted hairline, not a grey slab — one step brighter than
+     the borders it runs alongside, so it reads as chrome rather than content. */
+  --scroll-track: transparent;
+  --scroll-thumb: #22314a;
+  --scroll-thumb-hover: #33456380;
+}
+
+/*
+ * A dark panel on a light page.
+ *
+ * Rather than swapping tokens at every call site inside a terminal or code
+ * block, the panel re-declares the dark palette for its own subtree (it is
+ * listed on the dark selector above). Anything rendered inside — a shadcn tab,
+ * a chip, a progress track — is then correct in both themes without knowing
+ * where it sits.
+ */
+.code-surface {
+  background-color: var(--code-bg);
+  color: var(--code-fg);
+}
+
+/* ---------------------------------------------------------------------------
+   Light — the default, and a real theme rather than an inversion. Paper, not
+   grey-inverted-to-white: accents step one shade darker so they still pass
+   contrast on white.
+
+   Bare `:root` is listed here, so a document that never gets a `data-theme`
+   attribute — no JavaScript, a failed hydration — still renders a finished
+   page rather than an unstyled one.
+   --------------------------------------------------------------------------- */
+:root,
+:root[data-theme="light"] {
+  --background: #f7f9fc;
+  --foreground: #0f172a;
+
+  --surface: #ffffff;
+  --surface-alt: #f2f5fa;
+  --panel: #ffffff;
+  --panel-2: #f7f9fc;
+
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+
+  --primary: #2563eb;
+  --primary-foreground: #ffffff;
+  --secondary: #f2f5fa;
+  --secondary-foreground: #0f172a;
+
+  --muted: #f2f5fa;
+  --muted-foreground: #64748b;
+  --dim: #78899e;
+
+  --accent: color-mix(in oklab, #0891b2 10%, transparent);
+  --accent-foreground: #0891b2;
+  --destructive: #dc2626;
+
+  --hair: rgba(15, 23, 42, 0.1);
+  --hair-strong: rgba(15, 23, 42, 0.16);
+  --border: rgba(15, 23, 42, 0.1);
+  --input: rgba(15, 23, 42, 0.16);
+  --ring: #0891b2;
+
+  --blue: #2563eb;
+  --blue-strong: #1d4ed8;
+  --purple: #7c3aed;
+  --purple-strong: #6d28d9;
+  --cyan: #0891b2;
+  --green: #16a34a;
+  --amber: #b45309;
+  --red: #dc2626;
+
+  --wire-http: #2563eb;
+  --wire-graphql: #7c3aed;
+  --wire-grpc: #0891b2;
+  --wire-ws: #16a34a;
+
+  --scroll-track: transparent;
+  --scroll-thumb: rgba(15, 23, 42, 0.22);
+  --scroll-thumb-hover: rgba(15, 23, 42, 0.38);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    /* The banner's atmosphere: three glows over the page floor. */
+    background-image:
+      radial-gradient(1200px 720px at 80% -10%, color-mix(in oklab, var(--cyan) 14%, transparent), transparent 60%),
+      radial-gradient(1000px 640px at 8% 110%, color-mix(in oklab, var(--purple-strong) 16%, transparent), transparent 60%),
+      radial-gradient(760px 520px at 98% 96%, color-mix(in oklab, var(--blue-strong) 10%, transparent), transparent 60%);
+    background-attachment: fixed;
+    text-wrap: pretty;
+  }
+
+  /* 44px hairline grid, faded at the edges — atmosphere, never noise. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+    background-image:
+      linear-gradient(var(--hair) 1px, transparent 1px),
+      linear-gradient(90deg, var(--hair) 1px, transparent 1px);
+    background-size: 44px 44px;
+    opacity: 0.35;
+    mask-image: radial-gradient(1500px 850px at 55% 30%, #000 30%, transparent 85%);
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--blue-strong) 35%, transparent);
+  }
+
+  /* Headings and every number, version, path and command are mono — the
+     typographic argument that this is a tool, not a brochure. */
+  code,
+  kbd,
+  samp,
+  pre {
+    font-family: var(--font-mono);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Motion.
+
+   Two rules hold everywhere below. One: reduced motion renders the *finished*
+   state, never the first frame and never nothing — the block at the end of this
+   file is the enforcement, and every animation here is written so that pinning
+   it to its end state leaves something correct on screen. Two: nothing on this
+   site is understood only by watching it move.
+   --------------------------------------------------------------------------- */
+
+@keyframes enter-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes reveal-sweep {
+  from {
+    background-position: 220% 0;
+  }
+  to {
+    background-position: -20% 0;
+  }
+}
+
+/*
+ * Scroll entrances are driven by the scroll timeline, not by JavaScript.
+ *
+ * The whole family sits behind `@supports (animation-timeline: view())` on
+ * purpose. An IntersectionObserver version of this has to hide the element
+ * first and reveal it on intersection, which means a bug, a blocked script or a
+ * browser that never fires the callback leaves the content permanently
+ * invisible. Here the *unstyled* state is the finished state: browsers without
+ * scroll-driven animations simply render the page, and lose nothing but the
+ * arrival.
+ */
+@supports (animation-timeline: view()) {
+  .enter-up {
+    animation: enter-up var(--motion-enter) var(--ease-out) both;
+    animation-timeline: view();
+    animation-range: entry 5% cover 22%;
+  }
+
+  /* A group hands its children the stagger, so a grid arrives as a sequence
+     rather than as one block. The step is small — 24ms — because this is
+     cadence, not choreography. */
+  .enter-group > * {
+    animation: enter-up var(--motion-enter) var(--ease-out) both;
+    animation-timeline: view();
+    animation-range: entry 5% cover 22%;
+  }
+  /* On a scroll timeline `animation-delay` is ignored — progress replaces time —
+     so the stagger is expressed as a later start in the range instead. */
+  .enter-group > *:nth-child(2) { animation-range: entry 8% cover 25%; }
+  .enter-group > *:nth-child(3) { animation-range: entry 11% cover 28%; }
+  .enter-group > *:nth-child(4) { animation-range: entry 14% cover 31%; }
+  .enter-group > *:nth-child(5) { animation-range: entry 17% cover 34%; }
+  .enter-group > *:nth-child(6) { animation-range: entry 20% cover 37%; }
+  .enter-group > *:nth-child(n + 7) { animation-range: entry 23% cover 40%; }
+
+  /*
+   * The gradient sweep. A band crosses the text once and settles on --fg, so
+   * the finished state is simply the text — which is what a reader arriving
+   * late, or with reduced motion, gets.
+   */
+  .reveal-sweep > * {
+    background-image: linear-gradient(
+      100deg,
+      var(--foreground) 42%,
+      #63a4ff 50%,
+      var(--cyan) 56%,
+      var(--foreground) 64%
+    );
+    background-size: 220% 100%;
+    background-position: -20% 0;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: reveal-sweep var(--motion-reveal) var(--ease-out) both;
+    animation-timeline: view();
+    animation-range: entry 10% cover 40%;
+  }
+  .reveal-sweep > *:nth-child(2) { animation-range: entry 22% cover 55%; }
+  .reveal-sweep > *:nth-child(3) { animation-range: entry 34% cover 70%; }
+}
+
+/* The wire motif: a signal travelling a curve. Used in diagrams. */
+@keyframes wire-pulse {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes caret {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/*
+ * Reduced motion is a real design, not a switch.
+ *
+ * Collapsing every animation to ~0ms lands each one on its *end* state, because
+ * all of them are written `both` and end where the content is meant to rest:
+ * the wires stay drawn, the terminal shows its output, the sweep settles on the
+ * finished text, the entering cards are simply present.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Scrollbars.
+
+   The default scrollbar is the one piece of chrome that ignores everything
+   above it — a bright grey trough down the side of a dark page, and a stark
+   white one inside a code panel. So it gets tokens like everything else.
+
+   Two mechanisms, because no single one covers the field: the standard
+   `scrollbar-*` properties (Firefox, and Chromium 121+) and the `::-webkit-`
+   pseudo-elements (Safari, older Chromium). Chromium prefers the standard
+   properties when both are present and ignores the pseudo-elements, so the two
+   blocks never fight — each browser reads exactly one of them.
+   --------------------------------------------------------------------------- */
+@layer base {
+  html {
+    scrollbar-gutter: stable;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scroll-thumb) var(--scroll-track);
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--scroll-track);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--scroll-thumb);
+    /* Inset by a transparent border so the thumb reads as a floating bar
+       rather than a block filling the gutter edge to edge. */
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background-clip: padding-box;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--scroll-thumb-hover);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+
+  /* Where two scrollbars meet, the default is a raised grey square. */
+  ::-webkit-scrollbar-corner {
+    background: var(--scroll-track);
+  }
+
+  /* A horizontally scrolling code block is short; a 10px bar eats the last
+     line. These get a slimmer one, and no gutter reservation. */
+  pre::-webkit-scrollbar,
+  .scroll-slim::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  pre,
+  .scroll-slim {
+    scrollbar-gutter: auto;
+  }
+}

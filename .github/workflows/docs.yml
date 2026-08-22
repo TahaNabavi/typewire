@@ -1,0 +1,83 @@
+name: Docs
+
+# The documentation gate.
+#
+# The website renders each package's docs directly out of that package, so a
+# package that ships new behaviour without touching its docs ships a website
+# that is wrong about it. This job is the thing that notices.
+#
+# It runs on any change to a package manifest or a docs tree — those are exactly
+# the two sides of the comparison. A pure source change with no version bump
+# does not trigger it, because nothing has been released yet.
+on:
+  pull_request:
+    paths:
+      - "packages/*/package.json"
+      - "packages/*/docs/**"
+      - "packages/*/README.md"
+      - "scripts/check-docs.mjs"
+      - ".github/workflows/docs.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "packages/*/package.json"
+      - "packages/*/docs/**"
+      - "packages/*/README.md"
+      - "scripts/check-docs.mjs"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    name: Docs match the packages they document
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # No install step on purpose: the checker reads package.json and docs.json
+      # with node:fs and nothing else, so it runs on a bare checkout in seconds.
+      - name: Check documentation coverage
+        id: check
+        run: node scripts/check-docs.mjs | tee "$GITHUB_STEP_SUMMARY"
+
+      # The failure above is already legible in the log and the summary, but a
+      # reviewer looking at the PR should not have to open Actions to find out
+      # which package is behind.
+      - name: Explain the failure on the pull request
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = [
+              '### Documentation is behind the code',
+              '',
+              'One or more packages changed version without their docs being reviewed.',
+              'The website renders those docs straight out of the package, so merging',
+              'this would publish a page that describes behaviour the release no longer has.',
+              '',
+              '**To fix:**',
+              '1. Update the pages under `packages/<pkg>/docs/` (or the package README).',
+              '2. Set `documentsVersion` in `packages/<pkg>/docs/docs.json` to the new version.',
+              '',
+              'Run `node scripts/check-docs.mjs` locally to see the exact packages.',
+              '',
+              '_A patch bump never requires this — only a minor or major one._',
+            ].join('\n');
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body,
+            });
