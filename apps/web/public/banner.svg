@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="1200" viewBox="0 0 2400 1200" role="img" aria-labelledby="t d">
+  <title id="t">TypeWire — typed contracts, any transport</title>
+  <desc id="d">One Zod contract object, imported by the client, the server and the cache, fanning out over HTTP, GraphQL, gRPC and WebSocket.</desc>
+
+  <defs>
+    <linearGradient id="tile" x1="70" y1="52" x2="452" y2="470" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#22d3ee"/><stop offset="0.5" stop-color="#3b82f6"/><stop offset="1" stop-color="#8b5cf6"/>
+    </linearGradient>
+    <linearGradient id="word" x1="150" y1="0" x2="1180" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#e8eef8"/><stop offset="0.55" stop-color="#7dd3fc"/><stop offset="1" stop-color="#a78bfa"/>
+    </linearGradient>
+    <linearGradient id="rule" x1="150" y1="0" x2="620" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#8b5cf6"/>
+    </linearGradient>
+    <linearGradient id="lead" x1="1320" y1="0" x2="1620" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#22d3ee" stop-opacity="0"/><stop offset="1" stop-color="#22d3ee" stop-opacity="0.9"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#3b82f6" stop-opacity="0.30"/><stop offset="1" stop-color="#3b82f6" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#8b5cf6" stop-opacity="0.22"/><stop offset="1" stop-color="#8b5cf6" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="80" height="80" patternUnits="userSpaceOnUse">
+      <path d="M80 0H0V80" fill="none" stroke="#94a3b8" stroke-opacity="0.055" stroke-width="1.5"/>
+    </pattern>
+  </defs>
+
+  <!-- Ground -->
+  <rect width="2400" height="1200" fill="#060a14"/>
+  <rect width="2400" height="1200" fill="url(#grid)"/>
+  <ellipse cx="1750" cy="300" rx="900" ry="620" fill="url(#glow)"/>
+  <ellipse cx="420" cy="1050" rx="760" ry="520" fill="url(#glow2)"/>
+
+  <!-- Wordmark -->
+  <g transform="translate(140 108) scale(0.3125)">
+    <rect x="40" y="40" width="432" height="432" rx="128" fill="url(#tile)"/>
+    <path d="M150 316 C 200 210, 236 210, 256 256 C 276 302, 312 302, 362 196" stroke="#fff" stroke-width="30" stroke-linecap="round" fill="none"/>
+    <circle cx="150" cy="316" r="30" fill="#fff"/><circle cx="150" cy="316" r="14" fill="#3b82f6"/>
+    <circle cx="362" cy="196" r="30" fill="#fff"/><circle cx="362" cy="196" r="14" fill="#8b5cf6"/>
+    <circle cx="256" cy="256" r="15" fill="#fff"/><circle cx="256" cy="256" r="6.5" fill="#22d3ee"/>
+  </g>
+  <!-- The one place the address is written by hand: this file is a static
+       asset and cannot read NEXT_PUBLIC_SITE_URL. If the domain moves, it moves
+       here too. Every generated Open Graph card reads site.domain instead. -->
+  <text x="322" y="215" font-family="Geist, ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="56" font-weight="700" letter-spacing="-1" fill="#94a3b8">typewire.tahanabavi.ir</text>
+
+  <!-- Headline -->
+  <text x="140" y="470" font-family="Geist Mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="40" letter-spacing="8" fill="#22d3ee">// ONE CONTRACT</text>
+
+  <text x="136" y="640" font-family="Geist, ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="176" font-weight="700" letter-spacing="-7" fill="url(#word)">TypeWire</text>
+
+  <rect x="140" y="700" width="240" height="9" rx="4.5" fill="url(#rule)"/>
+
+  <text x="140" y="806" font-family="Geist, ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="66" font-weight="700" letter-spacing="-1.6" fill="#e8eef8">Typed contracts. Any transport.</text>
+
+  <text x="140" y="884" font-family="Geist, ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="42" fill="#94a3b8">One Zod contract, validated end-to-end — across HTTP, WebSocket, and the server.</text>
+
+  <!-- Install -->
+  <g transform="translate(140 950)">
+    <rect x="0" y="0" width="700" height="98" rx="18" fill="#0b1322" stroke="#94a3b8" stroke-opacity="0.16"/>
+    <circle cx="42" cy="49" r="8" fill="#4ade80"/>
+    <text x="76" y="65" font-family="Geist Mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="40" fill="#cdd8e8">npx typewire init</text>
+  </g>
+
+  <!-- The fan: one contract in, four wires out -->
+  <g>
+    <path d="M1320 600 H1620" stroke="url(#lead)" stroke-width="5" fill="none"/>
+
+    <path d="M1620 600 C 1760 600, 1780 300, 1980 300" stroke="#3b82f6" stroke-width="5" fill="none" stroke-opacity="0.95"/>
+    <path d="M1620 600 C 1760 600, 1780 500, 1980 500" stroke="#8b5cf6" stroke-width="5" fill="none" stroke-opacity="0.95"/>
+    <path d="M1620 600 C 1760 600, 1780 700, 1980 700" stroke="#22d3ee" stroke-width="5" fill="none" stroke-opacity="0.95"/>
+    <path d="M1620 600 C 1760 600, 1780 900, 1980 900" stroke="#4ade80" stroke-width="5" fill="none" stroke-opacity="0.95"/>
+
+    <circle cx="1620" cy="600" r="46" fill="none" stroke="#22d3ee" stroke-opacity="0.30" stroke-width="4"/>
+    <circle cx="1620" cy="600" r="26" fill="#0a1120" stroke="#22d3ee" stroke-width="5"/>
+    <circle cx="1620" cy="600" r="9" fill="#22d3ee"/>
+    <text x="1322" y="566" font-family="Geist Mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="30" letter-spacing="3" fill="#5a6b83">contracts.ts</text>
+
+    <g font-family="Geist Mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="38">
+      <circle cx="1980" cy="300" r="11" fill="#3b82f6"/><text x="2024" y="314" fill="#e8eef8">HTTP</text>
+      <circle cx="1980" cy="500" r="11" fill="#8b5cf6"/><text x="2024" y="514" fill="#e8eef8">GraphQL</text>
+      <circle cx="1980" cy="700" r="11" fill="#22d3ee"/><text x="2024" y="714" fill="#e8eef8">gRPC</text>
+      <circle cx="1980" cy="900" r="11" fill="#4ade80"/><text x="2024" y="914" fill="#e8eef8">WebSocket</text>
+    </g>
+  </g>
+
+  <!-- Always closed by the four wires, in transport order -->
+  <g>
+    <rect x="0" y="1188" width="600" height="12" fill="#3b82f6"/>
+    <rect x="600" y="1188" width="600" height="12" fill="#8b5cf6"/>
+    <rect x="1200" y="1188" width="600" height="12" fill="#22d3ee"/>
+    <rect x="1800" y="1188" width="600" height="12" fill="#4ade80"/>
+  </g>
+</svg>
