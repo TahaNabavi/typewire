@@ -1,0 +1,77 @@
+// TypeWire website schema — the canonical source.
+//
+// Prisma allows one provider per schema, and this project runs MySQL in
+// development and Postgres in production. Rather than hand-maintain two files
+// that would slowly disagree, this one is canonical and
+// `scripts/prisma-schema.mjs` derives the effective schema for whatever
+// DATABASE_URL points at. Edit this file; never edit the derived one.
+//
+//   pnpm --filter @typewire/web db:push     apply to the database in DATABASE_URL
+//   pnpm --filter @typewire/web db:studio   browse the data
+//
+// Every native type below (@db.VarChar, @db.Text, @db.Date, Json) is valid on
+// both providers, which is what makes one source possible. Keep it that way:
+// if a column needs something only one provider has, it needs a different
+// design, not a second schema.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+// Prisma 7 keeps connection URLs out of the schema: the CLI reads them from
+// prisma.config.ts, and the client is given a driver adapter instead.
+datasource db {
+  provider = "postgresql"
+}
+
+/// One row per page view.
+///
+/// No IP and no user agent are stored. `visitor` is a salted daily hash, which
+/// counts uniques without identifying anyone and becomes uncorrelatable once
+/// the salt's date component rolls over at midnight UTC.
+model Pageview {
+  id       BigInt   @id @default(autoincrement())
+  ts       DateTime @default(now())
+  path     String   @db.VarChar(512)
+  referrer String?  @db.VarChar(255)
+  country  String?  @db.VarChar(8)
+  device   String?  @db.VarChar(16)
+  visitor  String   @db.VarChar(32)
+
+  @@index([ts])
+  @@index([path])
+  @@index([visitor])
+  @@map("pageview")
+}
+
+/// Feedback from the form on the landing page.
+///
+/// The form still offers a prefilled GitHub issue — that is the public record.
+/// This row is what survives someone closing that tab before submitting.
+model Feedback {
+  id       Int      @id @default(autoincrement())
+  ts       DateTime @default(now())
+  package  String?  @db.VarChar(120)
+  reaction String?  @db.VarChar(40)
+  message  String   @db.Text
+  handle   String?  @db.VarChar(80)
+  status   String   @default("new") @db.VarChar(20)
+
+  @@index([ts])
+  @@map("feedback")
+}
+
+/// Daily snapshot of numbers no API will backfill.
+///
+/// GitHub reports today's star count and npm today's downloads; neither will
+/// tell you last month's. One row a day is the only way to own a trend line.
+model Snapshot {
+  day        DateTime @id @db.Date
+  stars      Int?
+  forks      Int?
+  openIssues Int?     @map("open_issues")
+  downloads  Json?
+
+  @@map("snapshot")
+}
