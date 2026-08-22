@@ -29,6 +29,8 @@
     "docs:check": "node scripts/check-docs.mjs",
     "docs:init": "node scripts/init-docs.mjs",
     "verify": "pnpm -r build && pnpm -r typecheck && pnpm -r test && pnpm size && pnpm deps:assert && pnpm smoke && pnpm docs:check",
+    "web:dev": "pnpm --filter @typewire/web dev",
+    "web:build": "pnpm --filter @typewire/web build:site",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "pnpm -r build && changeset publish"
