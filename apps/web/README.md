@@ -73,8 +73,20 @@ the repo root:
    the project automatically.
 3. **Add the three variables you own** — `ADMIN_PASSWORD`, `ADMIN_SECRET`,
    `ANALYTICS_SALT` (see `.env.example`, which explains each one).
-4. **Create the tables** once: `pnpm --filter @typewire/web db:migrate` with
-   `DATABASE_URL` in your environment. The schema is idempotent.
+4. **Create the tables** once, from a machine with `DATABASE_URL` in its
+   environment pointing at the Neon database:
+
+   ```bash
+   pnpm --filter @typewire/web db:push
+   ```
+
+   `db:push`, not `db:migrate` — this app keeps no `prisma/migrations`
+   directory, and `migrate deploy` with nothing to apply reports success and
+   creates no tables, which is the worst of both outcomes. `db:push` reconciles
+   the database with `schema.prisma` directly and is safe to re-run.
+
+   Until the tables exist the site still serves: `withDb` swallows the failure
+   and returns its fallback, so the pages render and the panel reads empty.
 
 `vercel.json` also registers a daily cron on `/api/cron/snapshot`. Hobby plans
 allow cron, but at a low frequency — daily is deliberately within that. Confirm
