@@ -1,0 +1,150 @@
+{
+  "$schema": "../../../docs/docs.schema.json",
+  "documentsVersion": "1.10.0",
+  "summary": "The typed HTTP client every other package is built around.",
+  "pages": [
+    {
+      "slug": "overview",
+      "title": "Overview",
+      "readme": true,
+      "intro": true,
+      "sections": [
+        "Features"
+      ]
+    },
+    {
+      "slug": "quick-start",
+      "title": "Quick start",
+      "readme": true,
+      "sections": [
+        "Installation",
+        "Quick Start"
+      ]
+    },
+    {
+      "slug": "contracts",
+      "title": "Defining contracts",
+      "readme": true,
+      "sections": [
+        "Defining API Contracts",
+        "Structured Request Model",
+        "Request Schema Helper",
+        "Backward Compatibility"
+      ]
+    },
+    {
+      "slug": "client",
+      "title": "The client",
+      "readme": true,
+      "sections": [
+        "Creating the Client",
+        "Client Configuration",
+        "Transports",
+        "Type Inference"
+      ]
+    },
+    {
+      "slug": "transports",
+      "title": "Transports",
+      "file": "TRANSPORTS.md"
+    },
+    {
+      "slug": "auth",
+      "title": "Auth & permissions",
+      "readme": true,
+      "sections": [
+        "Authentication",
+        "Permissions"
+      ]
+    },
+    {
+      "slug": "middleware",
+      "title": "Middleware",
+      "readme": true,
+      "sections": [
+        "Middleware System",
+        "Built-in Middlewares",
+        "Custom Middleware",
+        "Endpoint-Level Headers"
+      ]
+    },
+    {
+      "slug": "reliability",
+      "title": "Retries & timeouts",
+      "readme": true,
+      "sections": [
+        "Retry Engine",
+        "Timeout and Abort Support"
+      ]
+    },
+    {
+      "slug": "errors",
+      "title": "Error handling",
+      "readme": true,
+      "sections": [
+        "Error Handling",
+        "Typed Error Responses"
+      ]
+    },
+    {
+      "slug": "payloads",
+      "title": "Payloads & responses",
+      "readme": true,
+      "sections": [
+        "File Uploads",
+        "Response Types",
+        "Response Wrappers",
+        "Upload and Download Progress"
+      ]
+    },
+    {
+      "slug": "encryption",
+      "title": "Encryption",
+      "readme": true,
+      "sections": [
+        "Encryption Middleware",
+        "Encryption Maps"
+      ]
+    },
+    {
+      "slug": "devtools",
+      "title": "Devtools & mocking",
+      "readme": true,
+      "sections": [
+        "Instrumentation & Runtime Overrides",
+        "Mock Mode"
+      ]
+    },
+    {
+      "slug": "testing",
+      "title": "Testing",
+      "readme": true,
+      "sections": [
+        "Testing"
+      ]
+    },
+    {
+      "slug": "nestjs",
+      "title": "With NestJS",
+      "readme": true,
+      "sections": [
+        "Backend (NestJS)"
+      ]
+    },
+    {
+      "slug": "releases",
+      "title": "Releases",
+      "readme": true,
+      "sections": [
+        "What's New in v2.0.0",
+        "What's New in v1.9.0",
+        "What's New in v1.8.0",
+        "What's New in v1.7.0",
+        "What's New in v1.6.0",
+        "Versioned Release Documentation",
+        "Notes",
+        "License"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "$schema": "../../../docs/docs.schema.json",
+  "documentsVersion": "1.0.1",
+  "pages": [
+    {
+      "slug": "overview",
+      "title": "Overview",
+      "readme": true,
+      "intro": true,
+      "sections": [
+        "What's in it"
+      ]
+    },
+    {
+      "slug": "quick-start",
+      "title": "Quick start",
+      "readme": true,
+      "sections": [
+        "Setup"
+      ]
+    },
+    {
+      "slug": "customising",
+      "title": "Styling & custom panels",
+      "readme": true,
+      "sections": [
+        "No stylesheet",
+        "Build your own",
+        "License"
+      ]
+    }
+  ]
+}

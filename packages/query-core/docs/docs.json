@@ -1,0 +1,48 @@
+{
+  "$schema": "../../../docs/docs.schema.json",
+  "documentsVersion": "1.1.0",
+  "pages": [
+    {
+      "slug": "overview",
+      "title": "Overview",
+      "readme": true,
+      "intro": true,
+      "sections": [
+        "What's in it"
+      ]
+    },
+    {
+      "slug": "quick-start",
+      "title": "Quick start",
+      "readme": true,
+      "sections": [
+        "Setup"
+      ]
+    },
+    {
+      "slug": "reading",
+      "title": "Reading",
+      "readme": true,
+      "sections": [
+        "Reading"
+      ]
+    },
+    {
+      "slug": "writing",
+      "title": "Writing",
+      "readme": true,
+      "sections": [
+        "Writing"
+      ]
+    },
+    {
+      "slug": "adapters",
+      "title": "Adapters",
+      "readme": true,
+      "sections": [
+        "Adapters",
+        "License"
+      ]
+    }
+  ]
+}
