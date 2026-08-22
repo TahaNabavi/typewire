@@ -23,9 +23,14 @@ try {
  */
 export default defineConfig({
   schema: "prisma/schema.generated.prisma",
-  datasource: {
-    url: env("DATABASE_URL"),
-  },
+  // Declared only when there is one to declare. `env()` throws at config-load
+  // time for a missing variable, and the config is loaded by every Prisma
+  // command — including `generate`, which never connects to anything. Asserting
+  // the URL here would mean `pnpm typecheck` and `pnpm build:site` could only
+  // run on a machine with a database, which is exactly the coupling the rest of
+  // this app avoids: with no DATABASE_URL the site builds and the panel says it
+  // is unconfigured.
+  ...(process.env.DATABASE_URL ? { datasource: { url: env("DATABASE_URL") } } : {}),
   migrations: {
     path: "prisma/migrations",
   },
