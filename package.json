@@ -26,7 +26,9 @@
     "size:update": "node scripts/size-budget.mjs --update",
     "deps:assert": "node scripts/assert-no-deps.mjs",
     "smoke": "node scripts/runtime-smoke.mjs",
-    "verify": "pnpm -r build && pnpm -r typecheck && pnpm -r test && pnpm size && pnpm deps:assert && pnpm smoke",
+    "docs:check": "node scripts/check-docs.mjs",
+    "docs:init": "node scripts/init-docs.mjs",
+    "verify": "pnpm -r build && pnpm -r typecheck && pnpm -r test && pnpm size && pnpm deps:assert && pnpm smoke && pnpm docs:check",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "pnpm -r build && changeset publish"
