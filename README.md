@@ -266,16 +266,24 @@ Every PR that changes a package's source must include a changeset.
 - [x] `type-permission` — framework-less capability permissions + optional contract link (NestJS guard)
 - [x] **Pluggable transports** — the open `TransportRegistry`, `typefetch-grpc`, `typefetch-graphql`, and a core at zero dependencies
 - [x] **`typewire-cli`** — `typewire.config.ts`, the project-detecting `init` wizard, multi-API `projects`
+- [x] **`typewire-nestjs` beyond HTTP** — gRPC (Connect JSON), GraphQL, and `typesocket` WS gateways, all from the same contract file
+- [ ] **query-core seams** — `gate` · `sources` · `updatedAt` · `reason`: four additive hooks, no behaviour change, that unblock the two packages below. [`docs/SYNC.md`](./docs/SYNC.md) §9
+- [ ] **`typewire-sync`** — cross-tab coordination: mirrored cache writes, cross-tab single-flight, and one leader tab owning the socket. Design in [`docs/SYNC.md`](./docs/SYNC.md)
+- [ ] **Standard Schema** — accept any Standard Schema validator (Zod 4, Valibot, ArkType, Effect) wherever a contract takes a schema, with zod still the default. Design in [`docs/SCHEMA.md`](./docs/SCHEMA.md)
+- [ ] **`typefetch-sse`** — typed Server-Sent Events and HTTP streaming: a schema per event name, `AsyncIterable` responses, resume by `Last-Event-ID`. Design in [`docs/SSE.md`](./docs/SSE.md)
+- [ ] **`typewire-offline`** — a persisted cache and a durable mutation outbox that survives a reload and replays in order on reconnect. Design in [`docs/OFFLINE.md`](./docs/OFFLINE.md)
 - [ ] `typewire snapshot` + `diff` — breaking-change detection against a committed API-surface lockfile
 - [ ] `typewire lint` · `doctor` · `explain` · `mock` · `generate openapi`
-- [ ] Connect conformance runner in CI — see [`docs/ROADMAP.md`](./docs/ROADMAP.md) for why it is still open
-- [x] **`typewire-nestjs` beyond HTTP** — gRPC (Connect JSON), GraphQL, and `typesocket` WS gateways, all from the same contract file
+- [ ] **`typewire generate mcp`** — the same contracts as an MCP tool server, so an agent calls the validated endpoint instead of a hand-written wrapper. Design in [`docs/MCP.md`](./docs/MCP.md)
 - [ ] `type-permission` client pre-flight middleware + Vue/React binding recipes
-- [ ] `type-opengraph` — typed OpenGraph/metadata client
 - [ ] `typewire-vue` / `typewire-angular` query adapters
+- [ ] Connect conformance runner in CI — see [`docs/ROADMAP.md`](./docs/ROADMAP.md) for why it is still open
 
 Full sequencing in [`docs/ROADMAP.md`](./docs/ROADMAP.md); the CLI's design in
-[`docs/CLI.md`](./docs/CLI.md).
+[`docs/CLI.md`](./docs/CLI.md). Every planned package is specified before it is
+built — [`SYNC.md`](./docs/SYNC.md) · [`SCHEMA.md`](./docs/SCHEMA.md) ·
+[`SSE.md`](./docs/SSE.md) · [`OFFLINE.md`](./docs/OFFLINE.md) ·
+[`MCP.md`](./docs/MCP.md).
 
 ## Installing from GitHub Packages
 
