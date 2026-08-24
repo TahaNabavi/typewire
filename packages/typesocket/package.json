@@ -31,7 +31,7 @@
   "bugs": {
     "url": "https://github.com/TahaNabavi/typewire/issues"
   },
-  "homepage": "https://www.tahanabavi.ir/docs/typesocket",
+  "homepage": "https://typewire.tahanabavi.ir/docs/typesocket",
   "keywords": [
     "socket",
     "typescript",

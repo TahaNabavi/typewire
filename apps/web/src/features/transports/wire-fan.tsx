@@ -211,7 +211,7 @@ export function WireFan({ consumers }: { consumers: Consumer[] }) {
                 cards.current[i] = node;
               }}
               className={cn(
-                "rounded-xl border bg-linear-to-b from-panel to-panel-2 p-4",
+                "min-w-0 rounded-xl border bg-linear-to-b from-panel to-panel-2 p-4",
                 lit ? "border-hair" : "border-hair opacity-55",
               )}
               style={{
@@ -224,10 +224,14 @@ export function WireFan({ consumers }: { consumers: Consumer[] }) {
               }}
             >
               <div className="flex items-center justify-between gap-2">
-                <span className="font-mono text-xs font-semibold text-fg">{consumer.name}</span>
+                <span className="truncate font-mono text-xs font-semibold text-fg">{consumer.name}</span>
                 <Chip tone={tone}>{consumer.role}</Chip>
               </div>
-              <p className="mt-2 font-mono text-[11px] leading-relaxed text-muted-foreground">
+              {/* A snippet is one long token with no spaces to break at, so it
+                  wraps anywhere rather than running past the card edge — and
+                  `wrap-anywhere` (not `break-words`) is what also shrinks the
+                  card's min-content width, so the grid track stops widening. */}
+              <p className="mt-2 font-mono text-[11px] leading-relaxed wrap-anywhere text-muted-foreground">
                 {consumer.snippet}
               </p>
             </div>

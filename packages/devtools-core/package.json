@@ -63,7 +63,7 @@
   "bugs": {
     "url": "https://github.com/TahaNabavi/typewire/issues"
   },
-  "homepage": "https://www.tahanabavi.ir/docs/type-devtools-core",
+  "homepage": "https://typewire.tahanabavi.ir/docs/type-devtools-core",
   "typewire": {
     "category": "devtools",
     "transports": ["http", "graphql", "grpc", "ws"]

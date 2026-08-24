@@ -38,25 +38,25 @@ the types can't drift from what's validated at runtime. Everything ships under t
 
 | Package | Status | What it does |
 | --- | --- | --- |
-| [`@tahanabavi/typefetch`](./packages/typefetch) | 📦 `1.7.1` · **v2 pending** | Strongly-typed **contract client** with pluggable transports — middleware, retries, mock mode, typed errors, normalized error kinds. **Zero runtime dependencies.** |
-| [`@tahanabavi/typefetch-graphql`](./packages/graphql) | 🚀 unreleased | **GraphQL** transport — selection sets generated from your Zod `response` schema, so they cannot drift. |
-| [`@tahanabavi/typefetch-grpc`](./packages/grpc) | 🚀 unreleased | **gRPC** transport — Connect unary JSON by default, binary grpc-web behind a codec seam, no protobuf runtime. |
-| [`@tahanabavi/typefetch-encryption`](./packages/encryption) | 🚀 unreleased | Field-level **encryption** middleware (AES · DES · RSA · Base64 · custom). |
-| [`@tahanabavi/typewire-cli`](./packages/cli) | 🚀 unreleased | The **`typewire` CLI** — project-detecting `init` wizard, contract test runner, endpoint listing, one `typewire.config.ts` for every package. |
-| [`@tahanabavi/typesocket`](./packages/typesocket) | 📦 `2.0.0` | Contract-driven **Socket.IO / WebSocket** client — direction-tagged events, validated acks, middleware, queued emits, instrumentation. |
-| [`@tahanabavi/typewire-nestjs`](./packages/nestjs) | 📦 `0.1.1` | **NestJS** backend — serve the same contracts over **every wire**: REST, gRPC (Connect JSON), GraphQL and typesocket gateways (was `typefetch-nestjs`). |
-| [`@tahanabavi/typefetch-query-core`](./packages/query-core) | 🚀 unreleased | Framework-agnostic **query engine** — cache, dedup, staleness, mutations, auto-invalidation. |
-| [`@tahanabavi/typefetch-react`](./packages/react) | 🚀 unreleased | Thin **React** adapter — `useQuery` / `useMutation` / `TypeFetchProvider`. |
-| [`@tahanabavi/type-devtools-core`](./packages/devtools-core) | 🚀 unreleased | **Transport-agnostic** inspector bridge + query-cache mirror — one timeline for REST, GraphQL, gRPC **and** WS, plus a `QueryClient` view, with runtime overrides. |
-| [`@tahanabavi/type-devtools`](./packages/devtools) | 🚀 unreleased | **React inspector panel** — timeline badged by wire, normalized failure kinds, live transfer bars, query cache, override editor, colored JSON tree. Renders any bridge. |
-| [`@tahanabavi/type-permission`](./packages/permission) | 🚀 unreleased | **Framework-less** capability permissions — one shared bit map, evaluated identically on client and server; layered resolution, codecs, lock file, optional contract link. |
+| [`@tahanabavi/typefetch`](./packages/typefetch) | 📦 `2.0.0` | Strongly-typed **contract client** with pluggable transports — middleware, retries, mock mode, typed errors, normalized error kinds. **Zero runtime dependencies.** |
+| [`@tahanabavi/typefetch-graphql`](./packages/graphql) | 📦 `0.1.0` | **GraphQL** transport — selection sets generated from your Zod `response` schema, so they cannot drift. |
+| [`@tahanabavi/typefetch-grpc`](./packages/grpc) | 📦 `0.1.0` | **gRPC** transport — Connect unary JSON by default, binary grpc-web behind a codec seam, no protobuf runtime. |
+| [`@tahanabavi/typefetch-encryption`](./packages/encryption) | 📦 `0.1.0` | Field-level **encryption** middleware (AES · DES · RSA · Base64 · custom). |
+| [`@tahanabavi/typewire-cli`](./packages/cli) | 📦 `0.1.0` | The **`typewire` CLI** — project-detecting `init` wizard, contract test runner, endpoint listing, one `typewire.config.ts` for every package. |
+| [`@tahanabavi/typesocket`](./packages/typesocket) | 📦 `2.2.0` | Contract-driven **Socket.IO / WebSocket** client — direction-tagged events, validated acks, middleware, queued emits, instrumentation. |
+| [`@tahanabavi/typewire-nestjs`](./packages/nestjs) | 📦 `4.0.0` | **NestJS** backend — serve the same contracts over **every wire**: REST, gRPC (Connect JSON), GraphQL and typesocket gateways (was `typefetch-nestjs`). |
+| [`@tahanabavi/typefetch-query-core`](./packages/query-core) | 📦 `1.1.0` | Framework-agnostic **query engine** — cache, dedup, staleness, mutations, auto-invalidation. |
+| [`@tahanabavi/typefetch-react`](./packages/react) | 📦 `1.1.0` | Thin **React** adapter — `useQuery` / `useMutation` / `TypeFetchProvider`. |
+| [`@tahanabavi/type-devtools-core`](./packages/devtools-core) | 📦 `1.2.0` | **Transport-agnostic** inspector bridge + query-cache mirror — one timeline for REST, GraphQL, gRPC **and** WS, plus a `QueryClient` view, with runtime overrides. |
+| [`@tahanabavi/type-devtools`](./packages/devtools) | 📦 `1.1.0` | **React inspector panel** — timeline badged by wire, normalized failure kinds, live transfer bars, query cache, override editor, colored JSON tree. Renders any bridge. |
+| [`@tahanabavi/type-permission`](./packages/permission) | 📦 `0.1.0` | **Framework-less** capability permissions — one shared bit map, evaluated identically on client and server; layered resolution, codecs, lock file, optional contract link. |
 
-📦 = the version on npm today · 🚀 = built and tested in this repo, awaiting its
-first publish. Everything is developed against the local source, so an
-unreleased package is not an unfinished one — it is one that has not been given
-a version number yet.
+📦 = the version on npm today. Every package in the table is published; the
+workspace version and the registry version match for all twelve, which is what
+`pnpm verify` and the site's registry check assert rather than claim.
 
-> `type-opengraph` and more are on the [roadmap](#roadmap).
+> `typewire-sync`, `typefetch-sse`, `typewire-offline` and more are on the
+> [roadmap](#roadmap), each specified before it is built.
 
 ## Quick start
 
@@ -266,16 +266,24 @@ Every PR that changes a package's source must include a changeset.
 - [x] `type-permission` — framework-less capability permissions + optional contract link (NestJS guard)
 - [x] **Pluggable transports** — the open `TransportRegistry`, `typefetch-grpc`, `typefetch-graphql`, and a core at zero dependencies
 - [x] **`typewire-cli`** — `typewire.config.ts`, the project-detecting `init` wizard, multi-API `projects`
+- [x] **`typewire-nestjs` beyond HTTP** — gRPC (Connect JSON), GraphQL, and `typesocket` WS gateways, all from the same contract file
+- [ ] **query-core seams** — `gate` · `sources` · `updatedAt` · `reason`: four additive hooks, no behaviour change, that unblock the two packages below. [`docs/SYNC.md`](./docs/SYNC.md) §9
+- [ ] **`typewire-sync`** — cross-tab coordination: mirrored cache writes, cross-tab single-flight, and one leader tab owning the socket. Design in [`docs/SYNC.md`](./docs/SYNC.md)
+- [ ] **Standard Schema** — accept any Standard Schema validator (Zod 4, Valibot, ArkType, Effect) wherever a contract takes a schema, with zod still the default. Design in [`docs/SCHEMA.md`](./docs/SCHEMA.md)
+- [ ] **`typefetch-sse`** — typed Server-Sent Events and HTTP streaming: a schema per event name, `AsyncIterable` responses, resume by `Last-Event-ID`. Design in [`docs/SSE.md`](./docs/SSE.md)
+- [ ] **`typewire-offline`** — a persisted cache and a durable mutation outbox that survives a reload and replays in order on reconnect. Design in [`docs/OFFLINE.md`](./docs/OFFLINE.md)
 - [ ] `typewire snapshot` + `diff` — breaking-change detection against a committed API-surface lockfile
 - [ ] `typewire lint` · `doctor` · `explain` · `mock` · `generate openapi`
-- [ ] Connect conformance runner in CI — see [`docs/ROADMAP.md`](./docs/ROADMAP.md) for why it is still open
-- [x] **`typewire-nestjs` beyond HTTP** — gRPC (Connect JSON), GraphQL, and `typesocket` WS gateways, all from the same contract file
+- [ ] **`typewire generate mcp`** — the same contracts as an MCP tool server, so an agent calls the validated endpoint instead of a hand-written wrapper. Design in [`docs/MCP.md`](./docs/MCP.md)
 - [ ] `type-permission` client pre-flight middleware + Vue/React binding recipes
-- [ ] `type-opengraph` — typed OpenGraph/metadata client
 - [ ] `typewire-vue` / `typewire-angular` query adapters
+- [ ] Connect conformance runner in CI — see [`docs/ROADMAP.md`](./docs/ROADMAP.md) for why it is still open
 
 Full sequencing in [`docs/ROADMAP.md`](./docs/ROADMAP.md); the CLI's design in
-[`docs/CLI.md`](./docs/CLI.md).
+[`docs/CLI.md`](./docs/CLI.md). Every planned package is specified before it is
+built — [`SYNC.md`](./docs/SYNC.md) · [`SCHEMA.md`](./docs/SCHEMA.md) ·
+[`SSE.md`](./docs/SSE.md) · [`OFFLINE.md`](./docs/OFFLINE.md) ·
+[`MCP.md`](./docs/MCP.md).
 
 ## Installing from GitHub Packages
 

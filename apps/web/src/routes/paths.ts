@@ -16,6 +16,4 @@ export const PATHS = {
   EXAMPLES: "/examples",
   PLAYGROUND: "/playground",
   ROADMAP: "/roadmap",
-  ADMIN: "/admin",
-  ADMIN_LOGIN: "/admin/login",
 } as const;

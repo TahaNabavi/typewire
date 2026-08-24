@@ -1,6 +1,6 @@
 # TypeFetch
 
-![TypeFetch v2.0.0 — Pluggable Transports: one contract layer over REST, gRPC and GraphQL](./docs/assets/typefetch-v2.0.0-banner.png)
+![TypeFetch — any wire, one client: typed contracts over REST, gRPC and GraphQL, with zero runtime dependencies](./docs/assets/typefetch-banner.png)
 
 **TypeFetch** is a strongly typed HTTP client for TypeScript projects, built around **Zod** contracts.
 

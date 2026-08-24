@@ -139,7 +139,3 @@ export function send(args: (string | number)[]): Promise<Reply> {
   });
 }
 
-/** Replies come back in order, so a batch is just N writes and N promises. */
-export function sendAll(commands: (string | number)[][]): Promise<Reply[]> {
-  return Promise.all(commands.map((command) => send(command)));
-}

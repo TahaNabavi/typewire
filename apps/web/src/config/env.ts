@@ -3,7 +3,7 @@
  *
  * Everything here is optional and everything here is public — verification
  * tokens are meta tags, and the site URL is inlined into the client bundle.
- * Secrets (ADMIN_SECRET, DATABASE_URL, API keys) are deliberately absent: they
+ * Secrets (DATABASE_URL, API keys) are deliberately absent: they
  * are read at the point of use, on the server, so they can never be reached
  * from a module a client component imports.
  */

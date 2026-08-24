@@ -13,7 +13,6 @@ import {
 import { Panel } from "@/components/ui/panel";
 import { Section } from "@/components/ui/section";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import { site } from "@/config/site";
 import { cn } from "@/utils";
 
@@ -33,7 +32,6 @@ export function Feedback({ options }: { options: FeedbackOption[] }) {
   const [pkg, setPkg] = useState(options[0]?.npm ?? "");
   const [reaction, setReaction] = useState(REACTIONS[0]!.label);
   const [message, setMessage] = useState("");
-  const [handle, setHandle] = useState("");
   const [sent, setSent] = useState(false);
 
   const issueUrl = (() => {
@@ -46,21 +44,11 @@ export function Feedback({ options }: { options: FeedbackOption[] }) {
   })();
 
   /**
-   * Store first, then hand off to GitHub. The issue is the public, traceable
-   * record; the stored copy is what survives someone closing that tab without
-   * pressing submit.
+   * The prefilled issue is the whole of it — a public, traceable record the
+   * sender owns, with nothing kept here that only I could read.
    */
-  async function send() {
+  function send() {
     if (message.trim().length < 3) return;
-    try {
-      await fetch("/api/feedback", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ package: pkg, reaction, message, handle: handle || null }),
-      });
-    } catch {
-      /* the GitHub hand-off still works without the database */
-    }
     setSent(true);
     window.open(issueUrl, "_blank", "noopener");
   }
@@ -88,8 +76,7 @@ export function Feedback({ options }: { options: FeedbackOption[] }) {
             </span>
             <h3 className="mt-3 text-lg font-bold text-fg">Issue drafted</h3>
             <p className="mx-auto mt-2 max-w-xs text-sm text-muted-foreground">
-              We opened a prefilled issue in a new tab — review it and submit there. Your message is
-              already saved either way.
+              We opened a prefilled issue in a new tab — review it and submit there.
             </p>
             <Button variant="outline" className="mt-5" onClick={() => setSent(false)}>
               Send another
@@ -142,7 +129,7 @@ export function Feedback({ options }: { options: FeedbackOption[] }) {
               </fieldset>
             </div>
 
-            <label className="block pb-4">
+            <label className="block pb-5">
               <span className="font-mono text-[11px] uppercase tracking-wider text-dim">
                 What happened
               </span>
@@ -155,20 +142,8 @@ export function Feedback({ options }: { options: FeedbackOption[] }) {
               />
             </label>
 
-            <label className="block pb-5">
-              <span className="font-mono text-[11px] uppercase tracking-wider text-dim">
-                GitHub handle · optional
-              </span>
-              <Input
-                value={handle}
-                onChange={(event) => setHandle(event.target.value)}
-                placeholder="@you"
-                className="mt-1.5 font-mono"
-              />
-            </label>
-
             <Button
-              onClick={() => void send()}
+              onClick={send}
               disabled={message.trim().length < 3}
               className="w-full bg-linear-to-r from-blue-strong to-purple-strong text-white"
             >

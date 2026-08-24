@@ -59,7 +59,7 @@
   "bugs": {
     "url": "https://github.com/TahaNabavi/typewire/issues"
   },
-  "homepage": "https://www.tahanabavi.ir/docs/type-permission",
+  "homepage": "https://typewire.tahanabavi.ir/docs/type-permission",
   "publishConfig": {
     "access": "public"
   }
