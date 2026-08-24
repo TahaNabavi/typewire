@@ -67,70 +67,19 @@ the repo root:
 1. **New Project → import the repo.** Set **Root Directory** to `apps/web`.
    `vercel.json` supplies the build and install commands; leave the framework
    preset on Next.js.
-2. **Storage → Neon (Postgres)** and **Storage → Upstash (Redis)** from the
-   marketplace. Both have free tiers, and connecting them injects
-   `DATABASE_URL`, `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` into
-   the project automatically.
-3. **Add the three variables you own** — `ADMIN_PASSWORD`, `ADMIN_SECRET`,
-   `ANALYTICS_SALT` (see `.env.example`, which explains each one).
-4. **Create the tables** once, from a machine with `DATABASE_URL` in its
-   environment pointing at the Neon database:
+2. **Storage → Upstash (Redis)** from the marketplace. It has a free tier, and
+   connecting it injects `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`
+   into the project automatically. It rate-limits `/api/ask`; without it the
+   site still serves and the limit simply stops counting.
+3. **Add the keys you own** — `ANTHROPIC_API_KEY` and, optionally,
+   `GITHUB_TOKEN` (see `.env.example`, which explains each one).
 
-   ```bash
-   pnpm --filter @typewire/web db:push
-   ```
-
-   `db:push`, not `db:migrate` — this app keeps no `prisma/migrations`
-   directory, and `migrate deploy` with nothing to apply reports success and
-   creates no tables, which is the worst of both outcomes. `db:push` reconciles
-   the database with `schema.prisma` directly and is safe to re-run.
-
-   Until the tables exist the site still serves: `withDb` swallows the failure
-   and returns its fallback, so the pages render and the panel reads empty.
-
-`vercel.json` also registers a daily cron on `/api/cron/snapshot`. Hobby plans
-allow cron, but at a low frequency — daily is deliberately within that. Confirm
-the current free-tier limits before adding a second job.
+There is no database, no cron and no build step beyond the registry: every page
+is prerendered from data derived at build time, and the only two things that run
+per request are `/api/ask` and the playground's mock handlers.
 
 > Hobby is for non-commercial use. If the site ever becomes commercial, this
 > needs a paid plan.
-
-## Analytics, without cookies
-
-A visitor is `sha256(ip + user-agent + ANALYTICS_SALT + UTC date)`, truncated —
-enough to count returning-within-a-day, useless for identifying anyone, and
-uncorrelatable the moment the date rolls over. No cookie is set, so the site
-owes no consent banner. Bots are classified and dropped at ingest rather than
-counted and filtered later.
-
-- **Redis** holds live counters: today's views, a HyperLogLog of unique
-  visitors, and sorted sets for paths, referrers, countries and devices. Keys
-  expire after 90 days.
-- **SQL** holds one row per view, which is what the 30-day chart and any future
-  question are answered from. Postgres in production, MySQL in local development
-  — `prisma/schema.prisma` is the canonical schema and
-  `scripts/prisma-schema.mjs` derives the provider from `DATABASE_URL`, so the
-  two never diverge by hand.
-
-Both are optional. With neither configured the site runs and the panel says so.
-
-## The panel
-
-`/admin`, behind one password. `src/proxy.ts` — Next 16's replacement for the
-`middleware` convention — rejects unauthenticated requests before any page
-touches the database, the session is an HMAC-signed cookie
-(`ADMIN_SECRET`), and sign-in is rate-limited to five attempts per IP per
-15 minutes.
-
-It shows views and visitors for today and over 30 days, top pages, referrers,
-countries and devices, the feedback inbox, and — the part no external analytics
-tool can give you — **registry health**: when the package data was last derived,
-whether npm answered for every package, and which packages differ between the
-workspace and npm.
-
-`/api/cron/snapshot` records stars, forks, open issues and per-package weekly
-downloads once a day, because GitHub and npm will tell you today's numbers and
-never yesterday's. The trend lines exist only because something wrote them down.
 
 ## Why there is no `build` script
 
@@ -168,7 +117,7 @@ src/features/<name>/
   <name>.ts                       its data access — github.ts, markdown.ts …
 src/config/                     site.ts, env.ts
 src/routes/paths.ts             every internal path, once
-src/lib/                        registry accessor, seo, og, brand, db, redis
+src/lib/                        registry accessor, seo, og, brand, redis
 src/utils/                      cn, formatting
 src/assets/fonts/               Geist TTFs, for the card renderer only
 ```
@@ -188,8 +137,6 @@ roadmap/         the roadmap band, shared by `/` and `/roadmap`
 support/         the FAQ and its copy
 examples/        the examples listing
 playground/      the contract the console and the route handlers both import
-analytics/       the ingest and read sides of a pageview
-admin/           the panel, its sign-in and its session auth
 ```
 
 Three rules keep it that way:
@@ -241,7 +188,7 @@ so a build with no network still renders the real typeface.
 
 | File | Emits |
 | --- | --- |
-| `app/robots.ts` | `/robots.txt` — allows everything but `/admin` and `/api` |
+| `app/robots.ts` | `/robots.txt` — allows everything but `/api` |
 | `app/sitemap.ts` | `/sitemap.xml` — enumerated from the registry, package banners included as image entries |
 | `app/manifest.ts` | `/manifest.webmanifest` |
 | `app/icon.svg`, `app/apple-icon.tsx` | favicon and touch icon, from `src/lib/brand.ts` |

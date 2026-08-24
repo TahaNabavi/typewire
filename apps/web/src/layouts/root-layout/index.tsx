@@ -4,7 +4,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { SiteFooter } from "@/components/layouts/site-footer";
 import { SiteHeader } from "@/components/layouts/site-header";
 import { JsonLd } from "@/components/shared/json-ld";
-import { AnalyticsBeacon } from "@/layouts/root-layout/analytics-beacon";
 import { THEME_SCRIPT } from "@/layouts/root-layout/theme-script";
 import { packages } from "@/lib/registry";
 import { graph, organizationSchema, softwareSchema, websiteSchema } from "@/lib/seo";
@@ -46,7 +45,6 @@ export function RootLayout({ children }: { children: ReactNode }) {
         <SiteHeader />
         <main id="main">{children}</main>
         <SiteFooter />
-        <AnalyticsBeacon />
       </body>
     </html>
   );
