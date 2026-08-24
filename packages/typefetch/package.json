@@ -83,7 +83,7 @@
   "bugs": {
     "url": "https://github.com/TahaNabavi/typewire/issues"
   },
-  "homepage": "https://www.tahanabavi.ir/docs/typefetch",
+  "homepage": "https://typewire.tahanabavi.ir/docs/typefetch",
   "publishConfig": {
     "access": "public"
   }

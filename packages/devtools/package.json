@@ -71,7 +71,7 @@
   "bugs": {
     "url": "https://github.com/TahaNabavi/typewire/issues"
   },
-  "homepage": "https://www.tahanabavi.ir/docs/type-devtools",
+  "homepage": "https://typewire.tahanabavi.ir/docs/type-devtools",
   "typewire": {
     "category": "devtools",
     "transports": ["http", "graphql", "grpc", "ws"]

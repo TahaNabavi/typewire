@@ -64,7 +64,7 @@
   "bugs": {
     "url": "https://github.com/TahaNabavi/typewire/issues"
   },
-  "homepage": "https://www.tahanabavi.ir/docs/typefetch-query-core",
+  "homepage": "https://typewire.tahanabavi.ir/docs/typefetch-query-core",
   "publishConfig": {
     "access": "public"
   }
