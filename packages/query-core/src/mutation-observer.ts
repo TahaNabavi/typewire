@@ -1,9 +1,11 @@
+import { buildQueryKey } from "./hash-key";
 import { Notifier, type Observable } from "./observable";
 import { resolveRetryDelay, shouldRetry, sleep } from "./retry";
 import { resolveSourceId } from "./source";
 import type {
   AnyQuerySource,
   EndpointCallOptions,
+  FetchGate,
   MutationObserverOptions,
   MutationObserverResult,
   MutationState,
@@ -31,6 +33,11 @@ export interface MutationHooks {
     data: unknown;
     error: unknown;
   }) => void;
+  /**
+   * Wraps the write, exactly as the query gate wraps a fetch. `undefined` runs
+   * the mutation directly — the default and a zero-behaviour change.
+   */
+  gate?: FetchGate;
 }
 
 /**
@@ -114,7 +121,21 @@ export class MutationObserver<
     });
 
     try {
-      const data = await this.run(input, callId);
+      // A mutation goes through the same gate as a fetch, so sync's write-lock
+      // and offline's replay queue see writes and reads through one seam. The
+      // gate wraps the retry loop for the same reason `Query.fetch` does.
+      const runAttempts = () => this.run(input, callId);
+      const data = (await (this.hooks.gate
+        ? this.hooks.gate(
+            {
+              key: buildQueryKey(this.endpointId, input),
+              endpointId: this.endpointId,
+              input,
+              kind: "mutation",
+            },
+            runAttempts,
+          )
+        : runAttempts())) as TData;
       if (callId !== this.activeCallId) return data;
 
       this.setState({ status: "success", data, error: undefined });

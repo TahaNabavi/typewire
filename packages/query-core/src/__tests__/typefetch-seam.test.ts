@@ -1,6 +1,7 @@
 import { ApiClient } from "@tahanabavi/typefetch";
 import { z } from "zod";
 import { QueryClient } from "../query-client";
+import { collectSources } from "../source";
 import type { QueryEndpoint } from "../types";
 
 /**
@@ -82,5 +83,15 @@ describe("typefetch seam", () => {
     // first request rather than starting its own.
     expect(a).toBe(b);
     await expect(a).resolves.toEqual({ id: "1", name: "Taha" });
+  });
+
+  it("collectSources maps a real modules tree back by endpoint id", () => {
+    const client = makeClient();
+
+    // The resolver cross-tab sync relies on: an id in, the generated member out
+    // — the same member typefetch attached the id to, not a copy.
+    const sources = collectSources(client.modules);
+
+    expect(sources["user.getUser"]).toBe(client.modules.user.getUser);
   });
 });

@@ -1,6 +1,6 @@
 {
   "$schema": "../../../docs/docs.schema.json",
-  "documentsVersion": "1.1.0",
+  "documentsVersion": "1.2.0",
   "pages": [
     {
       "slug": "overview",

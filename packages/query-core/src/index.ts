@@ -18,7 +18,7 @@ export { Notifier } from "./observable";
 export type { Observable } from "./observable";
 
 export { CancelledError, isCancelledError } from "./errors";
-export { resolveSourceId } from "./source";
+export { resolveSourceId, collectSources } from "./source";
 
 export { Query } from "./query";
 export type { QueryConfig } from "./query";
@@ -36,7 +36,9 @@ export type {
   AnyQueryState,
   CallableContract,
   EndpointCallOptions,
+  FetchGate,
   FetchStatus,
+  GateContext,
   InferInput,
   InferOutput,
   MutationObserverOptions,
@@ -58,5 +60,6 @@ export type {
   RelationsConfig,
   RetryDelayValue,
   RetryValue,
+  SourceResolver,
   TransferProgressLike,
 } from "./types";

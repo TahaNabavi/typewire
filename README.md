@@ -267,7 +267,7 @@ Every PR that changes a package's source must include a changeset.
 - [x] **Pluggable transports** — the open `TransportRegistry`, `typefetch-grpc`, `typefetch-graphql`, and a core at zero dependencies
 - [x] **`typewire-cli`** — `typewire.config.ts`, the project-detecting `init` wizard, multi-API `projects`
 - [x] **`typewire-nestjs` beyond HTTP** — gRPC (Connect JSON), GraphQL, and `typesocket` WS gateways, all from the same contract file
-- [ ] **query-core seams** — `gate` · `sources` · `updatedAt` · `reason`: four additive hooks, no behaviour change, that unblock the two packages below. [`docs/SYNC.md`](./docs/SYNC.md) §9
+- [x] **query-core seams** — `gate` · `sources` · `updatedAt` · `reason`: four additive hooks, no behaviour change, that unblock the two packages below. [`docs/SYNC.md`](./docs/SYNC.md) §9
 - [ ] **`typewire-sync`** — cross-tab coordination: mirrored cache writes, cross-tab single-flight, and one leader tab owning the socket. Design in [`docs/SYNC.md`](./docs/SYNC.md)
 - [ ] **Standard Schema** — accept any Standard Schema validator (Zod 4, Valibot, ArkType, Effect) wherever a contract takes a schema, with zod still the default. Design in [`docs/SCHEMA.md`](./docs/SCHEMA.md)
 - [ ] **`typefetch-sse`** — typed Server-Sent Events and HTTP streaming: a schema per event name, `AsyncIterable` responses, resume by `Last-Event-ID`. Design in [`docs/SSE.md`](./docs/SSE.md)

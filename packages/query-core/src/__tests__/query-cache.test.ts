@@ -127,7 +127,7 @@ describe("QueryCache", () => {
 
     expect(cache.getAll()).toHaveLength(0);
     expect(events).toEqual([
-      { type: "removed", key: query.key, endpointId: "user.getUser" },
+      { type: "removed", key: query.key, endpointId: "user.getUser", reason: "explicit" },
     ]);
   });
 
@@ -165,6 +165,25 @@ describe("QueryCache", () => {
       await waitFor(() => cache.getAll().length === 0);
 
       expect(cache.getAll()).toHaveLength(0);
+    });
+
+    it("labels a garbage-collection removal reason gc, not explicit", async () => {
+      const cache = new QueryCache();
+      const events: QueryCacheEvent[] = [];
+      cache.subscribe((event) => events.push(event));
+      const endpoint = makeEndpoint("user.getUser", async () => ({ id: "1" }));
+      const query = cache.build(endpoint, { id: "1" }, { gcTime: 20 });
+
+      await waitFor(() => cache.getAll().length === 0);
+
+      // A mirror must distinguish an eviction (local bookkeeping) from an
+      // explicit removal (intent to propagate); before `reason` it could not.
+      expect(events.find((e) => e.type === "removed")).toEqual({
+        type: "removed",
+        key: query.key,
+        endpointId: "user.getUser",
+        reason: "gc",
+      });
     });
 
     it("keeps a query alive while an observer is attached", async () => {

@@ -358,6 +358,12 @@ export interface QueryClientOptions {
 Absent a gate the engine behaves byte-for-byte as today, which is the condition
 for landing it separately and ahead of this package.
 
+> **Landed.** The four `query-core` rows shipped in query-core 1.2.0 — `gate`
+> and `sources` on `QueryClientOptions`, `setQueryData(…, { updatedAt })`, and
+> `reason` on the `removed` event
+> ([release notes](../packages/query-core/docs/releases/v1.2.0.md)). The
+> `typesocket`, `devtools-core` and `cli` rows still ship with this package (M5).
+
 ---
 
 ## 10. The API — three tiers, and the bottom one is public
@@ -481,7 +487,7 @@ written, and a changeset exists — `AGENTS.md`'s definition, unchanged.
 
 | # | Milestone | Contains |
 | --- | --- | --- |
-| M1 | query-core seams | `reason`, `updatedAt`, `gate` — additive, behaviour unchanged, released on their own |
+| M1 | query-core seams | `reason`, `updatedAt`, `gate`, `sources` — additive, behaviour unchanged, released on their own. **Done** (query-core 1.2.0) |
 | M2 | Layer 0 | both adapters, all four implementations, the protocol, the memory harness |
 | M3 | `createTabSync` | lock · channel · leader, tier 3 complete and independently useful |
 | M4 | `./query` | mirror, single-flight, the policy map, the write policies |

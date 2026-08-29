@@ -34,6 +34,31 @@ const client = new QueryClient({
 own stable `endpointId` (typesocket calls it `eventId`) — the engine resolves
 either, which is exactly why the same client drives both transports.
 
+### Cross-tab seams
+
+Two more options exist for adapters that mirror the cache across tabs or replay
+it offline. Both are additive — leave them off and the engine runs exactly as
+above.
+
+```ts
+import { collectSources } from "@tahanabavi/typefetch-query-core";
+
+const client = new QueryClient({
+  // Wrap every fetch and mutation. Run the request, or resolve without it to
+  // hand back a value another tab already broadcast.
+  gate: (ctx, run) => run(),
+  // Turn an endpoint id back into its endpoint, so an inbound mirror can write
+  // through the typed `setQueryData` — even for an endpoint this tab has yet to
+  // mount. `collectSources` builds the map from a client's `.modules` tree.
+  sources: collectSources(api.modules),
+});
+```
+
+`setQueryData` takes a matching `{ updatedAt }` so a mirrored value keeps the
+origin's timestamp rather than looking freshly fetched. Each of these is a hook
+a sync or offline adapter attaches to; none is needed to use the engine on its
+own.
+
 ## Reading
 
 ```ts
@@ -84,6 +109,10 @@ const send = client.watchMutation(socket.modules.chat.sendMessage);
   `removeQueries` take `{ endpointId, input, predicate }`.
 - **A cache event bus** — `client.subscribe(event => …)` powers devtools,
   persistence, and logging without wrapping the engine.
+- **Cross-tab seams** — a `gate` wraps every fetch and mutation, `sources`
+  resolves an id back to its endpoint, and the `removed` event carries a
+  `reason` (`"gc"` vs `"explicit"`). The hooks a sync or offline adapter needs,
+  all zero-cost when unused.
 
 ## Adapters
 

@@ -33,7 +33,7 @@ as its own package.** The core is the runtime and nothing else.
 | 8 | Downstream packages (query-core, devtools, nestjs, react) | in progress |
 | 8a | `devtools-core` + `devtools` — transport, `errorKind`, progress | **done** |
 | 8b | `nestjs` — gRPC, GraphQL and typesocket gateways served from one contract | **done** |
-| 8c | query-core seams — `gate` · `sources` · `updatedAt` · `reason` | planned — [`SYNC.md`](./SYNC.md) §9 |
+| 8c | query-core seams — `gate` · `sources` · `updatedAt` · `reason` | **done** — [release notes](../packages/query-core/docs/releases/v1.2.0.md) |
 | 9 | Examples updated to the v2 shape | **done** — new `transports` example |
 | 10 | `@tahanabavi/typewire-sync` — mirror · lock · leader, across browser tabs | planned — [`SYNC.md`](./SYNC.md) |
 | 11 | Standard Schema accepted wherever a contract takes a schema | planned — [`SCHEMA.md`](./SCHEMA.md) |
@@ -55,7 +55,7 @@ can, because every package written after it is one that never has to be migrated
 
 | # | Unit | Why here |
 | --- | --- | --- |
-| 1 | **8c** — query-core seams | Four additive hooks, no behaviour change. Rows 10 and 13 need all four, so they land once, first, as their own release |
+| 1 | **8c** — query-core seams | Four additive hooks, no behaviour change. Rows 10 and 13 need all four, so they landed once, first, as their own release — **done** |
 | 2 | **10** — `typewire-sync` | The gap users hit first and the one nothing else covers. M3 (`createTabSync`) is shippable alone, so a slip costs nothing already shipped |
 | 3 | **11** — Standard Schema | Its additive half (S1–S4) blocks nothing and should start now; only S5 breaks, and typefetch 2.0.0 is already on npm, so that half is a **v3** with a real migration. Every release that ships zod-only widens it, which is the argument for starting early even though the free window closed |
 | 4 | **12** — `typefetch-sse` | Its contracts declare a schema per event, so it is written vendor-neutral from the start if 11 is already in. Also the first core-seam change since the transport registry, and it wants a quiet moment |
