@@ -5,6 +5,7 @@ import { QueryObserver } from "./query-observer";
 import { resolveSourceId } from "./source";
 import type {
   AnyQuerySource,
+  FetchGate,
   InferInput,
   InferOutput,
   MutationObserverOptions,
@@ -13,6 +14,7 @@ import type {
   QueryObserverOptions,
   QueryOptions,
   RelationsConfig,
+  SourceResolver,
 } from "./types";
 
 export interface QueryClientOptions {
@@ -31,6 +33,18 @@ export interface QueryClientOptions {
    * ```
    */
   relations?: RelationsConfig;
+  /**
+   * Wraps every fetch and every mutation. The one seam cross-tab sync and
+   * offline replay attach to — see {@link FetchGate}. Omitted, the engine runs
+   * requests exactly as it did before the option existed.
+   */
+  gate?: FetchGate;
+  /**
+   * Resolve an `endpointId` back to its source — see {@link SourceResolver}.
+   * Cross-tab sync uses `resolveSource` to write a mirrored value through the
+   * typed `setQueryData`; build the map with `collectSources(client.modules)`.
+   */
+  sources?: SourceResolver;
 }
 
 /**
@@ -46,12 +60,16 @@ export class QueryClient {
   private readonly defaultQueryOptions: QueryOptions<any>;
   private readonly defaultMutationOptions: MutationObserverOptions<any, any, any>;
   private readonly relations: RelationsConfig;
+  private readonly gate?: FetchGate;
+  private readonly sources?: SourceResolver;
 
   constructor(options: QueryClientOptions = {}) {
-    this.cache = new QueryCache();
+    this.cache = new QueryCache(options.gate);
     this.defaultQueryOptions = options.defaultOptions?.queries ?? {};
     this.defaultMutationOptions = options.defaultOptions?.mutations ?? {};
     this.relations = options.relations ?? {};
+    this.gate = options.gate;
+    this.sources = options.sources;
   }
 
   /** Subscribe to the cache event bus (devtools, persistence, logging). */
@@ -71,6 +89,10 @@ export class QueryClient {
   /**
    * Write cached data directly — optimistic updates, or seeding from a
    * mutation's response. Creates the entry if it does not exist yet.
+   *
+   * `updatedAt` seeds `dataUpdatedAt` with an explicit time instead of now, so a
+   * value mirrored from another tab keeps the origin's timestamp — the field
+   * cross-tab sync compares to decide which of two writes is newer.
    */
   setQueryData<E extends AnyQuerySource>(
     endpoint: E,
@@ -78,13 +100,14 @@ export class QueryClient {
     updater:
       | InferOutput<E>
       | ((previous: InferOutput<E> | undefined) => InferOutput<E>),
+    options?: { updatedAt?: number },
   ): InferOutput<E> {
     const query = this.cache.build<InferOutput<E>>(
       endpoint,
       input,
       this.defaultQueryOptions,
     );
-    return query.setData(updater);
+    return query.setData(updater, options);
   }
 
   /**
@@ -186,8 +209,23 @@ export class QueryClient {
             data: ctx.data,
             error: ctx.error,
           }),
+        gate: this.gate,
       },
     );
+  }
+
+  /**
+   * Resolve an `endpointId` back to the source that carries it, using the
+   * `sources` option. Returns `undefined` when nothing is configured or the id
+   * is unknown. Cross-tab sync calls this to write a mirrored value through the
+   * typed `setQueryData`.
+   */
+  resolveSource(endpointId: string): AnyQuerySource | undefined {
+    const sources = this.sources;
+    if (!sources) return undefined;
+    return typeof sources === "function"
+      ? sources(endpointId)
+      : sources[endpointId];
   }
 
   /** Resolve the declared relations for a mutation and invalidate them. */

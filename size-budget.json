@@ -12,7 +12,7 @@
     { "package": "grpc", "entry": "dist/index.mjs", "maxGzip": 4400 },
     { "package": "encryption", "entry": "dist/index.mjs", "maxGzip": 2300 },
     { "package": "typesocket", "entry": "dist/index.mjs", "maxGzip": 9000 },
-    { "package": "query-core", "entry": "dist/index.mjs", "maxGzip": 8300 },
+    { "package": "query-core", "entry": "dist/index.mjs", "maxGzip": 9300 },
     { "package": "react", "entry": "dist/index.mjs", "maxGzip": 1000 },
     { "package": "devtools-core", "entry": "dist/index.mjs", "maxGzip": 4000 },
     { "package": "permission", "entry": "dist/index.mjs", "maxGzip": 5900 }

@@ -324,7 +324,19 @@ export interface QueryFilters {
 export type QueryCacheEvent =
   | { type: "added"; key: QueryKey; endpointId: string; state: AnyQueryState }
   | { type: "updated"; key: QueryKey; endpointId: string; state: AnyQueryState }
-  | { type: "removed"; key: QueryKey; endpointId: string }
+  | {
+      type: "removed";
+      key: QueryKey;
+      endpointId: string;
+      /**
+       * Why the entry left the cache. `"gc"` is an observer-less eviction after
+       * `gcTime`; `"explicit"` is `removeQueries` / `clear`. Nothing downstream
+       * could tell the two apart before this field, and a cross-tab mirror must:
+       * a GC eviction is local bookkeeping, an explicit removal is intent to
+       * propagate.
+       */
+      reason: "gc" | "explicit";
+    }
   | {
       type: "mutation";
       endpointId: string;
@@ -344,3 +356,45 @@ export type RelationsConfig = Record<
   | string[]
   | ((ctx: { variables: unknown; data: unknown }) => string[])
 >;
+
+/**
+ * Identifies the call a {@link FetchGate} wraps. `key` is the cache key
+ * (`endpointId|hash(input)`); `kind` separates a query fetch from a mutation so
+ * a gate can single-flight or lock the two independently.
+ */
+export interface GateContext {
+  key: QueryKey;
+  endpointId: string;
+  input: unknown;
+  kind: "query" | "mutation";
+}
+
+/**
+ * Wraps every fetch and every mutation the client runs. The engine hands the
+ * gate a `run` thunk and awaits whatever it returns, so a gate may either run
+ * the thunk and pass its result through — the default, and a zero-behaviour
+ * change — or resolve *without* calling `run`, handing back a value obtained
+ * elsewhere: a result another tab already broadcast, or a write queued for
+ * replay while offline.
+ *
+ * This is the single seam cross-tab sync and offline replay attach to. Absent a
+ * gate the engine behaves byte-for-byte as it did before the option existed.
+ */
+export type FetchGate = (
+  ctx: GateContext,
+  run: () => Promise<unknown>,
+) => Promise<unknown>;
+
+/**
+ * Resolve a cross-package id back to the source carrying it — either a function
+ * or a prebuilt `endpointId -> source` map (`collectSources` builds one from a
+ * client's `.modules` tree).
+ *
+ * The inbound half of cross-tab sync needs it: a mirrored write arrives as an
+ * id and a value, and must find the endpoint to write through the typed
+ * `setQueryData` rather than fabricating a cache entry by hand — including for
+ * an endpoint this tab has not mounted yet.
+ */
+export type SourceResolver =
+  | ((endpointId: string) => AnyQuerySource | undefined)
+  | Record<string, AnyQuerySource>;

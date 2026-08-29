@@ -4,6 +4,7 @@ import { Notifier } from "./observable";
 import { rejectOnAbort, resolveRetryDelay, shouldRetry, sleep } from "./retry";
 import type {
   AnyQuerySource,
+  FetchGate,
   QueryOptions,
   QueryState,
 } from "./types";
@@ -22,6 +23,11 @@ export interface QueryConfig<TData, TError> {
   onStateChange: (query: Query<TData, TError>) => void;
   /** Called when the query has had no observers for `gcTime`. */
   onGarbageCollect: (query: Query<TData, TError>) => void;
+  /**
+   * Wraps the fetch. Injected from the client so this query need not know the
+   * option exists; `undefined` runs the request directly, unchanged.
+   */
+  gate?: FetchGate;
 }
 
 /**
@@ -162,7 +168,23 @@ export class Query<TData = unknown, TError = Error> {
       this.controller = null;
     };
 
-    this.promise = this.run(signal)
+    // The gate wraps the whole retry loop, not one attempt: a single-flight
+    // loser that adopts the winner's result should get the *settled* value, and
+    // a gate that runs the request normally should still see all its retries.
+    const runAttempts = () => this.run(signal);
+    const gated: Promise<TData> = this.config.gate
+      ? (this.config.gate(
+          {
+            key: this.key,
+            endpointId: this.endpointId,
+            input: this.input,
+            kind: "query",
+          },
+          runAttempts,
+        ) as Promise<TData>)
+      : runAttempts();
+
+    this.promise = gated
       .then((data) => {
         settle();
         this.setState({
@@ -243,8 +265,16 @@ export class Query<TData = unknown, TError = Error> {
   /**
    * Write data directly (optimistic updates, or a mutation seeding its result).
    * Counts as a fresh resolve, so the staleness clock restarts.
+   *
+   * `updatedAt` overrides that clock with an explicit timestamp. A value adopted
+   * from another tab must carry the *origin's* time, not the moment this tab
+   * happened to receive it — otherwise every mirror looks fresher than the data
+   * it copied and the newer real value loses a last-writer-wins comparison.
    */
-  setData(updater: TData | ((previous: TData | undefined) => TData)): TData {
+  setData(
+    updater: TData | ((previous: TData | undefined) => TData),
+    options?: { updatedAt?: number },
+  ): TData {
     const next =
       typeof updater === "function"
         ? (updater as (previous: TData | undefined) => TData)(this.state.data)
@@ -253,7 +283,7 @@ export class Query<TData = unknown, TError = Error> {
       status: "success",
       data: next,
       error: undefined,
-      dataUpdatedAt: Date.now(),
+      dataUpdatedAt: options?.updatedAt ?? Date.now(),
       isInvalidated: false,
     });
     return next;

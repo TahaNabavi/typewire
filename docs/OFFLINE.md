@@ -228,6 +228,10 @@ await outbox.enqueue(api.modules.cart.addItem, input, {
 Four small additive changes in one package, serving three consumers. That is the
 argument for landing them as their own release ahead of both packages.
 
+> **Landed.** All four shipped in query-core 1.2.0 — `gate` and `sources` on
+> `QueryClientOptions`, `setQueryData(…, { updatedAt })`, and `reason` on
+> `removed` ([release notes](../packages/query-core/docs/releases/v1.2.0.md)).
+
 ## 9. Failure modes, named
 
 | Mode | Behaviour |
@@ -269,7 +273,7 @@ side.
 
 | # | Milestone | Contains |
 | --- | --- | --- |
-| O1 | query-core seams | `gate`, `updatedAt`, `sources`, `reason` — shared with `typewire-sync`, released once |
+| O1 | query-core seams | `gate`, `updatedAt`, `sources`, `reason` — shared with `typewire-sync`, released once. **Done** (query-core 1.2.0) |
 | O2 | `StorageAdapter` + IndexedDB + memory | testable in Node, no browser |
 | O3 | `persistQueryClient` | dehydrate, hydrate, throttle, version/`maxAge` guards |
 | O4 | Outbox | entry state machine, ordering, backoff, dead-lettering, `onConflict` |
