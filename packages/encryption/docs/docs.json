@@ -1,0 +1,41 @@
+{
+  "$schema": "../../../docs/docs.schema.json",
+  "documentsVersion": "0.0.0",
+  "pages": [
+    {
+      "slug": "overview",
+      "title": "Overview",
+      "readme": true,
+      "intro": true,
+      "sections": [
+        "Why it is a separate package"
+      ]
+    },
+    {
+      "slug": "quick-start",
+      "title": "Quick start",
+      "readme": true,
+      "sections": [
+        "Usage"
+      ]
+    },
+    {
+      "slug": "options",
+      "title": "Options & methods",
+      "readme": true,
+      "sections": [
+        "Options",
+        "Methods"
+      ]
+    },
+    {
+      "slug": "migration",
+      "title": "Migration",
+      "readme": true,
+      "sections": [
+        "Migration",
+        "License"
+      ]
+    }
+  ]
+}

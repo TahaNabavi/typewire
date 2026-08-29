@@ -1,6 +1,6 @@
 # @tahanabavi/typesocket
 
-![TypeSocket v2.1.0 — contract-linked permissions on client→server events](./docs/assets/typesocket-v2.1.0-banner.png)
+![TypeSocket — typed frames both ways: direction, request and ack declared once on the contract](./docs/assets/typesocket-banner.png)
 
 [![npm](https://img.shields.io/npm/v/%40tahanabavi%2Ftypesocket?color=8b5cf6)](https://www.npmjs.com/package/@tahanabavi/typesocket)
 [![Zod](https://img.shields.io/badge/contracts-Zod%204-3e67b1?logo=zod&logoColor=white)](https://zod.dev)

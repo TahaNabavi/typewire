@@ -1,0 +1,57 @@
+{
+  "$schema": "../../../docs/docs.schema.json",
+  "documentsVersion": "0.0.0",
+  "pages": [
+    {
+      "slug": "overview",
+      "title": "Overview",
+      "readme": true,
+      "intro": true,
+      "sections": [
+        "The wire"
+      ]
+    },
+    {
+      "slug": "quick-start",
+      "title": "Quick start",
+      "readme": true,
+      "sections": [
+        "Setup"
+      ]
+    },
+    {
+      "slug": "contracts",
+      "title": "Contracts",
+      "readme": true,
+      "sections": [
+        "Contracts"
+      ]
+    },
+    {
+      "slug": "errors",
+      "title": "Errors",
+      "readme": true,
+      "sections": [
+        "Errors"
+      ]
+    },
+    {
+      "slug": "advanced",
+      "title": "Binary & capabilities",
+      "readme": true,
+      "sections": [
+        "Binary grpc-web",
+        "Capabilities"
+      ]
+    },
+    {
+      "slug": "api",
+      "title": "API",
+      "readme": true,
+      "sections": [
+        "Exports",
+        "License"
+      ]
+    }
+  ]
+}

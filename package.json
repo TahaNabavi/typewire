@@ -2,7 +2,7 @@
   "name": "typewire",
   "version": "0.0.0",
   "private": true,
-  "description": "TypeWire — a family of strongly-typed, contract-first packages (typed HTTP/WS/OpenGraph clients, a query layer, and transport-agnostic devtools). Packages ship under the @tahanabavi/* npm scope.",
+  "description": "TypeWire — a family of strongly-typed, contract-first packages (typed HTTP/WS/gRPC/GraphQL clients, a query layer, and transport-agnostic devtools). Packages ship under the @tahanabavi/* npm scope.",
   "author": {
     "name": "Taha Nabavi",
     "email": "sayyedtahanabavi@gmail.com",
@@ -26,7 +26,11 @@
     "size:update": "node scripts/size-budget.mjs --update",
     "deps:assert": "node scripts/assert-no-deps.mjs",
     "smoke": "node scripts/runtime-smoke.mjs",
-    "verify": "pnpm -r build && pnpm -r typecheck && pnpm -r test && pnpm size && pnpm deps:assert && pnpm smoke",
+    "docs:check": "node scripts/check-docs.mjs",
+    "docs:init": "node scripts/init-docs.mjs",
+    "verify": "pnpm -r build && pnpm -r typecheck && pnpm -r test && pnpm size && pnpm deps:assert && pnpm smoke && pnpm docs:check",
+    "web:dev": "pnpm --filter @typewire/web dev",
+    "web:build": "pnpm --filter @typewire/web build:site",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "pnpm -r build && changeset publish"

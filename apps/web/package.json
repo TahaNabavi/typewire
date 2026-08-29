@@ -1,0 +1,41 @@
+{
+  "name": "@typewire/web",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The TypeWire website — marketing site and docs shell for the @tahanabavi/* ecosystem.",
+  "type": "module",
+  "scripts": {
+    "registry": "node scripts/generate-registry.mjs",
+    "generate": "node scripts/generate-registry.mjs",
+    "dev": "pnpm run generate && next dev",
+    "build:site": "pnpm run generate && next build",
+    "start": "next start",
+    "typecheck": "pnpm run generate && tsc --noEmit"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.120.0",
+    "@base-ui/react": "^1.7.0",
+    "@tahanabavi/typefetch": "^1.10.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.33.0",
+    "marked": "^18.0.10",
+    "next": "^16.3.1",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "shadcn": "^4.18.0",
+    "shiki": "^4.4.3",
+    "tailwind-merge": "^3.6.0",
+    "tw-animate-css": "^1.4.0",
+    "zod": "^4.4.3",
+    "zustand": "^5.0.15"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^24.3.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.9.2"
+  }
+}

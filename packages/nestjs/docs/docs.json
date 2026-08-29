@@ -1,0 +1,92 @@
+{
+  "$schema": "../../../docs/docs.schema.json",
+  "documentsVersion": "0.1.1",
+  "pages": [
+    {
+      "slug": "overview",
+      "title": "Overview",
+      "readme": true,
+      "intro": true,
+      "sections": [
+        "Every wire the client speaks"
+      ]
+    },
+    {
+      "slug": "quick-start",
+      "title": "Quick start",
+      "readme": true,
+      "sections": [
+        "Installation",
+        "Quick start"
+      ]
+    },
+    {
+      "slug": "transports",
+      "title": "Every transport",
+      "readme": true,
+      "sections": [
+        "gRPC — Connect JSON, no protobuf",
+        "GraphQL — no GraphQL runtime",
+        "WebSocket gateways (typesocket)"
+      ]
+    },
+    {
+      "slug": "routes",
+      "title": "Routes & decorators",
+      "readme": true,
+      "sections": [
+        "Retrofitting existing routes: @UseContract",
+        "Param decorators",
+        "Wire-type coercion",
+        "Flat (non-structured) contracts"
+      ]
+    },
+    {
+      "slug": "responses",
+      "title": "Responses & uploads",
+      "readme": true,
+      "sections": [
+        "Non-JSON responses (responseType)",
+        "@SkipEnvelope()",
+        "Response envelope (mirror of setResponseWrapper)",
+        "File uploads (bodyType: \"form-data\")"
+      ]
+    },
+    {
+      "slug": "errors",
+      "title": "Error shapes",
+      "readme": true,
+      "sections": [
+        "Error shapes (RichError-compatible)"
+      ]
+    },
+    {
+      "slug": "security",
+      "title": "Auth & permissions",
+      "readme": true,
+      "sections": [
+        "Honoring the contract's auth flag",
+        "Permission guard *(v0.2.0)*"
+      ]
+    },
+    {
+      "slug": "config",
+      "title": "Configuration",
+      "readme": true,
+      "sections": [
+        "Global configuration",
+        "Field-level encryption (mirror of encryptionMiddleware)",
+        "OpenAPI / Swagger from contracts"
+      ]
+    },
+    {
+      "slug": "api",
+      "title": "API",
+      "readme": true,
+      "sections": [
+        "Exports",
+        "License"
+      ]
+    }
+  ]
+}

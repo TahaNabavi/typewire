@@ -1,0 +1,74 @@
+{
+  "$schema": "../../../docs/docs.schema.json",
+  "documentsVersion": "0.1.0",
+  "pages": [
+    {
+      "slug": "overview",
+      "title": "Overview",
+      "readme": true,
+      "intro": true,
+      "sections": [
+        "Two ways in — progressive disclosure"
+      ]
+    },
+    {
+      "slug": "quick-start",
+      "title": "Quick start",
+      "readme": true,
+      "sections": [
+        "Define once — the shared file both ends import",
+        "Check — typo-proof"
+      ]
+    },
+    {
+      "slug": "roles",
+      "title": "Roles",
+      "readme": true,
+      "sections": [
+        "Roles, and the escalation guard"
+      ]
+    },
+    {
+      "slug": "storage",
+      "title": "Storage",
+      "readme": true,
+      "sections": [
+        "Storage is a codec, never a second mode"
+      ]
+    },
+    {
+      "slug": "bindings",
+      "title": "Bindings & polyglot",
+      "readme": true,
+      "sections": [
+        "Framework-less by design — bindings are snippets, not packages",
+        "Cross-project & polyglot"
+      ]
+    },
+    {
+      "slug": "contracts",
+      "title": "Contract link",
+      "readme": true,
+      "sections": [
+        "Contract link (optional, additive)"
+      ]
+    },
+    {
+      "slug": "security",
+      "title": "Trust boundary",
+      "readme": true,
+      "sections": [
+        "Trust boundary"
+      ]
+    },
+    {
+      "slug": "api",
+      "title": "API",
+      "readme": true,
+      "sections": [
+        "Exports",
+        "License"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "$schema": "../../../docs/docs.schema.json",
+  "documentsVersion": "1.1.0",
+  "pages": [
+    {
+      "slug": "overview",
+      "title": "Overview",
+      "readme": true,
+      "intro": true,
+      "sections": [
+        "Setup"
+      ]
+    },
+    {
+      "slug": "use-query",
+      "title": "useQuery",
+      "readme": true,
+      "sections": [
+        "useQuery"
+      ]
+    },
+    {
+      "slug": "use-mutation",
+      "title": "useMutation",
+      "readme": true,
+      "sections": [
+        "useMutation"
+      ]
+    },
+    {
+      "slug": "api",
+      "title": "API",
+      "readme": true,
+      "sections": [
+        "API",
+        "License"
+      ]
+    }
+  ]
+}

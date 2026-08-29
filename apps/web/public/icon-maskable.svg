@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <title>TypeWire</title>
+  <!--
+    The maskable variant: the gradient runs edge to edge so a platform is free
+    to crop it to a circle, a squircle or a rounded square without ever cutting
+    into a corner. The mark itself sits inside the 80% safe zone unchanged.
+  -->
+  <defs>
+    <linearGradient id="tw-maskable" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#22d3ee"/>
+      <stop offset="0.5" stop-color="#3b82f6"/>
+      <stop offset="1" stop-color="#8b5cf6"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="512" height="512" fill="url(#tw-maskable)"/>
+  <path d="M150 316 C 200 210, 236 210, 256 256 C 276 302, 312 302, 362 196" stroke="#fff" stroke-width="30" stroke-linecap="round" fill="none"/>
+  <circle cx="150" cy="316" r="30" fill="#fff"/><circle cx="150" cy="316" r="14" fill="#3b82f6"/>
+  <circle cx="362" cy="196" r="30" fill="#fff"/><circle cx="362" cy="196" r="14" fill="#8b5cf6"/>
+  <circle cx="256" cy="256" r="15" fill="#fff"/><circle cx="256" cy="256" r="6.5" fill="#22d3ee"/>
+</svg>

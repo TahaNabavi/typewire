@@ -63,7 +63,7 @@
   "bugs": {
     "url": "https://github.com/TahaNabavi/typewire/issues"
   },
-  "homepage": "https://www.tahanabavi.ir/docs/typewire-cli",
+  "homepage": "https://typewire.tahanabavi.ir/docs/typewire-cli",
   "publishConfig": {
     "access": "public"
   },

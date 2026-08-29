@@ -154,7 +154,7 @@
   "bugs": {
     "url": "https://github.com/TahaNabavi/typewire/issues"
   },
-  "homepage": "https://www.tahanabavi.ir/docs/typewire-nestjs",
+  "homepage": "https://typewire.tahanabavi.ir/docs/typewire-nestjs",
   "publishConfig": {
     "access": "public"
   },

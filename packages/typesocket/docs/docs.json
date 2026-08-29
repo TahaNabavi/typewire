@@ -1,0 +1,94 @@
+{
+  "$schema": "../../../docs/docs.schema.json",
+  "documentsVersion": "2.2.0",
+  "pages": [
+    {
+      "slug": "overview",
+      "title": "Overview",
+      "readme": true,
+      "intro": true,
+      "sections": [
+        "Why direction belongs in the contract"
+      ],
+      "omit": [
+        "Table of contents"
+      ]
+    },
+    {
+      "slug": "quick-start",
+      "title": "Quick start",
+      "readme": true,
+      "sections": [
+        "Install",
+        "Quick start"
+      ]
+    },
+    {
+      "slug": "emitting",
+      "title": "Emitting",
+      "readme": true,
+      "sections": [
+        "Emitting"
+      ]
+    },
+    {
+      "slug": "listening",
+      "title": "Listening",
+      "readme": true,
+      "sections": [
+        "Listening"
+      ]
+    },
+    {
+      "slug": "permissions",
+      "title": "Permissions",
+      "readme": true,
+      "sections": [
+        "Permissions"
+      ]
+    },
+    {
+      "slug": "errors",
+      "title": "Errors",
+      "readme": true,
+      "sections": [
+        "Errors"
+      ]
+    },
+    {
+      "slug": "middleware",
+      "title": "Middleware & devtools",
+      "readme": true,
+      "sections": [
+        "Middleware",
+        "Instrumentation & overrides"
+      ]
+    },
+    {
+      "slug": "configuration",
+      "title": "Configuration",
+      "readme": true,
+      "sections": [
+        "Configuration"
+      ]
+    },
+    {
+      "slug": "api",
+      "title": "API reference",
+      "readme": true,
+      "sections": [
+        "API reference"
+      ]
+    },
+    {
+      "slug": "migrating",
+      "title": "Migrating & releases",
+      "readme": true,
+      "sections": [
+        "Migrating from v1",
+        "Examples & release notes",
+        "License"
+      ]
+    }
+  ]
+}

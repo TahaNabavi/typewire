@@ -35,3 +35,6 @@ yarn-error.log*
 
 # typescript
 next-env.d.ts
+
+# local registry mirror config (network workaround, not a project decision)
+.npmrc

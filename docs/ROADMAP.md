@@ -33,12 +33,53 @@ as its own package.** The core is the runtime and nothing else.
 | 8 | Downstream packages (query-core, devtools, nestjs, react) | in progress |
 | 8a | `devtools-core` + `devtools` — transport, `errorKind`, progress | **done** |
 | 8b | `nestjs` — gRPC, GraphQL and typesocket gateways served from one contract | **done** |
+| 8c | query-core seams — `gate` · `sources` · `updatedAt` · `reason` | **done** — [release notes](../packages/query-core/docs/releases/v1.2.0.md) |
 | 9 | Examples updated to the v2 shape | **done** — new `transports` example |
+| 10 | `@tahanabavi/typewire-sync` — mirror · lock · leader, across browser tabs | planned — [`SYNC.md`](./SYNC.md) |
+| 11 | Standard Schema accepted wherever a contract takes a schema | planned — [`SCHEMA.md`](./SCHEMA.md) |
+| 12 | `@tahanabavi/typefetch-sse` — typed SSE and HTTP streaming | planned — [`SSE.md`](./SSE.md) |
+| 13 | `@tahanabavi/typewire-offline` — persisted cache + mutation outbox | planned — [`OFFLINE.md`](./OFFLINE.md) |
+| 14 | `typewire generate mcp` — contracts as agent tools | planned — [`MCP.md`](./MCP.md) |
 
 The core is at **zero runtime dependencies**, asserted in CI by
 `scripts/assert-no-deps.mjs` rather than claimed in a README. `pnpm verify` runs
 build + typecheck + test + size budget + dependency assertion + cross-runtime
 smoke in one command.
+
+### Sequencing — what is next, and why in that order
+
+The table above is numbered in the order things were **built**. This is the order
+to build what is left, and two rules decide it: a change that unblocks two
+packages ships before either of them, and a breaking change ships as early as it
+can, because every package written after it is one that never has to be migrated.
+
+| # | Unit | Why here |
+| --- | --- | --- |
+| 1 | **8c** — query-core seams | Four additive hooks, no behaviour change. Rows 10 and 13 need all four, so they landed once, first, as their own release — **done** |
+| 2 | **10** — `typewire-sync` | The gap users hit first and the one nothing else covers. M3 (`createTabSync`) is shippable alone, so a slip costs nothing already shipped |
+| 3 | **11** — Standard Schema | Its additive half (S1–S4) blocks nothing and should start now; only S5 breaks, and typefetch 2.0.0 is already on npm, so that half is a **v3** with a real migration. Every release that ships zod-only widens it, which is the argument for starting early even though the free window closed |
+| 4 | **12** — `typefetch-sse` | Its contracts declare a schema per event, so it is written vendor-neutral from the start if 11 is already in. Also the first core-seam change since the transport registry, and it wants a quiet moment |
+| 5 | **13** — `typewire-offline` | Needs 8c *and* the leader primitive from 10. Building it earlier means building half of 10 twice |
+| 6 | **5d** — `snapshot` + `diff` | The enterprise gate, and independent of everything above — which is exactly why it can wait without blocking anything |
+| 7 | **5d** — `lint` · `doctor` · `explain` · `mock` · `generate openapi` | `mock` wants the JSON Schema walker that 11 produces; writing it first means writing it twice |
+| 8 | **14** — `generate mcp` | Shares the `generate` scaffold with `openapi`, and its tool descriptions come out better once 11's ladder exists |
+| 9 | `type-permission` client pre-flight + Vue/React recipes | Small, self-contained, nothing depends on it |
+| 10 | `typewire-vue` / `typewire-angular` | The `Observable` seam already exists; these are adapters, not design work |
+| 11 | **3b** — Connect conformance | An honest gap with nothing waiting on it. Last is where it belongs, not hidden |
+
+**The launch-readiness section below is history, not a plan.** All twelve
+packages are on npm — `typefetch` 2.0.0, `typesocket` 2.2.0, `typewire-nestjs`
+4.0.0, and the five that were waiting at `0.0.0` shipped under the names they
+had. The three open decisions were answered by publishing, and step 7's renames
+were answered by default: `type-devtools`, `type-devtools-core`,
+`type-permission`, `typefetch-query-core` and `typefetch-react` are now names
+with users behind them. Renaming them means deprecated aliases and a major
+each — so that row needs re-deciding as *whether*, not *when*.
+
+`type-opengraph` was dropped from the roadmap. It was the one planned package
+that shared nothing with the rest: no contract, no transport, no `endpointId` —
+a metadata scraper that happened to be typed. Everything above earns its place by
+consuming the same contract object; that one did not.
 
 ### 9 — what the examples proved
 
@@ -78,7 +119,7 @@ work added:
 
 | Package | README | Release doc | Banner | Changeset |
 | --- | --- | --- | --- | --- |
-| `typefetch` | ✓ | `v2.0.0.md` | `v2.0.0` | major |
+| `typefetch` | ✓ | `v2.0.0.md` | ✓ | major |
 | `typefetch-graphql` | ✓ | `v0.1.0.md` | ✓ | minor |
 | `typefetch-grpc` | ✓ | `v0.1.0.md` | ✓ | minor |
 | `typefetch-encryption` | ✓ | `v0.1.0.md` | ✓ | minor |
@@ -118,6 +159,8 @@ they decide what actually gets published:
 | `typewire-cli` (bin `typewire`) · `typewire-codemod` | `typewire-` | one config, one lockfile, every package |
 | `typewire-query-core` · `typewire-devtools-core` | `typewire-` | already accept typefetch **and** typesocket sources |
 | `typewire-permission` · `typewire-devtools` · `typewire-react` | `typewire-` | family-wide, transport-agnostic by design |
+| `typewire-sync` · `typewire-offline` | `typewire-` | coordinate every package's traffic in one browser; they speak no wire of their own |
+| `typefetch-sse` | `typefetch-` | another `TransportAdapter`, like `-graphql` and `-grpc` |
 
 The three published packages keep their names: `typefetch` (1.7.1), `typesocket`
 (2.0.0), `typewire-nestjs` (0.1.1). The five at `0.0.0` are renamed off the stray
@@ -263,3 +306,103 @@ a Connect error body, a GraphQL `{ data }`, a WebSocket ack.
 - **nestjs, later** — binary grpc-web (needs raw-body access and trailer
   framing), field-level encryption on the GraphQL transport (warned at bootstrap
   rather than silently skipped), and GraphQL request batching.
+
+---
+
+## 10. `…-sync` — the tab axis
+
+Every package here assumes one runtime holds one client, and a browser breaks
+that assumption the moment the user opens a second tab. Four tabs mount the same
+query and four requests leave; one tab saves and the others keep rendering the
+old row; two tabs run the same checkout and the customer is charged twice.
+
+The instinct is "broadcast the cache", which is one third of the answer. The
+design in [`SYNC.md`](./SYNC.md) separates it into three primitives — **mirror**
+(a value crosses so the other tabs adopt instead of refetch), **lock** (one tab
+performs, and the losers get a named answer instead of a spinner), and **leader**
+(one tab owns the socket, the poll and the token refresh) — over two replaceable
+seams, `ChannelAdapter` and `LockAdapter`, so it is testable in Node with no
+browser.
+
+It keys on `"module.member"`, which is why it is one package rather than a
+feature bolted onto query-core: the same policy map that mirrors a typefetch
+query serializes a typesocket emit.
+
+Two things it must not repeat, both of them live complaints against the
+equivalent in TanStack Query: a `gcTime` eviction in a background tab must not
+remove the query in the tab the user is reading, and a large payload must not be
+posted to every tab on every keystroke. The first needs `reason` on query-core's
+`removed` event — the cache cannot currently tell explicit removal from garbage
+collection, and that ambiguity is invisible until it crosses a channel.
+
+## 11. Standard Schema — stop being a zod package
+
+Full design: [`SCHEMA.md`](./SCHEMA.md).
+
+`zod` is a peer dependency because schemas only compare correctly against one
+instance. Standard Schema is the other half of that thought: a ~60-line
+interface that zod 4, Valibot, ArkType and Effect Schema all implement, so a
+contract can be validated by whichever of them the consuming team already has.
+
+It costs nothing to accept — `~standard.validate` is one call, and no runtime
+dependency comes with it — and it removes the single largest reason a team says
+no to a contract-first library. `zod` stays the documented default and every
+example keeps using it; the change is that it is no longer the only thing that
+typechecks.
+
+The work is not in typefetch. It is in the places that read a schema's *shape*
+rather than validating with it: the GraphQL selection-set generator and
+`generate openapi` both walk zod internals today. Those either keep a zod fast
+path or move behind a capability check that says so out loud.
+
+## 12. `…-sse` — the wire that AI made mandatory
+
+Full design: [`SSE.md`](./SSE.md).
+
+Streaming is where every product went while this repo built request/response.
+Server-Sent Events is the transport under most of it, and it is a plain HTTP GET
+with a text body, so it fits the existing `TransportAdapter` without a new core
+concept: `event:` names map to a record of schemas, each frame validates against
+the one it names, and the call returns an `AsyncIterable` instead of a value.
+
+What earns the package rather than a recipe is the failure half. `EventSource`
+reconnects on its own and the generation state does not come back with it, so
+the contract carries `lastEventId` and the adapter resumes rather than restarting
+a half-finished response. HTTP/1.1's six-connections-per-origin ceiling is also
+real, and it is the same ceiling `…-sync`'s leader primitive already lifts — one
+stream in the leader tab, fanned out — which is why these two are sequenced next
+to each other.
+
+## 13. `…-offline` — persistence, and a queue with an owner
+
+Full design: [`OFFLINE.md`](./OFFLINE.md).
+
+Two halves that are usually sold as one:
+
+1. **Persist the cache** — hydrate from IndexedDB on boot so a reload is not a
+   blank screen, with the version and the `dataUpdatedAt` guard already designed
+   for the sync channel.
+2. **A durable outbox** — a mutation queued while offline must survive a hard
+   close and replay in order, which an in-memory retry cannot do.
+
+The outbox is where this depends on step 10 rather than duplicating it: a queue
+that every tab drains sends every write as many times as there are tabs. Exactly
+one tab may drain it, which is the leader primitive, unchanged.
+
+Conflict resolution is deliberately **not** in scope. Last-write-wins with the
+server as the arbiter, plus a typed `onConflict` hook, is the honest boundary for
+a contract library; CRDTs and merge semantics are a different product.
+
+## 14. `typewire generate mcp` — the contracts an agent can call
+
+Full design: [`MCP.md`](./MCP.md).
+
+`generate openapi` is already planned, and this is the same walk over the same
+contracts with a different emitter: one MCP tool per endpoint, the request schema
+as the tool's input schema, the description from the contract.
+
+The argument for it is that the alternative is worse. Teams currently hand-write
+a wrapper per endpoint for their agent, and that wrapper is the fourth copy of a
+shape this repo exists to keep in one place. Generating it means an agent's tool
+call is validated by the same schema as the app's — including the `type-permission`
+bits, which is the part a hand-written wrapper always forgets.

@@ -3,6 +3,7 @@ import { Query } from "./query";
 import { resolveSourceId } from "./source";
 import type {
   AnyQuerySource,
+  FetchGate,
   QueryCacheEvent,
   QueryFilters,
   QueryOptions,
@@ -18,6 +19,15 @@ import type {
 export class QueryCache {
   private readonly queries = new Map<QueryKey, Query<any, any>>();
   private readonly listeners = new Set<(event: QueryCacheEvent) => void>();
+  private readonly gate?: FetchGate;
+
+  /**
+   * @param gate Wraps every query's fetch. Passed straight to each `Query`;
+   * `undefined` leaves fetching unchanged.
+   */
+  constructor(gate?: FetchGate) {
+    this.gate = gate;
+  }
 
   /** Subscribe to every cache event. Returns an unsubscribe function. */
   subscribe(listener: (event: QueryCacheEvent) => void): () => void {
@@ -74,7 +84,8 @@ export class QueryCache {
           endpointId: q.endpointId,
           state: q.getState(),
         }),
-      onGarbageCollect: (q) => this.remove(q),
+      onGarbageCollect: (q) => this.remove(q, "gc"),
+      gate: this.gate,
     });
 
     this.queries.set(key, query);
@@ -87,8 +98,13 @@ export class QueryCache {
     return query;
   }
 
-  /** Remove a query and stop its timers. No-op if already gone. */
-  remove(query: Query<any, any>): void {
+  /**
+   * Remove a query and stop its timers. No-op if already gone.
+   *
+   * `reason` defaults to `"explicit"` — the caller meant to drop it. The GC
+   * timer passes `"gc"` so a subscriber can tell an eviction from an intent.
+   */
+  remove(query: Query<any, any>, reason: "gc" | "explicit" = "explicit"): void {
     const existing = this.queries.get(query.key);
     // Guard against removing a *replacement* registered under the same key by
     // a late garbage-collection callback from the query it replaced.
@@ -99,6 +115,7 @@ export class QueryCache {
       type: "removed",
       key: query.key,
       endpointId: query.endpointId,
+      reason,
     });
   }
 

@@ -1,0 +1,58 @@
+{
+  "$schema": "../../../docs/docs.schema.json",
+  "documentsVersion": "0.0.0",
+  "pages": [
+    {
+      "slug": "overview",
+      "title": "Overview",
+      "readme": true,
+      "intro": true,
+      "sections": [
+        "Why this and not a GraphQL client"
+      ]
+    },
+    {
+      "slug": "quick-start",
+      "title": "Quick start",
+      "readme": true,
+      "sections": [
+        "Setup"
+      ]
+    },
+    {
+      "slug": "contracts",
+      "title": "Contracts",
+      "readme": true,
+      "sections": [
+        "Endpoint fields",
+        "Variable types"
+      ]
+    },
+    {
+      "slug": "errors",
+      "title": "Errors",
+      "readme": true,
+      "sections": [
+        "Errors"
+      ]
+    },
+    {
+      "slug": "options",
+      "title": "Transport options",
+      "readme": true,
+      "sections": [
+        "Transport options",
+        "License"
+      ]
+    },
+    {
+      "slug": "limits",
+      "title": "What it refuses",
+      "readme": true,
+      "sections": [
+        "What the generator refuses",
+        "Not supported"
+      ]
+    }
+  ]
+}

@@ -28,8 +28,9 @@ Every one of these, every time:
    anything breaks.
 4. **`docs/releases/vX.Y.Z.md`** in the package — see below. Required for every
    minor and major; optional for a patch.
-5. **`docs/assets/<pkg>-vX.Y.Z-banner.html`** + rendered `.png` — required for
-   every **major** and for a minor that adds a headline feature.
+5. **`docs/assets/<pkg>-banner.html`** + rendered `.png` — the evergreen banner
+   the README opens with. Refresh it whenever a release changes what the package
+   *is*: every **major**, and any minor that adds a headline feature.
 6. **Changeset** — `pnpm changeset`, with the correct bump. CI reports its absence.
 7. **Verify** — `pnpm -r build && pnpm -r typecheck && pnpm -r test` all green.
    Never report a change as done without running these.
@@ -45,9 +46,14 @@ packages/<name>/
     releases/
       v1.7.0.md                               one file per released version
     assets/
-      <name>-v1.7.0-banner.html               1600x850 source
-      <name>-v1.7.0-banner.png                rendered, committed
+      <name>-banner.html                      1600x850 source
+      <name>-banner.png                       rendered, committed
 ```
+
+The banner is **not** versioned in its filename — the README always points at
+`<name>-banner.png`, so refreshing it is an edit, not a new file. A release doc
+may embed its own `<name>-vX.Y.Z-banner.png` when that release deserves one;
+that is the only reason a versioned banner stays in the tree.
 
 **Release docs** are narrative, not a changelog dump: what the release adds, why
 it exists, the semantics of each new field, an API-additions table, and an

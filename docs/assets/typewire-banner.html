@@ -82,6 +82,7 @@
     padding:14px 17px;background:linear-gradient(180deg,rgba(255,255,255,.025),rgba(255,255,255,0));display:flex;align-items:center;gap:10px}
   .install .p{color:var(--green);font-weight:700}
   .install .pkg{color:#82aaff}
+  .install .cm{color:var(--dim)}
   .foot{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
   .foot .lbl{font-size:12.5px;color:var(--dim);margin-right:2px}
   .chip{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:#cdd8e8;
@@ -102,27 +103,27 @@
       <div class="wordmark"><span class="t">Type</span><span class="w">Wire</span></div>
     </div>
 
-    <span class="pill"><span class="bar"></span>THE&nbsp;@tahanabavi/*&nbsp;ECOSYSTEM</span>
+    <span class="pill"><span class="bar"></span>TWELVE&nbsp;PACKAGES&nbsp;·&nbsp;ONE&nbsp;CONTRACT</span>
 
     <h1>Typed contracts.<br/><span class="g">Any transport.</span></h1>
     <div class="lede">
       Define your API once as a <code>Zod</code> contract — then validate it
-      end-to-end across HTTP, WebSocket, and the server. One source of truth,
-      wired to everything.
+      end-to-end across REST, gRPC, GraphQL, WebSocket and the server. One
+      source of truth, wired to everything.
     </div>
 
     <div class="feats">
       <div class="feat">
         <div class="ic b"><svg viewBox="0 0 24 24" fill="none" stroke="#7dd3fc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
-        <div class="tx"><b>One contract, end-to-end</b><span>Client &amp; server can't drift — same schema both sides</span></div>
+        <div class="tx"><b>Four wires, one client</b><span>REST · gRPC · GraphQL · WebSocket — same contract</span></div>
       </div>
       <div class="feat">
         <div class="ic g"><svg viewBox="0 0 24 24" fill="none" stroke="#86efac" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 3 6v6c0 5 3.8 8.5 9 10 5.2-1.5 9-5 9-10V6l-9-4Z"/></svg></div>
-        <div class="tx"><b>Runtime-validated</b><span>Every request &amp; response checked with Zod</span></div>
+        <div class="tx"><b>Validated at both ends</b><span>Client checks on the way out, server on the way in</span></div>
       </div>
       <div class="feat">
         <div class="ic p"><svg viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 21h8M12 18v3"/></svg></div>
-        <div class="tx"><b>Transport-agnostic devtools</b><span>Inspect HTTP &amp; WS in one live timeline</span></div>
+        <div class="tx"><b>Transport-agnostic devtools</b><span>Every wire in one timeline, plus the query cache</span></div>
       </div>
       <div class="feat">
         <div class="ic c"><svg viewBox="0 0 24 24" fill="none" stroke="#67e8f9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg></div>
@@ -164,31 +165,32 @@
 
     <div class="cards3">
       <div class="mini">
-        <div class="h"><span class="nm">typefetch</span><span class="tg">HTTP</span></div>
+        <div class="h"><span class="nm">typefetch</span><span class="tg">HTTP · gRPC · GQL</span></div>
         <div class="snip"><span class="fn">api</span>.user.<span class="fn">getUser</span>({<br/>&nbsp;&nbsp;path:{ id }<br/>})</div>
-        <div class="role">typed client · retries · mock</div>
+        <div class="role">retries · mock · zero deps</div>
       </div>
       <div class="mini">
         <div class="h"><span class="nm">typesocket</span><span class="tg">WS</span></div>
-        <div class="snip"><span class="fn">socket</span>.<span class="fn">emit</span>(<br/>&nbsp;&nbsp;<span class="st">"sendMessage"</span>, { text }<br/>)</div>
-        <div class="role">Socket.IO · event validation</div>
+        <div class="snip"><span class="fn">chat</span>.<span class="fn">sendMessage</span>({<br/>&nbsp;&nbsp;roomId, text<br/>})</div>
+        <div class="role">direction-tagged · validated acks</div>
       </div>
       <div class="mini">
         <div class="h"><span class="nm">typewire-nestjs</span><span class="tg">server</span></div>
         <div class="snip">@<span class="fn">Endpoint</span>(getUser)<br/><span class="fn">getUser</span>(@<span class="fn">Input</span>() i)</div>
-        <div class="role">same contract, backend</div>
+        <div class="role">every wire, same contract</div>
       </div>
     </div>
 
     <div class="bottomgroup">
-      <div class="install"><span class="p">$</span>&nbsp;pnpm add <span class="pkg">@tahanabavi/typefetch</span> <span class="pkg">@tahanabavi/typesocket</span> zod</div>
+      <div class="install"><span class="p">$</span>&nbsp;npx typewire init<span class="cm">&nbsp;&nbsp;# detects the project, asks, wires it up</span></div>
       <div class="foot">
-        <span class="lbl">also in the ecosystem</span>
+        <span class="lbl">also shipping</span>
+        <span class="chip"><span class="d b"></span>typewire-cli</span>
         <span class="chip"><span class="d c"></span>query-core</span>
         <span class="chip"><span class="d b"></span>react</span>
         <span class="chip"><span class="d p"></span>devtools</span>
         <span class="chip"><span class="d g"></span>type-permission</span>
-        <span class="chip soon"><span class="d a"></span>type-opengraph · soon</span>
+        <span class="chip soon"><span class="d a"></span>typewire-sync · soon</span>
       </div>
     </div>
   </div>
