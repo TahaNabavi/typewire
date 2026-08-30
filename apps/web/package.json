@@ -1,6 +1,6 @@
 {
   "name": "@typewire/web",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "private": true,
   "description": "The TypeWire website — marketing site and docs shell for the @tahanabavi/* ecosystem.",
   "type": "module",
