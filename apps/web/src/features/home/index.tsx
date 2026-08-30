@@ -11,6 +11,7 @@ import { RoadmapSection } from "@/features/roadmap";
 import { Support } from "@/features/support";
 import { Transports } from "@/features/transports";
 import { packages } from "@/lib/registry";
+import { Diagram } from "./diagram";
 
 /** The order a reader meets the argument: claim, mechanism, proof, invitation. */
 export function HomePage() {
@@ -21,6 +22,7 @@ export function HomePage() {
     <>
       <Hero />
       <WhatIs />
+      <Diagram />
       <Features />
       <PackagesSection />
       <Transports />

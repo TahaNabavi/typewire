@@ -1,8 +1,6 @@
 import Link from "next/link";
 
-import { Panel } from "@/components/ui/panel";
 import { Section } from "@/components/ui/section";
-import { ArchDiagram } from "@/features/packages/arch-diagram";
 import { PackageFilter } from "@/features/packages/package-filter";
 import { packages, publishedPackages, unpublishedPackages } from "@/lib/registry";
 
@@ -24,16 +22,6 @@ export function PackagesSection() {
         its first publish: not an unfinished package, one that has not been given a version number
         yet.
       </p>
-
-      <Panel className="mt-14">
-        <h3 className="pb-1 text-lg font-bold text-fg">How the monorepo fits together</h3>
-        <p className="pb-5 text-sm text-muted-foreground">
-          Every one of these keys on the same{" "}
-          <code className="text-cyan">&quot;module.member&quot;</code> id — which is why adding a
-          transport needed no change to query-core, devtools or the React adapter.
-        </p>
-        <ArchDiagram />
-      </Panel>
 
       <Link href="/packages" className="mt-6 inline-block text-sm text-blue hover:underline">
         Compare all packages →

@@ -74,8 +74,15 @@
   --color-wire-grpc: var(--wire-grpc);
   --color-wire-ws: var(--wire-ws);
 
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: var(--font-geist-mono), "JetBrains Mono", "Cascadia Code", Consolas, Menlo, monospace;
+  --font-main:
+    var(--font-jetbrain), ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    sans-serif;
+  --font-sans:
+    var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    sans-serif;
+  --font-mono:
+    var(--font-geist-mono), "JetBrains Mono", "Cascadia Code", Consolas, Menlo,
+    monospace;
   --font-heading: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 
   /* Motion. Every duration and curve on the site is named here so nothing is
@@ -257,12 +264,24 @@
   body {
     background-color: var(--background);
     color: var(--foreground);
-    font-family: var(--font-sans);
+    font-family: var(--font-main);
     /* The banner's atmosphere: three glows over the page floor. */
     background-image:
-      radial-gradient(1200px 720px at 80% -10%, color-mix(in oklab, var(--cyan) 14%, transparent), transparent 60%),
-      radial-gradient(1000px 640px at 8% 110%, color-mix(in oklab, var(--purple-strong) 16%, transparent), transparent 60%),
-      radial-gradient(760px 520px at 98% 96%, color-mix(in oklab, var(--blue-strong) 10%, transparent), transparent 60%);
+      radial-gradient(
+        1200px 720px at 80% -10%,
+        color-mix(in oklab, var(--cyan) 14%, transparent),
+        transparent 60%
+      ),
+      radial-gradient(
+        1000px 640px at 8% 110%,
+        color-mix(in oklab, var(--purple-strong) 16%, transparent),
+        transparent 60%
+      ),
+      radial-gradient(
+        760px 520px at 98% 96%,
+        color-mix(in oklab, var(--blue-strong) 10%, transparent),
+        transparent 60%
+      );
     background-attachment: fixed;
     text-wrap: pretty;
   }
@@ -279,7 +298,11 @@
       linear-gradient(90deg, var(--hair) 1px, transparent 1px);
     background-size: 44px 44px;
     opacity: 0.35;
-    mask-image: radial-gradient(1500px 850px at 55% 30%, #000 30%, transparent 85%);
+    mask-image: radial-gradient(
+      1500px 850px at 55% 30%,
+      #000 30%,
+      transparent 85%
+    );
   }
 
   ::selection {
@@ -354,12 +377,24 @@
   }
   /* On a scroll timeline `animation-delay` is ignored — progress replaces time —
      so the stagger is expressed as a later start in the range instead. */
-  .enter-group > *:nth-child(2) { animation-range: entry 8% cover 25%; }
-  .enter-group > *:nth-child(3) { animation-range: entry 11% cover 28%; }
-  .enter-group > *:nth-child(4) { animation-range: entry 14% cover 31%; }
-  .enter-group > *:nth-child(5) { animation-range: entry 17% cover 34%; }
-  .enter-group > *:nth-child(6) { animation-range: entry 20% cover 37%; }
-  .enter-group > *:nth-child(n + 7) { animation-range: entry 23% cover 40%; }
+  .enter-group > *:nth-child(2) {
+    animation-range: entry 8% cover 25%;
+  }
+  .enter-group > *:nth-child(3) {
+    animation-range: entry 11% cover 28%;
+  }
+  .enter-group > *:nth-child(4) {
+    animation-range: entry 14% cover 31%;
+  }
+  .enter-group > *:nth-child(5) {
+    animation-range: entry 17% cover 34%;
+  }
+  .enter-group > *:nth-child(6) {
+    animation-range: entry 20% cover 37%;
+  }
+  .enter-group > *:nth-child(n + 7) {
+    animation-range: entry 23% cover 40%;
+  }
 
   /*
    * The gradient sweep. A band crosses the text once and settles on --fg, so
@@ -383,8 +418,12 @@
     animation-timeline: view();
     animation-range: entry 10% cover 40%;
   }
-  .reveal-sweep > *:nth-child(2) { animation-range: entry 22% cover 55%; }
-  .reveal-sweep > *:nth-child(3) { animation-range: entry 34% cover 70%; }
+  .reveal-sweep > *:nth-child(2) {
+    animation-range: entry 22% cover 55%;
+  }
+  .reveal-sweep > *:nth-child(3) {
+    animation-range: entry 34% cover 70%;
+  }
 }
 
 /* The wire motif: a signal travelling a curve. Used in diagrams. */
