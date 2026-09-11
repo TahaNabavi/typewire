@@ -124,7 +124,7 @@ function escapeTable(value: string): string {
 }
 
 function escapeMarkdown(value: string): string {
-  return value.replace(/`/g, '\\`')
+  return value.replace(/\\/g, '\\\\').replace(/`/g, '\\`')
 }
 
 function escapeHtml(value: string): string {
