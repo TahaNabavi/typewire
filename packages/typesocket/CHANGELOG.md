@@ -1,5 +1,11 @@
 # @tahanabavi/typesocket
 
+## 2.2.1
+
+### Patch Changes
+
+- e60581b: All 12 packages receiving a patch bump for the next release.
+
 ## 2.2.0
 
 ### Minor Changes
