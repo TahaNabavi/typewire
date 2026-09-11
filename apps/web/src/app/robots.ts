@@ -1,7 +1,7 @@
-import type { MetadataRoute } from "next";
+import type { MetadataRoute } from 'next'
 
-import { site } from "@/config/site";
-import { absoluteUrl } from "@/lib/seo";
+import { site } from '@/config/site'
+import { absoluteUrl } from '@/lib/seo'
 
 /**
  * Only /api is kept out of the index. Nothing under it is a page: they are JSON
@@ -12,12 +12,12 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
       {
-        userAgent: "*",
-        allow: "/",
-        disallow: ["/api/"],
+        userAgent: '*',
+        allow: '/',
+        disallow: ['/api/'],
       },
     ],
-    sitemap: absoluteUrl("/sitemap.xml"),
+    sitemap: absoluteUrl('/sitemap.xml'),
     host: site.url,
-  };
+  }
 }

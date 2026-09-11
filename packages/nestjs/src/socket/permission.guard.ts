@@ -3,12 +3,12 @@ import {
   type ExecutionContext,
   Injectable,
   type Type,
-} from "@nestjs/common";
-import type { PermissionRequirement } from "@tahanabavi/typesocket";
-import type { PermissionDecisionLike } from "../guards/permission.guard";
-import { SOCKET_EVENT_METADATA } from "./constants";
-import { SocketContractException } from "./exceptions";
-import type { BoundSocketEvent } from "./types";
+} from '@nestjs/common'
+import type { PermissionRequirement } from '@tahanabavi/typesocket'
+import type { PermissionDecisionLike } from '../guards/permission.guard'
+import { SOCKET_EVENT_METADATA } from './constants'
+import { SocketContractException } from './exceptions'
+import type { BoundSocketEvent } from './types'
 
 export interface SocketPermissionGuardConfig {
   /**
@@ -17,7 +17,7 @@ export interface SocketPermissionGuardConfig {
    * async. Authentication is assumed to have happened at connect time; this
    * guard only authorizes.
    */
-  getPermissions: (client: any) => bigint | Promise<bigint>;
+  getPermissions: (client: any) => bigint | Promise<bigint>
 
   /**
    * Evaluate a requirement against the actor's bits. Pass your permission
@@ -27,16 +27,16 @@ export interface SocketPermissionGuardConfig {
    */
   authorize: (
     perms: bigint,
-    requirement: PermissionRequirement,
-  ) => PermissionDecisionLike;
+    requirement: PermissionRequirement
+  ) => PermissionDecisionLike
 
   /** Called on every denial before the frame is rejected — the audit-log seam. */
   onDeny?: (info: {
-    event: BoundSocketEvent;
-    requirement: PermissionRequirement;
-    decision: PermissionDecisionLike;
-    context: ExecutionContext;
-  }) => void;
+    event: BoundSocketEvent
+    requirement: PermissionRequirement
+    decision: PermissionDecisionLike
+    context: ExecutionContext
+  }) => void
 }
 
 /**
@@ -61,47 +61,47 @@ export interface SocketPermissionGuardConfig {
  * class ChatGateway { … }
  */
 export function createSocketPermissionGuard(
-  config: SocketPermissionGuardConfig,
+  config: SocketPermissionGuardConfig
 ): Type<CanActivate> {
   @Injectable()
   class SocketPermissionGuard implements CanActivate {
     async canActivate(context: ExecutionContext): Promise<boolean> {
       const event: BoundSocketEvent | undefined = Reflect.getMetadata(
         SOCKET_EVENT_METADATA,
-        context.getHandler(),
-      );
+        context.getHandler()
+      )
 
       const requirement = (
         event?.def as { permission?: PermissionRequirement } | undefined
-      )?.permission;
+      )?.permission
 
       if (
         !requirement ||
         (!requirement.require?.length && !requirement.any?.length)
       ) {
-        return true;
+        return true
       }
 
-      const client = context.switchToWs().getClient();
-      const perms = await config.getPermissions(client);
-      const decision = config.authorize(perms, requirement);
-      if (decision.granted) return true;
+      const client = context.switchToWs().getClient()
+      const perms = await config.getPermissions(client)
+      const decision = config.authorize(perms, requirement)
+      if (decision.granted) return true
 
-      config.onDeny?.({ event: event!, requirement, decision, context });
+      config.onDeny?.({ event: event!, requirement, decision, context })
 
       throw new SocketContractException(
         event!.eventId,
-        requirement.reason ?? "Insufficient permissions",
-        "FORBIDDEN",
+        requirement.reason ?? 'Insufficient permissions',
+        'FORBIDDEN',
         {
           ...(decision.missing?.length ? { missing: decision.missing } : {}),
           ...(decision.missingAny?.length
             ? { missingAny: decision.missingAny }
             : {}),
-        },
-      );
+        }
+      )
     }
   }
 
-  return SocketPermissionGuard;
+  return SocketPermissionGuard
 }

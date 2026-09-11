@@ -8,7 +8,7 @@
 
 **Contract-driven Socket.IO for TypeScript.** Declare each event once — with its
 direction and its Zod schemas — and the client generates itself. Every frame is
-validated on the way out *and* on the way in, acknowledgements included.
+validated on the way out _and_ on the way in, acknowledgements included.
 
 Part of [TypeWire](https://github.com/TahaNabavi/typewire), so it shares
 `typefetch`'s `"module.event"` identifier scheme and its `instrument()` seam:
@@ -48,52 +48,55 @@ correctly when every package shares one `zod` instance.
 
 ## Quick start
 
-**1. Declare the contract.** This file is imported by the frontend *and* the
+**1. Declare the contract.** This file is imported by the frontend _and_ the
 backend:
 
 ```ts
 // ws-contracts.ts
-import { z } from "zod";
-import { defineSocketContracts } from "@tahanabavi/typesocket";
+import { z } from 'zod'
+import { defineSocketContracts } from '@tahanabavi/typesocket'
 
 export const wsContracts = defineSocketContracts({
   chat: {
     sendMessage: {
-      direction: "client->server",
+      direction: 'client->server',
       request: z.object({ roomId: z.string(), text: z.string().min(1) }),
       ack: z.object({ id: z.string(), sentAt: z.number() }),
     },
     typing: {
-      direction: "client->server",
+      direction: 'client->server',
       request: z.object({ roomId: z.string(), isTyping: z.boolean() }),
     },
     message: {
-      direction: "server->client",
+      direction: 'server->client',
       payload: z.object({ id: z.string(), text: z.string(), user: z.string() }),
     },
   },
-});
+})
 ```
 
 **2. Use it.** The client is generated from the contract — there is no event
 name to mistype and no payload shape to keep in sync:
 
 ```ts
-import { createSocketClient } from "@tahanabavi/typesocket";
-import { wsContracts } from "./ws-contracts";
+import { createSocketClient } from '@tahanabavi/typesocket'
+import { wsContracts } from './ws-contracts'
 
-const client = createSocketClient({ url: "http://localhost:3001" }, wsContracts);
+const client = createSocketClient({ url: 'http://localhost:3001' }, wsContracts)
 
 // server -> client: listening. `m` is fully typed.
-const off = client.modules.chat.message.on((m) => console.log(m.user, m.text));
+const off = client.modules.chat.message.on((m) => console.log(m.user, m.text))
 
 // client -> server with an ack: returns a Promise of the *validated* ack.
-const { id } = await client.modules.chat.sendMessage({ roomId: "r1", text: "hi" });
+const { id } = await client.modules.chat.sendMessage({
+  roomId: 'r1',
+  text: 'hi',
+})
 
 // client -> server without an ack: fire-and-forget, returns void.
-client.modules.chat.typing({ roomId: "r1", isTyping: true });
+client.modules.chat.typing({ roomId: 'r1', isTyping: true })
 
-off(); // unsubscribe
+off() // unsubscribe
 ```
 
 Whether an emit returns `Promise<Ack>` or `void` is decided by the contract:
@@ -116,9 +119,9 @@ every event a stable `eventId` (`"chat.sendMessage"`) — the same
 key both transports the same way.
 
 ```ts
-client.modules.chat.sendMessage.eventId; // "chat.sendMessage"
-client.modules.chat.sendMessage.def;     // the contract definition
-client.events;                           // every event, flattened, for tooling
+client.modules.chat.sendMessage.eventId // "chat.sendMessage"
+client.modules.chat.sendMessage.def // the contract definition
+client.events // every event, flattened, for tooling
 ```
 
 ---
@@ -128,15 +131,15 @@ client.events;                           // every event, flattened, for tooling
 ```ts
 // Ack declared → Promise, rejecting on validation failure or timeout.
 const ack = await client.modules.chat.sendMessage(
-  { roomId: "r1", text: "hi" },
-  { timeoutMs: 3_000, signal: controller.signal },
-);
+  { roomId: 'r1', text: 'hi' },
+  { timeoutMs: 3_000, signal: controller.signal }
+)
 
 // No ack declared → void, throwing synchronously on an invalid payload.
-client.modules.chat.typing({ roomId: "r1", isTyping: true });
+client.modules.chat.typing({ roomId: 'r1', isTyping: true })
 
 // Validate now, send on the next connect.
-client.modules.chat.typing.queue({ roomId: "r1", isTyping: false });
+client.modules.chat.typing.queue({ roomId: 'r1', isTyping: false })
 ```
 
 `queue()` validates **at call time**, so a malformed payload fails where you
@@ -152,7 +155,7 @@ doesn't match the `ack` schema, the promise rejects with a
 
 ## Permissions
 
-*(v2.1.0)* A `client->server` event may carry an optional **`permission`**
+_(v2.1.0)_ A `client->server` event may carry an optional **`permission`**
 requirement — the flag names a gateway guard and the client both check. Only
 outbound events carry it: **the client authorizes what it sends, never what it
 receives**.
@@ -161,13 +164,13 @@ receives**.
 export const contracts = defineSocketContracts({
   chat: {
     deleteAny: {
-      direction: "client->server",
-      permission: { require: ["chat.MANAGE_MESSAGES"] }, // ← new, optional
+      direction: 'client->server',
+      permission: { require: ['chat.MANAGE_MESSAGES'] }, // ← new, optional
       request: z.object({ id: z.string() }),
       ack: z.object({ ok: z.boolean() }),
     },
   },
-});
+})
 ```
 
 The value is a `PermissionRequirement` — `{ require?, any?, reason? }` (`require`
@@ -181,23 +184,26 @@ The value is a `PermissionRequirement` — `{ require?, any?, reason? }` (`requi
   option; a denied emit throws before it reaches the wire.
 
 ```ts
-import { SocketClient, createPermissionMiddleware } from "@tahanabavi/typesocket";
-import { P } from "./permissions";
+import {
+  SocketClient,
+  createPermissionMiddleware,
+} from '@tahanabavi/typesocket'
+import { P } from './permissions'
 
 const client = new SocketClient(config, contracts, {
   authorizeOutbound: createPermissionMiddleware({
     getPermissions: () => store.getSnapshot().global, // synchronous
     authorize: P.authorize,
   }),
-});
+})
 
 // blocked emits throw PermissionDeniedError — an ack'd emit rejects, a
 // fire-and-forget one throws synchronously; other events are untouched:
-await client.modules.chat.deleteAny({ id });
+await client.modules.chat.deleteAny({ id })
 ```
 
 It goes through `authorizeOutbound` rather than `client.use()` on purpose: a
-`SocketMiddleware` can only *drop* a frame silently, whereas this **throws to the
+`SocketMiddleware` can only _drop_ a frame silently, whereas this **throws to the
 call site**. `getPermissions` is synchronous so a fire-and-forget emit can fail
 synchronously. The check is **UX only** — the server re-authorizes every frame.
 
@@ -209,16 +215,16 @@ Additive: events without a `permission` key are unaffected. See
 ## Listening
 
 ```ts
-const off = client.modules.chat.message.on((m) => render(m));
-off();                                      // or .off(handler) / .offAll()
+const off = client.modules.chat.message.on((m) => render(m))
+off() // or .off(handler) / .offAll()
 
-client.modules.chat.message.once((m) => greet(m));
+client.modules.chat.message.once((m) => greet(m))
 
 // Resolve on the next matching payload.
 const mine = await client.modules.chat.message.wait({
   timeoutMs: 5_000,
-  filter: (m) => m.user === "taha",
-});
+  filter: (m) => m.user === 'taha',
+})
 ```
 
 Every subscribe call returns its own unsubscribe function. Subscriptions live
@@ -237,21 +243,21 @@ an unrelated handler's call stack helps nobody.
 Every error extends `SocketError` and carries a stable `code` plus the
 `eventId` it belongs to.
 
-| Class | Code | Raised when |
-| --- | --- | --- |
-| `SocketValidationError` | `ERR_SOCKET_VALIDATION` | A frame fails its schema. `phase` is `"request"`, `"ack"` or `"payload"`; `issues` holds the Zod issues. |
-| `SocketAckTimeoutError` | `ERR_SOCKET_ACK_TIMEOUT` | No acknowledgement arrived in time. |
-| `SocketNotConnectedError` | `ERR_SOCKET_NOT_CONNECTED` | An emit was attempted with no live connection. |
-| `SocketWaitTimeoutError` | `ERR_SOCKET_WAIT_TIMEOUT` | `.wait()` expired. |
-| `SocketOverrideError` | `ERR_SOCKET_OVERRIDE` | An instrumentation override forced a failure. |
+| Class                     | Code                       | Raised when                                                                                              |
+| ------------------------- | -------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `SocketValidationError`   | `ERR_SOCKET_VALIDATION`    | A frame fails its schema. `phase` is `"request"`, `"ack"` or `"payload"`; `issues` holds the Zod issues. |
+| `SocketAckTimeoutError`   | `ERR_SOCKET_ACK_TIMEOUT`   | No acknowledgement arrived in time.                                                                      |
+| `SocketNotConnectedError` | `ERR_SOCKET_NOT_CONNECTED` | An emit was attempted with no live connection.                                                           |
+| `SocketWaitTimeoutError`  | `ERR_SOCKET_WAIT_TIMEOUT`  | `.wait()` expired.                                                                                       |
+| `SocketOverrideError`     | `ERR_SOCKET_OVERRIDE`      | An instrumentation override forced a failure.                                                            |
 
 ```ts
-import { SocketValidationError } from "@tahanabavi/typesocket";
+import { SocketValidationError } from '@tahanabavi/typesocket'
 
 try {
-  await client.modules.chat.sendMessage({ roomId: "r1", text: "" });
+  await client.modules.chat.sendMessage({ roomId: 'r1', text: '' })
 } catch (error) {
-  if (error instanceof SocketValidationError) console.error(error.issues);
+  if (error instanceof SocketValidationError) console.error(error.issues)
 }
 ```
 
@@ -263,15 +269,15 @@ Middleware sees **both** directions and can observe, rewrite, or drop a frame.
 
 ```ts
 const remove = client.use((frame) => {
-  console.debug(frame.direction, frame.eventId, frame.payload);
+  console.debug(frame.direction, frame.eventId, frame.payload)
 
-  if (frame.direction === "outbound" && isRateLimited(frame.eventId)) {
-    return false; // drop it
+  if (frame.direction === 'outbound' && isRateLimited(frame.eventId)) {
+    return false // drop it
   }
-  if (frame.direction === "outbound") {
-    return { payload: { ...(frame.payload as object), ts: Date.now() } };
+  if (frame.direction === 'outbound') {
+    return { payload: { ...(frame.payload as object), ts: Date.now() } }
   }
-});
+})
 ```
 
 Returning `undefined` passes the frame through, `false` drops it, and
@@ -292,28 +298,28 @@ const detach = client.instrument({
   on(event) {
     // "connect" | "disconnect" | "connect_error"
     // "outbound" | "ack" | "inbound" | "dropped" | "frame_error"
-    timeline.push(event);
+    timeline.push(event)
   },
   resolveOverride(eventId, payload) {
-    if (eventId === "chat.sendMessage") {
-      return { latencyMs: 800, ack: { id: "mocked", sentAt: Date.now() } };
+    if (eventId === 'chat.sendMessage') {
+      return { latencyMs: 800, ack: { id: 'mocked', sentAt: Date.now() } }
     }
   },
-});
+})
 ```
 
 `outbound` and its `ack`/`frame_error` share a `frameId`, so a panel can pair
 them. Overrides let a devtools panel change one frame **without touching the
 contract**:
 
-| Field | Effect |
-| --- | --- |
-| `drop` | Discard the frame. An emit awaiting an ack then times out, as a lost packet would. |
-| `latencyMs` | Delay the frame. |
-| `payload` | Replace the payload (value or deriving function). |
-| `ack` | Answer locally, bypassing the network. Still validated. |
-| `error` | Force a failure. |
-| `request` / `response` | Swap a schema at runtime to test a structural change. |
+| Field                  | Effect                                                                             |
+| ---------------------- | ---------------------------------------------------------------------------------- |
+| `drop`                 | Discard the frame. An emit awaiting an ack then times out, as a lost packet would. |
+| `latencyMs`            | Delay the frame.                                                                   |
+| `payload`              | Replace the payload (value or deriving function).                                  |
+| `ack`                  | Answer locally, bypassing the network. Still validated.                            |
+| `error`                | Force a failure.                                                                   |
+| `request` / `response` | Swap a schema at runtime to test a structural change.                              |
 
 The first hook that returns an override wins for that frame.
 
@@ -324,7 +330,7 @@ The first hook that returns an override wins for that frame.
 ```ts
 const client = new SocketClient(
   {
-    url: "http://localhost:3001",
+    url: 'http://localhost:3001',
     auth: () => ({ token: getToken() }), // re-invoked on every reconnect
     ackTimeoutMs: 10_000,
     maxQueueSize: 100,
@@ -337,10 +343,10 @@ const client = new SocketClient(
     onDisconnect: (reason) => console.log(reason),
     onConnectError: (error) => console.error(error.message),
     middlewares: [logger],
-  },
-);
+  }
+)
 
-client.connect();
+client.connect()
 ```
 
 Reading config from the environment is prefix-driven rather than hardcoded to
@@ -348,12 +354,12 @@ Next.js, and only produces keys for variables that are actually set — so it
 layers cleanly over explicit config:
 
 ```ts
-import { socketConfigFromEnv } from "@tahanabavi/typesocket";
+import { socketConfigFromEnv } from '@tahanabavi/typesocket'
 
 const client = new SocketClient(
-  { url: "/", ...socketConfigFromEnv("NEXT_PUBLIC_SOCKET_") },
-  wsContracts,
-);
+  { url: '/', ...socketConfigFromEnv('NEXT_PUBLIC_SOCKET_') },
+  wsContracts
+)
 ```
 
 Recognised suffixes: `URL`, `PATH`, `AUTO_CONNECT`, `RECONNECTION`,
@@ -366,35 +372,35 @@ Recognised suffixes: `URL`, `PATH`, `AUTO_CONNECT`, `RECONNECTION`,
 
 ### Client
 
-| Member | Description |
-| --- | --- |
-| `new SocketClient(config, contracts, options?)` | Builds the client. Throws on an invalid contract. |
-| `createSocketClient(config, contracts, options?)` | Same, and connects unless `autoConnect: false`. |
-| `.modules` | The generated surface — `modules.<module>.<event>`. |
-| `.connect()` / `.disconnect()` / `.reconnect()` | Connection control. `connect()` is idempotent. |
-| `.destroy()` | Disconnect and drop every handler, middleware and hook. |
-| `.use(middleware)` | Attach middleware. Returns a remover. |
-| `.instrument(hook)` | Attach an instrumentation hook. Returns a detacher. |
-| `.onConnect/.onDisconnect/.onConnectError(fn)` | Lifecycle subscriptions. Each returns an unsubscribe. |
-| `.connected` · `.id` · `.raw` · `.queueSize` · `.events` | Introspection. |
+| Member                                                   | Description                                             |
+| -------------------------------------------------------- | ------------------------------------------------------- |
+| `new SocketClient(config, contracts, options?)`          | Builds the client. Throws on an invalid contract.       |
+| `createSocketClient(config, contracts, options?)`        | Same, and connects unless `autoConnect: false`.         |
+| `.modules`                                               | The generated surface — `modules.<module>.<event>`.     |
+| `.connect()` / `.disconnect()` / `.reconnect()`          | Connection control. `connect()` is idempotent.          |
+| `.destroy()`                                             | Disconnect and drop every handler, middleware and hook. |
+| `.use(middleware)`                                       | Attach middleware. Returns a remover.                   |
+| `.instrument(hook)`                                      | Attach an instrumentation hook. Returns a detacher.     |
+| `.onConnect/.onDisconnect/.onConnectError(fn)`           | Lifecycle subscriptions. Each returns an unsubscribe.   |
+| `.connected` · `.id` · `.raw` · `.queueSize` · `.events` | Introspection.                                          |
 
 ### `client->server` events
 
-| Member | Description |
-| --- | --- |
-| `(input, options?)` | Validate and emit. `Promise<Ack>` when `ack` is declared, else `void`. |
-| `.queue(input)` | Validate now, send on the next connect. |
+| Member                         | Description                                                               |
+| ------------------------------ | ------------------------------------------------------------------------- |
+| `(input, options?)`            | Validate and emit. `Promise<Ack>` when `ack` is declared, else `void`.    |
+| `.queue(input)`                | Validate now, send on the next connect.                                   |
 | `.eventId` · `.event` · `.def` | Metadata for tooling. `.def.permission` carries the optional requirement. |
 
 ### `server->client` events
 
-| Member | Description |
-| --- | --- |
-| `.on(handler)` / `.once(handler)` | Subscribe. Returns an unsubscribe. |
-| `.off(handler)` / `.offAll()` | Detach. |
-| `.wait(options?)` | Resolve on the next valid (optionally filtered) payload. |
-| `.listenerCount` | Live handler count. |
-| `.eventId` · `.event` · `.def` | Metadata for tooling. |
+| Member                            | Description                                              |
+| --------------------------------- | -------------------------------------------------------- |
+| `.on(handler)` / `.once(handler)` | Subscribe. Returns an unsubscribe.                       |
+| `.off(handler)` / `.offAll()`     | Detach.                                                  |
+| `.wait(options?)`                 | Resolve on the next valid (optionally filtered) payload. |
+| `.listenerCount`                  | Live handler count.                                      |
+| `.eventId` · `.event` · `.def`    | Metadata for tooling.                                    |
 
 ### Contract helpers
 
@@ -414,37 +420,41 @@ grouping into modules. `response` becomes `payload`, `callback` becomes `ack`.
 
 ```ts
 // v1
-const onEvents   = { message:     { response: MessageSchema } };
-const emitEvents = { sendMessage: { request: ReqSchema, callback: AckSchema } };
+const onEvents = { message: { response: MessageSchema } }
+const emitEvents = { sendMessage: { request: ReqSchema, callback: AckSchema } }
 
 // v2
 const wsContracts = defineSocketContracts({
   chat: {
-    message:     { direction: "server->client", payload: MessageSchema },
-    sendMessage: { direction: "client->server", request: ReqSchema, ack: AckSchema },
+    message: { direction: 'server->client', payload: MessageSchema },
+    sendMessage: {
+      direction: 'client->server',
+      request: ReqSchema,
+      ack: AckSchema,
+    },
   },
-});
+})
 ```
 
 **Call sites:**
 
-| v1 | v2 |
-| --- | --- |
-| `new SocketService(cfg, on, emit, handlers).init()` | `new SocketClient(cfg, contracts, options).connect()` |
-| `socket.on("message", fn)` | `client.modules.chat.message.on(fn)` |
-| `socket.off("message", fn)` | `client.modules.chat.message.off(fn)` — now actually detaches |
-| `socket.emit("sendMessage", d)` | `client.modules.chat.sendMessage(d)` |
-| `socket.emitAsync("sendMessage", d)` | `client.modules.chat.sendMessage(d)` — ack now validated, and it times out |
-| `socket.emitQueued("sendMessage", d)` | `client.modules.chat.sendMessage.queue(d)` |
-| `socket.waitFor("message", ms)` | `client.modules.chat.message.wait({ timeoutMs: ms })` |
-| `socket.enableDebug()` | `debug: true` in config |
-| `socket.reconnectWithBackoff()` | removed — socket.io's own backoff is configured via `reconnectionDelay` / `reconnectionDelayMax` |
-| `getSocketConfig()` | `socketConfigFromEnv(prefix)` |
+| v1                                                  | v2                                                                                               |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `new SocketService(cfg, on, emit, handlers).init()` | `new SocketClient(cfg, contracts, options).connect()`                                            |
+| `socket.on("message", fn)`                          | `client.modules.chat.message.on(fn)`                                                             |
+| `socket.off("message", fn)`                         | `client.modules.chat.message.off(fn)` — now actually detaches                                    |
+| `socket.emit("sendMessage", d)`                     | `client.modules.chat.sendMessage(d)`                                                             |
+| `socket.emitAsync("sendMessage", d)`                | `client.modules.chat.sendMessage(d)` — ack now validated, and it times out                       |
+| `socket.emitQueued("sendMessage", d)`               | `client.modules.chat.sendMessage.queue(d)`                                                       |
+| `socket.waitFor("message", ms)`                     | `client.modules.chat.message.wait({ timeoutMs: ms })`                                            |
+| `socket.enableDebug()`                              | `debug: true` in config                                                                          |
+| `socket.reconnectWithBackoff()`                     | removed — socket.io's own backoff is configured via `reconnectionDelay` / `reconnectionDelayMax` |
+| `getSocketConfig()`                                 | `socketConfigFromEnv(prefix)`                                                                    |
 
 **Behaviour changes to plan for:**
 
 - Handlers used to fire **twice** on the first connection (and once more per
-  reconnect) because listeners were registered on the socket *and* re-registered
+  reconnect) because listeners were registered on the socket _and_ re-registered
   on `connect`. They now fire once. Code that compensated for the duplicate
   needs the workaround removed.
 - `off()` never removed anything in v1. It does now — check nothing relied on a
@@ -460,11 +470,11 @@ const wsContracts = defineSocketContracts({
 
 ## Examples & release notes
 
-| | |
-| --- | --- |
-| [`examples/basic`](../../examples/basic) | typesocket in four files — contract, server, client, run. |
-| [`examples/chat`](../../examples/chat) | Multi-room chat with presence, typing and a live frame inspector. |
-| [`docs/releases/v2.1.0.md`](./docs/releases/v2.1.0.md) | Contract-linked permissions on `client->server` events. |
+|                                                        |                                                                             |
+| ------------------------------------------------------ | --------------------------------------------------------------------------- |
+| [`examples/basic`](../../examples/basic)               | typesocket in four files — contract, server, client, run.                   |
+| [`examples/chat`](../../examples/chat)                 | Multi-room chat with presence, typing and a live frame inspector.           |
+| [`docs/releases/v2.1.0.md`](./docs/releases/v2.1.0.md) | Contract-linked permissions on `client->server` events.                     |
 | [`docs/releases/v2.0.0.md`](./docs/releases/v2.0.0.md) | The full 2.0 release note, with rationale and the complete migration table. |
 
 ```bash

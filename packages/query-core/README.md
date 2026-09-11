@@ -22,12 +22,12 @@ The client is the whole setup surface. Declare invalidation **once**, here — n
 call site downstream ever names a cache key:
 
 ```ts
-import { QueryClient } from "@tahanabavi/typefetch-query-core";
-import { api } from "./api"; // a typefetch ApiClient
+import { QueryClient } from '@tahanabavi/typefetch-query-core'
+import { api } from './api' // a typefetch ApiClient
 
 const client = new QueryClient({
-  relations: { "user.updateUser": ["user.getUser"] },
-});
+  relations: { 'user.updateUser': ['user.getUser'] },
+})
 ```
 
 `relations` reads `"<mutation id>": ["<query id>", …]`. The id is the contract's
@@ -41,7 +41,7 @@ it offline. Both are additive — leave them off and the engine runs exactly as
 above.
 
 ```ts
-import { collectSources } from "@tahanabavi/typefetch-query-core";
+import { collectSources } from '@tahanabavi/typefetch-query-core'
 
 const client = new QueryClient({
   // Wrap every fetch and mutation. Run the request, or resolve without it to
@@ -51,7 +51,7 @@ const client = new QueryClient({
   // through the typed `setQueryData` — even for an endpoint this tab has yet to
   // mount. `collectSources` builds the map from a client's `.modules` tree.
   sources: collectSources(api.modules),
-});
+})
 ```
 
 `setQueryData` takes a matching `{ updatedAt }` so a mirrored value keeps the
@@ -64,12 +64,16 @@ own.
 ```ts
 // Imperative: fetch (dedups an in-flight request for the same key), or read the
 // cache without triggering one.
-await client.prefetchQuery(api.modules.user.getUser, { path: { id: "1" } });
-const user = client.getQueryData(api.modules.user.getUser, { path: { id: "1" } });
+await client.prefetchQuery(api.modules.user.getUser, { path: { id: '1' } })
+const user = client.getQueryData(api.modules.user.getUser, {
+  path: { id: '1' },
+})
 
 // Reactive: an observer is what an adapter wraps — subscribe + getSnapshot.
-const observer = client.watchQuery(api.modules.user.getUser, { path: { id: "1" } });
-const unsubscribe = observer.subscribe(() => render(observer.getSnapshot()));
+const observer = client.watchQuery(api.modules.user.getUser, {
+  path: { id: '1' },
+})
+const unsubscribe = observer.subscribe(() => render(observer.getSnapshot()))
 ```
 
 Two arguments — endpoint and input — no query key, no query function.
@@ -79,8 +83,8 @@ Two arguments — endpoint and input — no query key, no query function.
 A mutation runs the write and then triggers whatever the client declared for it:
 
 ```ts
-const rename = client.watchMutation(api.modules.user.updateUser);
-await rename.mutateAsync({ path: { id: "1" }, body: { name: "Ada" } });
+const rename = client.watchMutation(api.modules.user.updateUser)
+await rename.mutateAsync({ path: { id: '1' }, body: { name: 'Ada' } })
 // "user.getUser" is invalidated automatically; any watching query refetches.
 ```
 
@@ -88,7 +92,7 @@ Because the engine only calls `endpoint(input)` and reads its id, the same
 `watchMutation` drives a typesocket acked event without changing anything:
 
 ```ts
-const send = client.watchMutation(socket.modules.chat.sendMessage);
+const send = client.watchMutation(socket.modules.chat.sendMessage)
 ```
 
 ## What's in it

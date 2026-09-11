@@ -1,9 +1,4 @@
-import type {
-  AnyEndpointDefZ,
-  ErrorKind,
-  ErrorLike,
-  InferError,
-} from "./types";
+import type { AnyEndpointDefZ, ErrorKind, ErrorLike, InferError } from './types'
 
 /**
  * The client's error type, and the guard that types its body.
@@ -13,8 +8,8 @@ import type {
  */
 
 export class RichError extends Error implements ErrorLike {
-  status?: number;
-  code?: string;
+  status?: number
+  code?: string
   /**
    * Transport-independent classification of this failure, always populated by
    * the client. `status` and `code` stay exactly as the server sent them; this
@@ -24,16 +19,16 @@ export class RichError extends Error implements ErrorLike {
    *
    * @see {@link ErrorKind}
    */
-  kind?: ErrorKind;
-  title?: string;
-  detail?: string;
-  errors?: Record<string, string[]>;
+  kind?: ErrorKind
+  title?: string
+  detail?: string
+  errors?: Record<string, string[]>
   /**
    * Parsed error body. When the failed request's key matches a schema in the
    * endpoint's `errors` map, this holds the parsed/typed body; otherwise it
    * falls back to the raw JSON body.
    */
-  data?: unknown;
+  data?: unknown
   /**
    * Which key in the endpoint's `errors` map produced `data`.
    *
@@ -43,7 +38,7 @@ export class RichError extends Error implements ErrorLike {
    * key the contract was written with rather than the status the wire happened
    * to carry.
    */
-  errorKey?: number | string;
+  errorKey?: number | string
   /**
    * Whether `data` was validated against the endpoint's declared schema for
    * this key. `true` only when a schema existed for `errorKey` and the body
@@ -52,11 +47,11 @@ export class RichError extends Error implements ErrorLike {
    * (fail-open: `data` then holds the raw JSON). `isContractError` requires
    * this to be `true`, so it never narrows to a type the body doesn't match.
    */
-  dataParsed?: boolean;
+  dataParsed?: boolean
 
   constructor(error: Partial<ErrorLike> & { message: string }) {
-    super(error.message);
-    Object.assign(this, error);
+    super(error.message)
+    Object.assign(this, error)
   }
 }
 
@@ -92,15 +87,15 @@ export class RichError extends Error implements ErrorLike {
  */
 export function isContractError<
   E extends AnyEndpointDefZ,
-  S extends keyof NonNullable<E["errors"]> & (number | string),
+  S extends keyof NonNullable<E['errors']> & (number | string),
 >(
   endpoint: E,
   error: unknown,
-  key: S,
+  key: S
 ): error is RichError & { data: InferError<E, S> } {
   return (
     error instanceof RichError &&
     (error.errorKey ?? error.status) === key &&
     error.dataParsed === true
-  );
+  )
 }

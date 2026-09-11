@@ -8,9 +8,9 @@ import type {
   ResponseType,
   TransportDescription,
   TransportKind,
-} from "../types";
+} from '../types'
 
-export type { TransportDescription };
+export type { TransportDescription }
 
 /**
  * The transport seam
@@ -28,7 +28,7 @@ export type { TransportDescription };
  */
 
 /** Seam version an adapter was compiled against. */
-export const TRANSPORT_API_VERSION = 1;
+export const TRANSPORT_API_VERSION = 1
 
 /**
  * What a wire can and cannot do.
@@ -40,48 +40,48 @@ export const TRANSPORT_API_VERSION = 1;
  */
 export type TransportCapabilities = {
   /** Can report request-body upload progress. */
-  uploadProgress?: boolean;
+  uploadProgress?: boolean
   /** Can report response-body download progress. */
-  downloadProgress?: boolean;
+  downloadProgress?: boolean
   /** Which `responseType` values mean anything. `undefined` means none do. */
-  responseTypes?: readonly ResponseType[];
-};
+  responseTypes?: readonly ResponseType[]
+}
 
 /** Everything an adapter is given about the request it is building. */
 export type TransportContext = {
-  endpoint: AnyEndpointDefZ;
+  endpoint: AnyEndpointDefZ
   /** Stable `"module.endpoint"` id; empty for a direct call. */
-  endpointId: string;
+  endpointId: string
   /** The input, already validated against `endpoint.request`. */
-  input: unknown;
+  input: unknown
   /** The client's `baseUrl`. */
-  baseUrl: string;
+  baseUrl: string
   /**
    * The resolved auth token, present only when `endpoint.auth` is set. The
    * client resolves it (and fails the request when it is missing) so token
    * providers work identically everywhere; *applying* it is the transport's
    * job, because "an `Authorization` header" is not universal.
    */
-  token?: string;
-  options?: RequestOptions;
-};
+  token?: string
+  options?: RequestOptions
+}
 
 /** The wire request an adapter produced. */
 export type TransportRequest = {
-  url: string;
-  init: RequestInit;
+  url: string
+  init: RequestInit
   /**
    * The request broken into parts for `MiddlewareContext.request`. Transports
    * without a path/query/body split report the whole message as `body` with
    * `isStructured: false`.
    */
-  parts: RequestParts;
-};
+  parts: RequestParts
+}
 
 /** A decoded success body. */
 export type TransportDecoded = {
   /** The value the endpoint's `response` schema will validate. */
-  value: unknown;
+  value: unknown
   /**
    * Whether the client's `responseWrapper` / `useResponseTransform` pipeline
    * applies. False for anything that is not a JSON/text envelope — unwrapping a
@@ -89,8 +89,8 @@ export type TransportDecoded = {
    * exactly the payloads those response types exist for. Transports with their
    * own envelope (GraphQL's `data`/`errors`) also decline it.
    */
-  enveloped: boolean;
-};
+  enveloped: boolean
+}
 
 /** A wire failure, broken into the parts the client needs. */
 export type TransportFailure = {
@@ -103,19 +103,19 @@ export type TransportFailure = {
    * Returned as fields rather than a constructed error so the client stays the
    * one place that builds errors, and a `kind` cannot be forgotten.
    */
-  error: Partial<ErrorLike> & { message: string };
+  error: Partial<ErrorLike> & { message: string }
   /** The raw parsed failure body, for the client's envelope check. */
-  body: unknown;
+  body: unknown
   /** Whether that body was JSON. */
-  wasJson: boolean;
+  wasJson: boolean
   /** Whether the client's `responseWrapper` failure check applies. */
-  enveloped: boolean;
-};
+  enveloped: boolean
+}
 
 /** Options handed to a transport that provides its own terminal sender. */
 export type TransportSendOptions = {
-  onUploadProgress?: ProgressHandler;
-};
+  onUploadProgress?: ProgressHandler
+}
 
 /**
  * TransportAdapter
@@ -125,26 +125,26 @@ export type TransportSendOptions = {
  */
 export interface TransportAdapter<K extends TransportKind = TransportKind> {
   /** The `transport` value this adapter serves. */
-  readonly kind: K;
+  readonly kind: K
 
   /**
    * The seam version this adapter was built against. The client refuses a
    * mismatch loudly at registration rather than failing strangely on the first
    * request.
    */
-  readonly apiVersion: number;
+  readonly apiVersion: number
 
-  readonly capabilities?: TransportCapabilities;
+  readonly capabilities?: TransportCapabilities
 
   /**
    * Check one endpoint's contract, once, at `init()`. Throw with the endpoint id
    * in the message — a misconfigured route should fail at client construction,
    * never on the first call in production.
    */
-  validate?(endpoint: AnyEndpointDefZ, endpointId: string): void;
+  validate?(endpoint: AnyEndpointDefZ, endpointId: string): void
 
   /** Identify a route for tooling. @see {@link TransportDescription} */
-  describe(endpoint: AnyEndpointDefZ): TransportDescription;
+  describe(endpoint: AnyEndpointDefZ): TransportDescription
 
   /**
    * Which terminal sender this endpoint wants, when the client is the one
@@ -155,16 +155,16 @@ export interface TransportAdapter<K extends TransportKind = TransportKind> {
    * `driver` lives on the `http` registry entry, so only the http adapter has an
    * opinion; every other transport omits this and inherits `"auto"`.
    */
-  resolveDriver?(endpoint: AnyEndpointDefZ): HttpDriver;
+  resolveDriver?(endpoint: AnyEndpointDefZ): HttpDriver
 
   /** Parsed input → wire request. */
-  build(ctx: TransportContext): TransportRequest;
+  build(ctx: TransportContext): TransportRequest
 
   /** 2xx response → the value `response` validates. */
-  decode(res: Response, ctx: TransportContext): Promise<TransportDecoded>;
+  decode(res: Response, ctx: TransportContext): Promise<TransportDecoded>
 
   /** Failed response → the parts of a `RichError`. */
-  fail(res: Response, ctx: TransportContext): Promise<TransportFailure>;
+  fail(res: Response, ctx: TransportContext): Promise<TransportFailure>
 
   /**
    * Optional terminal sender, replacing the client's `fetch`/XHR. Only needed by
@@ -175,6 +175,6 @@ export interface TransportAdapter<K extends TransportKind = TransportKind> {
   send?(
     url: string,
     init: RequestInit,
-    options: TransportSendOptions,
-  ): Promise<Response>;
+    options: TransportSendOptions
+  ): Promise<Response>
 }

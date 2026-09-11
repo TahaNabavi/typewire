@@ -12,34 +12,34 @@ as its own package.** The core is the runtime and nothing else.
 
 ## Status
 
-| # | Unit | State |
-| --- | --- | --- |
-| 0 | Core types — transport registry, `ErrorKind`, `errorKey` | **done** |
-| 0b | Input validation classified like output validation | **done** |
-| 1 | Core seam — `TransportAdapter` + built-in http adapter | **done** |
-| 1b | `driver: "auto" \| "fetch" \| "xhr"` + `resolveDriver` on the seam | **done** |
-| 1c | CI — gzipped size budget, zero-dep assertion, Node/Bun/Deno matrix | **done** |
-| 2 | `@tahanabavi/typefetch-graphql` | **done** — needed zero core changes |
-| 3 | `@tahanabavi/typefetch-grpc` | **done** |
-| 3b | Connect conformance runner in CI | **open** — see below |
-| 4 | `@tahanabavi/typefetch-encryption` — core reaches zero dependencies | **done** |
-| 5a | `@tahanabavi/typewire-cli` — the move, byte-for-byte | **done** |
-| 5b | `typewire.config.ts` + `defineConfig` + `extends` + tsconfig `paths` | **done** |
-| 5c | `typewire init` — detect the project, ask, scaffold | **done** |
-| 5c+ | `release-doc` implemented — it was in `--help` but had no case | **done** |
-| 5d | `snapshot` · `diff` · `lint` · `doctor` · `explain` · `mock` · `generate` | planned |
-| 6 | `@tahanabavi/typewire-codemod` — the migration for everything above | |
-| 7 | Rename the five unpublished packages (see below) | |
-| 8 | Downstream packages (query-core, devtools, nestjs, react) | in progress |
-| 8a | `devtools-core` + `devtools` — transport, `errorKind`, progress | **done** |
-| 8b | `nestjs` — gRPC, GraphQL and typesocket gateways served from one contract | **done** |
-| 8c | query-core seams — `gate` · `sources` · `updatedAt` · `reason` | **done** — [release notes](../packages/query-core/docs/releases/v1.2.0.md) |
-| 9 | Examples updated to the v2 shape | **done** — new `transports` example |
-| 10 | `@tahanabavi/typewire-sync` — mirror · lock · leader, across browser tabs | planned — [`SYNC.md`](./SYNC.md) |
-| 11 | Standard Schema accepted wherever a contract takes a schema | planned — [`SCHEMA.md`](./SCHEMA.md) |
-| 12 | `@tahanabavi/typefetch-sse` — typed SSE and HTTP streaming | planned — [`SSE.md`](./SSE.md) |
-| 13 | `@tahanabavi/typewire-offline` — persisted cache + mutation outbox | planned — [`OFFLINE.md`](./OFFLINE.md) |
-| 14 | `typewire generate mcp` — contracts as agent tools | planned — [`MCP.md`](./MCP.md) |
+| #   | Unit                                                                      | State                                                                      |
+| --- | ------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| 0   | Core types — transport registry, `ErrorKind`, `errorKey`                  | **done**                                                                   |
+| 0b  | Input validation classified like output validation                        | **done**                                                                   |
+| 1   | Core seam — `TransportAdapter` + built-in http adapter                    | **done**                                                                   |
+| 1b  | `driver: "auto" \| "fetch" \| "xhr"` + `resolveDriver` on the seam        | **done**                                                                   |
+| 1c  | CI — gzipped size budget, zero-dep assertion, Node/Bun/Deno matrix        | **done**                                                                   |
+| 2   | `@tahanabavi/typefetch-graphql`                                           | **done** — needed zero core changes                                        |
+| 3   | `@tahanabavi/typefetch-grpc`                                              | **done**                                                                   |
+| 3b  | Connect conformance runner in CI                                          | **open** — see below                                                       |
+| 4   | `@tahanabavi/typefetch-encryption` — core reaches zero dependencies       | **done**                                                                   |
+| 5a  | `@tahanabavi/typewire-cli` — the move, byte-for-byte                      | **done**                                                                   |
+| 5b  | `typewire.config.ts` + `defineConfig` + `extends` + tsconfig `paths`      | **done**                                                                   |
+| 5c  | `typewire init` — detect the project, ask, scaffold                       | **done**                                                                   |
+| 5c+ | `release-doc` implemented — it was in `--help` but had no case            | **done**                                                                   |
+| 5d  | `snapshot` · `diff` · `lint` · `doctor` · `explain` · `mock` · `generate` | planned                                                                    |
+| 6   | `@tahanabavi/typewire-codemod` — the migration for everything above       |                                                                            |
+| 7   | Rename the five unpublished packages (see below)                          |                                                                            |
+| 8   | Downstream packages (query-core, devtools, nestjs, react)                 | in progress                                                                |
+| 8a  | `devtools-core` + `devtools` — transport, `errorKind`, progress           | **done**                                                                   |
+| 8b  | `nestjs` — gRPC, GraphQL and typesocket gateways served from one contract | **done**                                                                   |
+| 8c  | query-core seams — `gate` · `sources` · `updatedAt` · `reason`            | **done** — [release notes](../packages/query-core/docs/releases/v1.2.0.md) |
+| 9   | Examples updated to the v2 shape                                          | **done** — new `transports` example                                        |
+| 10  | `@tahanabavi/typewire-sync` — mirror · lock · leader, across browser tabs | planned — [`SYNC.md`](./SYNC.md)                                           |
+| 11  | Standard Schema accepted wherever a contract takes a schema               | planned — [`SCHEMA.md`](./SCHEMA.md)                                       |
+| 12  | `@tahanabavi/typefetch-sse` — typed SSE and HTTP streaming                | planned — [`SSE.md`](./SSE.md)                                             |
+| 13  | `@tahanabavi/typewire-offline` — persisted cache + mutation outbox        | planned — [`OFFLINE.md`](./OFFLINE.md)                                     |
+| 14  | `typewire generate mcp` — contracts as agent tools                        | planned — [`MCP.md`](./MCP.md)                                             |
 
 The core is at **zero runtime dependencies**, asserted in CI by
 `scripts/assert-no-deps.mjs` rather than claimed in a README. `pnpm verify` runs
@@ -53,19 +53,19 @@ to build what is left, and two rules decide it: a change that unblocks two
 packages ships before either of them, and a breaking change ships as early as it
 can, because every package written after it is one that never has to be migrated.
 
-| # | Unit | Why here |
-| --- | --- | --- |
-| 1 | **8c** — query-core seams | Four additive hooks, no behaviour change. Rows 10 and 13 need all four, so they landed once, first, as their own release — **done** |
-| 2 | **10** — `typewire-sync` | The gap users hit first and the one nothing else covers. M3 (`createTabSync`) is shippable alone, so a slip costs nothing already shipped |
-| 3 | **11** — Standard Schema | Its additive half (S1–S4) blocks nothing and should start now; only S5 breaks, and typefetch 2.0.0 is already on npm, so that half is a **v3** with a real migration. Every release that ships zod-only widens it, which is the argument for starting early even though the free window closed |
-| 4 | **12** — `typefetch-sse` | Its contracts declare a schema per event, so it is written vendor-neutral from the start if 11 is already in. Also the first core-seam change since the transport registry, and it wants a quiet moment |
-| 5 | **13** — `typewire-offline` | Needs 8c *and* the leader primitive from 10. Building it earlier means building half of 10 twice |
-| 6 | **5d** — `snapshot` + `diff` | The enterprise gate, and independent of everything above — which is exactly why it can wait without blocking anything |
-| 7 | **5d** — `lint` · `doctor` · `explain` · `mock` · `generate openapi` | `mock` wants the JSON Schema walker that 11 produces; writing it first means writing it twice |
-| 8 | **14** — `generate mcp` | Shares the `generate` scaffold with `openapi`, and its tool descriptions come out better once 11's ladder exists |
-| 9 | `type-permission` client pre-flight + Vue/React recipes | Small, self-contained, nothing depends on it |
-| 10 | `typewire-vue` / `typewire-angular` | The `Observable` seam already exists; these are adapters, not design work |
-| 11 | **3b** — Connect conformance | An honest gap with nothing waiting on it. Last is where it belongs, not hidden |
+| #   | Unit                                                                 | Why here                                                                                                                                                                                                                                                                                       |
+| --- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **8c** — query-core seams                                            | Four additive hooks, no behaviour change. Rows 10 and 13 need all four, so they landed once, first, as their own release — **done**                                                                                                                                                            |
+| 2   | **10** — `typewire-sync`                                             | The gap users hit first and the one nothing else covers. M3 (`createTabSync`) is shippable alone, so a slip costs nothing already shipped                                                                                                                                                      |
+| 3   | **11** — Standard Schema                                             | Its additive half (S1–S4) blocks nothing and should start now; only S5 breaks, and typefetch 2.0.0 is already on npm, so that half is a **v3** with a real migration. Every release that ships zod-only widens it, which is the argument for starting early even though the free window closed |
+| 4   | **12** — `typefetch-sse`                                             | Its contracts declare a schema per event, so it is written vendor-neutral from the start if 11 is already in. Also the first core-seam change since the transport registry, and it wants a quiet moment                                                                                        |
+| 5   | **13** — `typewire-offline`                                          | Needs 8c _and_ the leader primitive from 10. Building it earlier means building half of 10 twice                                                                                                                                                                                               |
+| 6   | **5d** — `snapshot` + `diff`                                         | The enterprise gate, and independent of everything above — which is exactly why it can wait without blocking anything                                                                                                                                                                          |
+| 7   | **5d** — `lint` · `doctor` · `explain` · `mock` · `generate openapi` | `mock` wants the JSON Schema walker that 11 produces; writing it first means writing it twice                                                                                                                                                                                                  |
+| 8   | **14** — `generate mcp`                                              | Shares the `generate` scaffold with `openapi`, and its tool descriptions come out better once 11's ladder exists                                                                                                                                                                               |
+| 9   | `type-permission` client pre-flight + Vue/React recipes              | Small, self-contained, nothing depends on it                                                                                                                                                                                                                                                   |
+| 10  | `typewire-vue` / `typewire-angular`                                  | The `Observable` seam already exists; these are adapters, not design work                                                                                                                                                                                                                      |
+| 11  | **3b** — Connect conformance                                         | An honest gap with nothing waiting on it. Last is where it belongs, not hidden                                                                                                                                                                                                                 |
 
 **The launch-readiness section below is history, not a plan.** All twelve
 packages are on npm — `typefetch` 2.0.0, `typesocket` 2.2.0, `typewire-nestjs`
@@ -74,7 +74,7 @@ had. The three open decisions were answered by publishing, and step 7's renames
 were answered by default: `type-devtools`, `type-devtools-core`,
 `type-permission`, `typefetch-query-core` and `typefetch-react` are now names
 with users behind them. Renaming them means deprecated aliases and a major
-each — so that row needs re-deciding as *whether*, not *when*.
+each — so that row needs re-deciding as _whether_, not _when_.
 
 `type-opengraph` was dropped from the roadmap. It was the one planned package
 that shared nothing with the rest: no contract, no transport, no `endpointId` —
@@ -106,7 +106,7 @@ runtime — the exact dependency the `GrpcCodec` seam exists to avoid shipping.
 
 It is still the right thing to do, as a CI-only harness with `@bufbuild/protobuf`
 as a dev dependency (dev deps do not ship, so the guarantee holds). It is not
-done, and it is not half-done: writing an unverified workflow that *claims*
+done, and it is not half-done: writing an unverified workflow that _claims_
 conformance would be worse than the honest gap. The 36 tests in `packages/grpc`
 cover the protocol surface we actually implement — URL shape, protocol-version
 header, both deadline spellings, code↔status↔kind mapping in both directions,
@@ -117,16 +117,16 @@ framing, trailers, trailers-only, and the CORS-hidden-trailer case.
 Documentation is complete against the `AGENTS.md` checklist for everything this
 work added:
 
-| Package | README | Release doc | Banner | Changeset |
-| --- | --- | --- | --- | --- |
-| `typefetch` | ✓ | `v2.0.0.md` | ✓ | major |
-| `typefetch-graphql` | ✓ | `v0.1.0.md` | ✓ | minor |
-| `typefetch-grpc` | ✓ | `v0.1.0.md` | ✓ | minor |
-| `typefetch-encryption` | ✓ | `v0.1.0.md` | ✓ | minor |
-| `typewire-cli` | ✓ | `v0.1.0.md` | ✓ | minor |
-| `type-devtools-core` | ✓ | `v0.1.0.md` | ✓ | minor |
-| `type-devtools` | ✓ | `v0.1.0.md` | ✓ | minor |
-| `typewire-nestjs` | ✓ | `v0.2.0.md` | ✓ | minor |
+| Package                | README | Release doc | Banner | Changeset |
+| ---------------------- | ------ | ----------- | ------ | --------- |
+| `typefetch`            | ✓      | `v2.0.0.md` | ✓      | major     |
+| `typefetch-graphql`    | ✓      | `v0.1.0.md` | ✓      | minor     |
+| `typefetch-grpc`       | ✓      | `v0.1.0.md` | ✓      | minor     |
+| `typefetch-encryption` | ✓      | `v0.1.0.md` | ✓      | minor     |
+| `typewire-cli`         | ✓      | `v0.1.0.md` | ✓      | minor     |
+| `type-devtools-core`   | ✓      | `v0.1.0.md` | ✓      | minor     |
+| `type-devtools`        | ✓      | `v0.1.0.md` | ✓      | minor     |
+| `typewire-nestjs`      | ✓      | `v0.2.0.md` | ✓      | minor     |
 
 **Three decisions are still open, and they are the user's to make**, because
 they decide what actually gets published:
@@ -140,7 +140,7 @@ they decide what actually gets published:
    bump it off `0.0.0` and `changeset publish` will not publish it. Either it is
    out of the first launch, or it needs one.
 3. Step 7 (renaming the five `0.0.0` packages off their stray `type-` /
-   `typefetch-` prefixes) is still unscheduled. It is free *now* and expensive
+   `typefetch-` prefixes) is still unscheduled. It is free _now_ and expensive
    after the first publish, so it belongs before launch or never. The two
    devtools packages are among the five, so their new release docs and banners
    would need the name swapped with them.
@@ -153,14 +153,14 @@ they decide what actually gets published:
 `TransportAdapter`, so it carries typefetch's name. A tool that reads
 `typewire.config.ts` and covers every package carries TypeWire's.
 
-| Package | Prefix | Why |
-| --- | --- | --- |
-| `typefetch-graphql` · `-grpc` · `-encryption` | `typefetch-` | plug into typefetch specifically |
-| `typewire-cli` (bin `typewire`) · `typewire-codemod` | `typewire-` | one config, one lockfile, every package |
-| `typewire-query-core` · `typewire-devtools-core` | `typewire-` | already accept typefetch **and** typesocket sources |
-| `typewire-permission` · `typewire-devtools` · `typewire-react` | `typewire-` | family-wide, transport-agnostic by design |
-| `typewire-sync` · `typewire-offline` | `typewire-` | coordinate every package's traffic in one browser; they speak no wire of their own |
-| `typefetch-sse` | `typefetch-` | another `TransportAdapter`, like `-graphql` and `-grpc` |
+| Package                                                        | Prefix       | Why                                                                                |
+| -------------------------------------------------------------- | ------------ | ---------------------------------------------------------------------------------- |
+| `typefetch-graphql` · `-grpc` · `-encryption`                  | `typefetch-` | plug into typefetch specifically                                                   |
+| `typewire-cli` (bin `typewire`) · `typewire-codemod`           | `typewire-`  | one config, one lockfile, every package                                            |
+| `typewire-query-core` · `typewire-devtools-core`               | `typewire-`  | already accept typefetch **and** typesocket sources                                |
+| `typewire-permission` · `typewire-devtools` · `typewire-react` | `typewire-`  | family-wide, transport-agnostic by design                                          |
+| `typewire-sync` · `typewire-offline`                           | `typewire-`  | coordinate every package's traffic in one browser; they speak no wire of their own |
+| `typefetch-sse`                                                | `typefetch-` | another `TransportAdapter`, like `-graphql` and `-grpc`                            |
 
 The three published packages keep their names: `typefetch` (1.7.1), `typesocket`
 (2.0.0), `typewire-nestjs` (0.1.1). The five at `0.0.0` are renamed off the stray
@@ -274,12 +274,12 @@ because it reconstructs the command from the start event's operation and target.
 
 The guard-rail this file asked for turned out to be the smallest part. Rejecting
 a non-http endpoint at module registration is right, but only worth doing if
-something *else* serves it — so the package now serves all four wires:
+something _else_ serves it — so the package now serves all four wires:
 
 - **`.../grpc`** — Connect's JSON protocol is an HTTP POST, so a NestJS app
   serves gRPC contracts with no protobuf runtime. Failures are named in the gRPC
   key space (which is what the contract's `errors` map is keyed by), and
-  deadlines are *enforced* rather than merely received.
+  deadlines are _enforced_ rather than merely received.
 - **`.../graphql`** — the client generates its document from the `response`
   schema, so an operation can be addressed by name and answered from that same
   schema, with no GraphQL engine. Resolvers run through Nest's own pipeline via
@@ -350,7 +350,7 @@ no to a contract-first library. `zod` stays the documented default and every
 example keeps using it; the change is that it is no longer the only thing that
 typechecks.
 
-The work is not in typefetch. It is in the places that read a schema's *shape*
+The work is not in typefetch. It is in the places that read a schema's _shape_
 rather than validating with it: the GraphQL selection-set generator and
 `generate openapi` both walk zod internals today. Those either keep a zod fast
 path or move behind a capability check that says so out loud.

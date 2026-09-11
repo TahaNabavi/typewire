@@ -1,6 +1,6 @@
-import type { AnyEndpointDefZ, TransportDescription } from "../types";
-import type { TransportAdapter } from "./adapter";
-import { httpTransport } from "./http";
+import type { AnyEndpointDefZ, TransportDescription } from '../types'
+import type { TransportAdapter } from './adapter'
+import { httpTransport } from './http'
 
 /**
  * Describe an endpoint without a client.
@@ -16,13 +16,13 @@ import { httpTransport } from "./http";
  */
 export function describeEndpoint(
   endpoint: AnyEndpointDefZ,
-  adapters: Iterable<TransportAdapter> = [httpTransport as TransportAdapter],
+  adapters: Iterable<TransportAdapter> = [httpTransport as TransportAdapter]
 ): TransportDescription {
-  const kind = (endpoint as { transport?: string }).transport ?? "http";
+  const kind = (endpoint as { transport?: string }).transport ?? 'http'
 
   for (const adapter of adapters) {
-    if (adapter.kind === kind) return adapter.describe(endpoint);
+    if (adapter.kind === kind) return adapter.describe(endpoint)
   }
 
-  return { protocol: kind, operation: "?", target: "?" };
+  return { protocol: kind, operation: '?', target: '?' }
 }

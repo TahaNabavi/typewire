@@ -3,14 +3,14 @@ import {
   HttpCode,
   SetMetadata,
   UseInterceptors,
-} from "@nestjs/common";
-import type { AnyEndpointDefZ } from "@tahanabavi/typefetch";
+} from '@nestjs/common'
+import type { AnyEndpointDefZ } from '@tahanabavi/typefetch'
 import {
   TYPEFETCH_ENDPOINT_METADATA,
   TYPEFETCH_OPTIONS_METADATA,
-} from "../constants";
-import { ContractValidationInterceptor } from "../interceptors/contract-validation.interceptor";
-import type { ContractEndpointOptions } from "../types";
+} from '../constants'
+import { ContractValidationInterceptor } from '../interceptors/contract-validation.interceptor'
+import type { ContractEndpointOptions } from '../types'
 
 /**
  * Attach contract validation to a route you declare yourself — for
@@ -36,17 +36,17 @@ import type { ContractEndpointOptions } from "../types";
  */
 export function UseContract(
   endpoint: AnyEndpointDefZ,
-  options: ContractEndpointOptions = {},
+  options: ContractEndpointOptions = {}
 ): MethodDecorator {
   const decorators: MethodDecorator[] = [
     SetMetadata(TYPEFETCH_ENDPOINT_METADATA, endpoint),
     SetMetadata(TYPEFETCH_OPTIONS_METADATA, options),
     UseInterceptors(ContractValidationInterceptor),
-  ];
+  ]
 
   if (options.httpCode !== undefined) {
-    decorators.push(HttpCode(options.httpCode));
+    decorators.push(HttpCode(options.httpCode))
   }
 
-  return applyDecorators(...decorators);
+  return applyDecorators(...decorators)
 }

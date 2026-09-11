@@ -1,32 +1,32 @@
-import { SectionSpec } from "../types";
+import { SectionSpec } from '../types'
 
 export const SECTIONS: SectionSpec[] = [
   {
-    id: "tooling",
+    id: 'tooling',
     start: [1, 0],
     end: [99, 5.5],
-    title: "TOOLING",
-    desc: "Developer tooling",
+    title: 'TOOLING',
+    desc: 'Developer tooling',
 
     style: {
-      background: "color-mix(in oklab, var(--amber) 3%, var(--panel))",
-      border: "var(--amber)",
+      background: 'color-mix(in oklab, var(--amber) 3%, var(--panel))',
+      border: 'var(--amber)',
       borderWidth: 1,
       radius: 12,
       opacity: 0.45,
 
-      hoverBackground: "color-mix(in oklab, var(--amber) 9%, var(--panel))",
-      hoverBorder: "var(--amber)",
+      hoverBackground: 'color-mix(in oklab, var(--amber) 9%, var(--panel))',
+      hoverBorder: 'var(--amber)',
       hoverBorderWidth: 1.5,
       hoverOpacity: 1,
 
       padding: 10,
 
-      titleColor: "var(--amber)",
-      hoverTitleColor: "var(--amber)",
+      titleColor: 'var(--amber)',
+      hoverTitleColor: 'var(--amber)',
 
-      descColor: "var(--muted-foreground)",
-      hoverDescColor: "var(--foreground)",
+      descColor: 'var(--muted-foreground)',
+      hoverDescColor: 'var(--foreground)',
 
       titleSize: 8,
       descSize: 6.5,
@@ -34,31 +34,31 @@ export const SECTIONS: SectionSpec[] = [
   },
 
   {
-    id: "core",
+    id: 'core',
     start: [1, 6],
     end: [99, 12],
-    title: "CORE",
-    desc: "Contracts, client and server",
+    title: 'CORE',
+    desc: 'Contracts, client and server',
 
     style: {
-      background: "color-mix(in oklab, var(--cyan) 2%, var(--panel))",
-      border: "var(--cyan)",
+      background: 'color-mix(in oklab, var(--cyan) 2%, var(--panel))',
+      border: 'var(--cyan)',
       borderWidth: 1,
       radius: 14,
       opacity: 0.4,
 
-      hoverBackground: "color-mix(in oklab, var(--cyan) 7%, var(--panel))",
-      hoverBorder: "var(--cyan)",
+      hoverBackground: 'color-mix(in oklab, var(--cyan) 7%, var(--panel))',
+      hoverBorder: 'var(--cyan)',
       hoverBorderWidth: 1.5,
       hoverOpacity: 1,
 
       padding: 12,
 
-      titleColor: "var(--cyan)",
-      hoverTitleColor: "var(--cyan)",
+      titleColor: 'var(--cyan)',
+      hoverTitleColor: 'var(--cyan)',
 
-      descColor: "var(--muted-foreground)",
-      hoverDescColor: "var(--foreground)",
+      descColor: 'var(--muted-foreground)',
+      hoverDescColor: 'var(--foreground)',
 
       titleSize: 8,
       descSize: 6.5,
@@ -66,31 +66,31 @@ export const SECTIONS: SectionSpec[] = [
   },
 
   {
-    id: "transport",
+    id: 'transport',
     start: [1, 20.5],
     end: [65.5, 36],
-    title: "TRANSPORT",
-    desc: "Network adapters",
+    title: 'TRANSPORT',
+    desc: 'Network adapters',
 
     style: {
-      background: "color-mix(in oklab, var(--cyan) 2%, var(--panel))",
-      border: "var(--cyan)",
+      background: 'color-mix(in oklab, var(--cyan) 2%, var(--panel))',
+      border: 'var(--cyan)',
       borderWidth: 1,
       radius: 14,
       opacity: 0.4,
 
-      hoverBackground: "color-mix(in oklab, var(--cyan) 8%, var(--panel))",
-      hoverBorder: "var(--cyan)",
+      hoverBackground: 'color-mix(in oklab, var(--cyan) 8%, var(--panel))',
+      hoverBorder: 'var(--cyan)',
       hoverBorderWidth: 1.5,
       hoverOpacity: 1,
 
       padding: 12,
 
-      titleColor: "var(--cyan)",
-      hoverTitleColor: "var(--cyan)",
+      titleColor: 'var(--cyan)',
+      hoverTitleColor: 'var(--cyan)',
 
-      descColor: "var(--muted-foreground)",
-      hoverDescColor: "var(--foreground)",
+      descColor: 'var(--muted-foreground)',
+      hoverDescColor: 'var(--foreground)',
 
       titleSize: 8,
       descSize: 6.5,
@@ -98,31 +98,31 @@ export const SECTIONS: SectionSpec[] = [
   },
 
   {
-    id: "server",
+    id: 'server',
     start: [66.5, 20.5],
     end: [99, 36],
-    title: "SERVER",
-    desc: "Server integrations",
+    title: 'SERVER',
+    desc: 'Server integrations',
 
     style: {
-      background: "color-mix(in oklab, var(--wire-ws) 2%, var(--panel))",
-      border: "var(--wire-ws)",
+      background: 'color-mix(in oklab, var(--wire-ws) 2%, var(--panel))',
+      border: 'var(--wire-ws)',
       borderWidth: 1,
       radius: 14,
       opacity: 0.4,
 
-      hoverBackground: "color-mix(in oklab, var(--wire-ws) 8%, var(--panel))",
-      hoverBorder: "var(--wire-ws)",
+      hoverBackground: 'color-mix(in oklab, var(--wire-ws) 8%, var(--panel))',
+      hoverBorder: 'var(--wire-ws)',
       hoverBorderWidth: 1.5,
       hoverOpacity: 1,
 
       padding: 10,
 
-      titleColor: "var(--wire-ws)",
-      hoverTitleColor: "var(--wire-ws)",
+      titleColor: 'var(--wire-ws)',
+      hoverTitleColor: 'var(--wire-ws)',
 
-      descColor: "var(--muted-foreground)",
-      hoverDescColor: "var(--foreground)",
+      descColor: 'var(--muted-foreground)',
+      hoverDescColor: 'var(--foreground)',
 
       titleSize: 8,
       descSize: 6.5,
@@ -130,31 +130,31 @@ export const SECTIONS: SectionSpec[] = [
   },
 
   {
-    id: "framework",
+    id: 'framework',
     start: [1, 41],
     end: [32.5, 61],
-    title: "FRAMEWORK",
-    desc: "Framework integrations",
+    title: 'FRAMEWORK',
+    desc: 'Framework integrations',
 
     style: {
-      background: "color-mix(in oklab, var(--purple) 2%, var(--panel))",
-      border: "var(--purple)",
+      background: 'color-mix(in oklab, var(--purple) 2%, var(--panel))',
+      border: 'var(--purple)',
       borderWidth: 1,
       radius: 14,
       opacity: 0.4,
 
-      hoverBackground: "color-mix(in oklab, var(--purple) 8%, var(--panel))",
-      hoverBorder: "var(--purple)",
+      hoverBackground: 'color-mix(in oklab, var(--purple) 8%, var(--panel))',
+      hoverBorder: 'var(--purple)',
       hoverBorderWidth: 1.5,
       hoverOpacity: 1,
 
       padding: 10,
 
-      titleColor: "var(--purple)",
-      hoverTitleColor: "var(--purple)",
+      titleColor: 'var(--purple)',
+      hoverTitleColor: 'var(--purple)',
 
-      descColor: "var(--muted-foreground)",
-      hoverDescColor: "var(--foreground)",
+      descColor: 'var(--muted-foreground)',
+      hoverDescColor: 'var(--foreground)',
 
       titleSize: 8,
       descSize: 6.5,
@@ -162,31 +162,31 @@ export const SECTIONS: SectionSpec[] = [
   },
 
   {
-    id: "runtime",
+    id: 'runtime',
     start: [33.5, 41],
     end: [65.5, 61],
-    title: "RUNTIME",
-    desc: "Runtime and developer tools",
+    title: 'RUNTIME',
+    desc: 'Runtime and developer tools',
 
     style: {
-      background: "color-mix(in oklab, var(--purple) 2%, var(--panel))",
-      border: "var(--purple)",
+      background: 'color-mix(in oklab, var(--purple) 2%, var(--panel))',
+      border: 'var(--purple)',
       borderWidth: 1,
       radius: 14,
       opacity: 0.4,
 
-      hoverBackground: "color-mix(in oklab, var(--purple) 8%, var(--panel))",
-      hoverBorder: "var(--purple)",
+      hoverBackground: 'color-mix(in oklab, var(--purple) 8%, var(--panel))',
+      hoverBorder: 'var(--purple)',
       hoverBorderWidth: 1.5,
       hoverOpacity: 1,
 
       padding: 10,
 
-      titleColor: "var(--purple)",
-      hoverTitleColor: "var(--purple)",
+      titleColor: 'var(--purple)',
+      hoverTitleColor: 'var(--purple)',
 
-      descColor: "var(--muted-foreground)",
-      hoverDescColor: "var(--foreground)",
+      descColor: 'var(--muted-foreground)',
+      hoverDescColor: 'var(--foreground)',
 
       titleSize: 8,
       descSize: 6.5,
@@ -194,34 +194,34 @@ export const SECTIONS: SectionSpec[] = [
   },
 
   {
-    id: "security",
+    id: 'security',
     start: [66.5, 41],
     end: [99, 61],
-    title: "SECURITY",
-    desc: "Permissions and access",
+    title: 'SECURITY',
+    desc: 'Permissions and access',
 
     style: {
-      background: "color-mix(in oklab, var(--cyan) 2%, var(--panel))",
-      border: "var(--cyan)",
+      background: 'color-mix(in oklab, var(--cyan) 2%, var(--panel))',
+      border: 'var(--cyan)',
       borderWidth: 1,
       radius: 14,
       opacity: 0.4,
 
-      hoverBackground: "color-mix(in oklab, var(--cyan) 8%, var(--panel))",
-      hoverBorder: "var(--cyan)",
+      hoverBackground: 'color-mix(in oklab, var(--cyan) 8%, var(--panel))',
+      hoverBorder: 'var(--cyan)',
       hoverBorderWidth: 1.5,
       hoverOpacity: 1,
 
       padding: 10,
 
-      titleColor: "var(--cyan)",
-      hoverTitleColor: "var(--cyan)",
+      titleColor: 'var(--cyan)',
+      hoverTitleColor: 'var(--cyan)',
 
-      descColor: "var(--muted-foreground)",
-      hoverDescColor: "var(--foreground)",
+      descColor: 'var(--muted-foreground)',
+      hoverDescColor: 'var(--foreground)',
 
       titleSize: 8,
       descSize: 6.5,
     },
   },
-];
+]

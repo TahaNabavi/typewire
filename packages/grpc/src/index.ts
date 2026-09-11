@@ -1,4 +1,4 @@
-export { grpcTransport } from "./transport";
+export { grpcTransport } from './transport'
 
 export {
   GrpcCode,
@@ -7,19 +7,24 @@ export {
   kindFromGrpcCode,
   statusFromGrpcCode,
   codeFromHttpStatus,
-} from "./codes";
+} from './codes'
 
-export { encodeFrame, decodeFrames, parseTrailer, trailerFromHeaders } from "./frames";
-export type { GrpcFrame } from "./frames";
+export {
+  encodeFrame,
+  decodeFrames,
+  parseTrailer,
+  trailerFromHeaders,
+} from './frames'
+export type { GrpcFrame } from './frames'
 
 export type {
   GrpcCodec,
   GrpcEndpointFields,
   GrpcTransportConfig,
   ConnectErrorBody,
-} from "./types";
+} from './types'
 
 // The module augmentation that adds `transport: "grpc"` to typefetch's registry
 // lives in ./types — importing it for its side effect on the type system is what
 // makes installing this package enough to unlock the contract shape.
-import "./types";
+import './types'

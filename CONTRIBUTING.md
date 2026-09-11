@@ -19,10 +19,10 @@ approach before you invest time in a PR.
 
 ## Prerequisites
 
-| Tool | Version | Notes |
-| --- | --- | --- |
-| **Node.js** | **≥ 22.13** | Required by pnpm 11. Check with `node -v`; use `nvm use 22` or install Node 22 LTS. |
-| **pnpm** | 11.6.0 | Pinned via the `packageManager` field. Run `corepack enable` and pnpm is provisioned automatically. |
+| Tool        | Version     | Notes                                                                                               |
+| ----------- | ----------- | --------------------------------------------------------------------------------------------------- |
+| **Node.js** | **≥ 22.13** | Required by pnpm 11. Check with `node -v`; use `nvm use 22` or install Node 22 LTS.                 |
+| **pnpm**    | 11.6.0      | Pinned via the `packageManager` field. Run `corepack enable` and pnpm is provisioned automatically. |
 
 ## Local setup
 

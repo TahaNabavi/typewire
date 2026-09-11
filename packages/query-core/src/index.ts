@@ -11,25 +11,25 @@
  * See ../../docs/ARCHITECTURE.md.
  */
 
-export { hashKey, buildQueryKey } from "./hash-key";
-export type { QueryKey } from "./hash-key";
+export { hashKey, buildQueryKey } from './hash-key'
+export type { QueryKey } from './hash-key'
 
-export { Notifier } from "./observable";
-export type { Observable } from "./observable";
+export { Notifier } from './observable'
+export type { Observable } from './observable'
 
-export { CancelledError, isCancelledError } from "./errors";
-export { resolveSourceId, collectSources } from "./source";
+export { CancelledError, isCancelledError } from './errors'
+export { resolveSourceId, collectSources } from './source'
 
-export { Query } from "./query";
-export type { QueryConfig } from "./query";
+export { Query } from './query'
+export type { QueryConfig } from './query'
 
-export { QueryCache } from "./query-cache";
-export { QueryObserver } from "./query-observer";
-export { MutationObserver } from "./mutation-observer";
-export type { MutationHooks } from "./mutation-observer";
+export { QueryCache } from './query-cache'
+export { QueryObserver } from './query-observer'
+export { MutationObserver } from './mutation-observer'
+export type { MutationHooks } from './mutation-observer'
 
-export { QueryClient, createQueryClient } from "./query-client";
-export type { QueryClientOptions } from "./query-client";
+export { QueryClient, createQueryClient } from './query-client'
+export type { QueryClientOptions } from './query-client'
 
 export type {
   AnyQuerySource,
@@ -62,4 +62,4 @@ export type {
   RetryValue,
   SourceResolver,
   TransferProgressLike,
-} from "./types";
+} from './types'

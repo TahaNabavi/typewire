@@ -1,7 +1,7 @@
-import type { ReactNode } from "react";
+import type { ReactNode } from 'react'
 
-import { Card } from "@/components/ui/card";
-import { cn } from "@/utils";
+import { Card } from '@/components/ui/card'
+import { cn } from '@/utils'
 
 /**
  * shadcn's Card, wearing the brand: the panel gradient, a hairline border in
@@ -19,21 +19,23 @@ export function Panel({
   children,
   dashed,
 }: {
-  className?: string;
-  children: ReactNode;
+  className?: string
+  children: ReactNode
   /** Marks something provisional — an unpublished package, an empty slot. */
-  dashed?: boolean;
+  dashed?: boolean
 }) {
   return (
     <Card
       className={cn(
-        "gap-0 border bg-linear-to-b from-panel to-panel-2 px-(--card-spacing) ring-0",
-        "shadow-[0_30px_70px_-34px_rgba(0,0,0,0.7)]",
-        dashed ? "border-dashed border-hair-strong" : "border-hair",
-        className,
+        'gap-0 border bg-linear-to-b from-panel to-panel-2 px-(--card-spacing) ring-0',
+        'shadow-[0_30px_70px_-34px_rgba(0,0,0,0.7)]',
+        dashed !== null && dashed !== undefined && dashed === true
+          ? 'border-dashed border-hair-strong'
+          : 'border-hair',
+        className
       )}
     >
       {children}
     </Card>
-  );
+  )
 }

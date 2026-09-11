@@ -8,22 +8,22 @@
  */
 export class TypeWireConfigError extends Error {
   /** Always 2. Kept as a field so `bin.ts` never has to pattern-match. */
-  readonly exitCode = 2;
+  readonly exitCode = 2
 
   /** The config file the problem was found in, when there is one. */
-  readonly source: string | undefined;
+  readonly source: string | undefined
 
   /** Dotted key path inside the config, e.g. `typefetch.contracts`. */
-  readonly key: string | undefined;
+  readonly key: string | undefined
 
   constructor(
     message: string,
-    options: { source?: string; key?: string; cause?: unknown } = {},
+    options: { source?: string; key?: string; cause?: unknown } = {}
   ) {
-    super(message, options.cause !== undefined ? { cause: options.cause } : {});
-    this.name = "TypeWireConfigError";
-    this.source = options.source;
-    this.key = options.key;
+    super(message, options.cause !== undefined ? { cause: options.cause } : {})
+    this.name = 'TypeWireConfigError'
+    this.source = options.source
+    this.key = options.key
   }
 }
 
@@ -38,24 +38,24 @@ export class TypeWireConfigError extends Error {
 export function configError(
   key: string,
   problem: string,
-  source: string,
+  source: string
 ): TypeWireConfigError {
   return new TypeWireConfigError(`${short(source)} › ${key} — ${problem}`, {
     source,
     key,
-  });
+  })
 }
 
 /** `/long/absolute/path/typewire.config.ts` → `typewire.config.ts`. */
 function short(source: string): string {
-  return source.split(/[\\/]/).pop() ?? source;
+  return source.split(/[\\/]/).pop() ?? source
 }
 
 export function describeValue(value: unknown): string {
-  if (value === null) return "null";
-  if (Array.isArray(value)) return "an array";
-  if (typeof value === "object") return "an object";
-  if (typeof value === "function") return "a function";
-  if (typeof value === "string") return `the string ${JSON.stringify(value)}`;
-  return String(value);
+  if (value === null) return 'null'
+  if (Array.isArray(value)) return 'an array'
+  if (typeof value === 'object') return 'an object'
+  if (typeof value === 'function') return 'a function'
+  if (typeof value === 'string') return `the string ${JSON.stringify(value)}`
+  return String(value)
 }

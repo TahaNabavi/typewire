@@ -1,10 +1,16 @@
-"use client";
+'use client'
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react'
 
-import { Chip } from "@/components/ui/chip";
-import type { Transport } from "@/lib/registry";
-import { cn } from "@/utils";
+import { Chip } from '@/components/ui/chip'
+import type { Transport } from '@/lib/registry'
+import { cn } from '@/utils'
 
 /**
  * The hero's money shot: one contract at the top, four consumers below, and a
@@ -34,36 +40,36 @@ import { cn } from "@/utils";
  */
 
 export interface Consumer {
-  name: string;
-  role: string;
-  transport: Transport;
-  snippet: string;
+  name: string
+  role: string
+  transport: Transport
+  snippet: string
 }
 
 const COLOR: Record<Transport, string> = {
-  http: "var(--wire-http)",
-  graphql: "var(--wire-graphql)",
-  grpc: "var(--wire-grpc)",
-  ws: "var(--wire-ws)",
-};
+  http: 'var(--wire-http)',
+  graphql: 'var(--wire-graphql)',
+  grpc: 'var(--wire-grpc)',
+  ws: 'var(--wire-ws)',
+}
 
 /** Height of the descent above the cards, in px. */
-const BAND = 56;
+const BAND = 56
 /** Distance between the parallel lines of the bundle, in px. */
-const TRUNK_GAP = 4;
-const CORNER = 7;
+const TRUNK_GAP = 4
+const CORNER = 7
 
 interface Box {
-  left: number;
-  top: number;
-  width: number;
-  height: number;
+  left: number
+  top: number
+  width: number
+  height: number
 }
 
 interface Geometry {
-  width: number;
-  height: number;
-  cards: Box[];
+  width: number
+  height: number
+  cards: Box[]
 }
 
 /**
@@ -73,79 +79,89 @@ interface Geometry {
  * never share a horizontal run.
  */
 function busPath(cx: number, index: number, card: Box, lane: number): string {
-  const from = cx + (index - 1.5) * TRUNK_GAP;
+  const from = cx + (index - 1.5) * TRUNK_GAP
   // Enter the edge that faces the gutter — the short way in.
-  const rightward = card.left > cx;
-  const targetX = rightward ? card.left : card.left + card.width;
-  const targetY = card.top + Math.min(card.height / 2, 34 + lane * 8);
+  const rightward = card.left > cx
+  const targetX = rightward ? card.left : card.left + card.width
+  const targetY = card.top + Math.min(card.height / 2, 34 + lane * 8)
 
-  const dir = rightward ? 1 : -1;
-  const r = Math.min(CORNER, Math.abs(targetX - from) / 2, Math.abs(targetY - BAND) / 2);
+  const dir = rightward ? 1 : -1
+  const r = Math.min(
+    CORNER,
+    Math.abs(targetX - from) / 2,
+    Math.abs(targetY - BAND) / 2
+  )
 
-  if (r <= 1) return `M ${from} 0 V ${targetY} H ${targetX}`;
+  if (r <= 1) return `M ${from} 0 V ${targetY} H ${targetX}`
 
   return [
     `M ${from} 0`,
     `V ${targetY - r}`,
     `Q ${from} ${targetY} ${from + dir * r} ${targetY}`,
     `H ${targetX}`,
-  ].join(" ");
+  ].join(' ')
 }
 
 function useCycle(length: number) {
   // -1 means "no single branch is active" — every one renders lit. That is the
   // reduced-motion state, and also the state before the first tick.
-  const [active, setActive] = useState(-1);
+  const [active, setActive] = useState(-1)
 
   useEffect(() => {
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (reduced.matches) return;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)')
+    if (reduced.matches) return
 
-    let i = 0;
-    setActive(0);
+    let i = 0
+    setActive(0)
     const timer = setInterval(() => {
-      i = (i + 1) % length;
-      setActive(i);
-    }, 2600);
-    return () => clearInterval(timer);
-  }, [length]);
+      i = (i + 1) % length
+      setActive(i)
+    }, 2600)
+    return () => clearInterval(timer)
+  }, [length])
 
-  return active;
+  return active
 }
 
 export function WireFan({ consumers }: { consumers: Consumer[] }) {
-  const active = useCycle(consumers.length);
-  const box = useRef<HTMLDivElement>(null);
-  const cards = useRef<Array<HTMLDivElement | null>>([]);
-  const [geometry, setGeometry] = useState<Geometry | null>(null);
+  const active = useCycle(consumers.length)
+  const box = useRef<HTMLDivElement>(null)
+  const cards = useRef<Array<HTMLDivElement | null>>([])
+  const [geometry, setGeometry] = useState<Geometry | null>(null)
 
   const measure = useCallback(() => {
-    const root = box.current;
-    if (!root) return;
+    const root = box.current
+    if (!root) return
     const measured = cards.current.filter(Boolean).map((card) => ({
       left: card!.offsetLeft,
       top: card!.offsetTop,
       width: card!.offsetWidth,
       height: card!.offsetHeight,
-    }));
-    if (measured.length === 0) return;
-    setGeometry({ width: root.offsetWidth, height: root.offsetHeight, cards: measured });
-  }, []);
+    }))
+    if (measured.length === 0) return
+    setGeometry({
+      width: root.offsetWidth,
+      height: root.offsetHeight,
+      cards: measured,
+    })
+  }, [])
 
   // Layout effect, so the wires are in place on the frame the cards first paint.
   useLayoutEffect(() => {
-    measure();
-    const root = box.current;
-    if (!root || typeof ResizeObserver === "undefined") return;
-    const observer = new ResizeObserver(measure);
-    observer.observe(root);
-    for (const card of cards.current) if (card) observer.observe(card);
-    return () => observer.disconnect();
-  }, [measure]);
+    measure()
+    const root = box.current
+    if (!root || typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(measure)
+    observer.observe(root)
+    for (const card of cards.current) if (card) observer.observe(card)
+    return () => observer.disconnect()
+  }, [measure])
 
   // A single column stacks the cards, and the gutter the bundle runs down no
   // longer exists — so the wires are dropped rather than drawn somewhere wrong.
-  const single = geometry !== null && geometry.cards.every((c) => c.width > geometry.width * 0.9);
+  const single =
+    geometry !== null &&
+    geometry.cards.every((c) => c.width > geometry.width * 0.9)
 
   return (
     <div ref={box} className="relative">
@@ -160,16 +176,16 @@ export function WireFan({ consumers }: { consumers: Consumer[] }) {
           aria-hidden
         >
           {consumers.map((consumer, i) => {
-            const card = geometry.cards[i];
-            if (!card) return null;
-            const path = busPath(geometry.width / 2, i, card, Math.floor(i / 2));
-            const lit = active === -1 || active === i;
+            const card = geometry.cards[i]
+            if (!card) return null
+            const path = busPath(geometry.width / 2, i, card, Math.floor(i / 2))
+            const lit = active === -1 || active === i
             return (
               <g
                 key={consumer.name}
                 style={{
                   opacity: lit ? 1 : 0.3,
-                  transition: "opacity var(--motion-ui) var(--ease-out)",
+                  transition: 'opacity var(--motion-ui) var(--ease-out)',
                 }}
               >
                 <path
@@ -180,7 +196,9 @@ export function WireFan({ consumers }: { consumers: Consumer[] }) {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   opacity={0.8}
-                  style={{ transition: "stroke-width var(--motion-ui) var(--ease-out)" }}
+                  style={{
+                    transition: 'stroke-width var(--motion-ui) var(--ease-out)',
+                  }}
                 />
                 <circle r={2.8} fill={COLOR[consumer.transport]}>
                   <animateMotion
@@ -191,7 +209,7 @@ export function WireFan({ consumers }: { consumers: Consumer[] }) {
                   />
                 </circle>
               </g>
-            );
+            )
           })}
         </svg>
       )}
@@ -202,29 +220,35 @@ export function WireFan({ consumers }: { consumers: Consumer[] }) {
           every card would measure one band-height too high. */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-x-8">
         {consumers.map((consumer, i) => {
-          const lit = active === -1 || active === i;
-          const tone = COLOR[consumer.transport];
+          const lit = active === -1 || active === i
+          const tone = COLOR[consumer.transport]
           return (
             <div
               key={consumer.name}
               ref={(node) => {
-                cards.current[i] = node;
+                cards.current[i] = node
               }}
               className={cn(
-                "min-w-0 rounded-xl border bg-linear-to-b from-panel to-panel-2 p-4",
-                lit ? "border-hair" : "border-hair opacity-55",
+                'min-w-0 rounded-xl border bg-linear-to-b from-panel to-panel-2 p-4',
+                lit ? 'border-hair' : 'border-hair opacity-55'
               )}
               style={{
                 borderTopColor: tone,
                 borderTopWidth: 2,
-                transform: lit && active !== -1 ? "translateY(-2px)" : undefined,
-                boxShadow: lit && active !== -1 ? `0 10px 30px -18px ${tone}` : undefined,
+                transform:
+                  lit && active !== -1 ? 'translateY(-2px)' : undefined,
+                boxShadow:
+                  lit && active !== -1
+                    ? `0 10px 30px -18px ${tone}`
+                    : undefined,
                 transition:
-                  "transform var(--motion-ui) var(--ease-out), opacity var(--motion-ui) var(--ease-out), box-shadow var(--motion-ui) var(--ease-out)",
+                  'transform var(--motion-ui) var(--ease-out), opacity var(--motion-ui) var(--ease-out), box-shadow var(--motion-ui) var(--ease-out)',
               }}
             >
               <div className="flex items-center justify-between gap-2">
-                <span className="truncate font-mono text-xs font-semibold text-fg">{consumer.name}</span>
+                <span className="truncate font-mono text-xs font-semibold text-fg">
+                  {consumer.name}
+                </span>
                 <Chip tone={tone}>{consumer.role}</Chip>
               </div>
               {/* A snippet is one long token with no spaces to break at, so it
@@ -235,23 +259,41 @@ export function WireFan({ consumers }: { consumers: Consumer[] }) {
                 {consumer.snippet}
               </p>
             </div>
-          );
+          )
         })}
       </div>
     </div>
-  );
+  )
 }
 
 /** A short horizontal wire, for "this becomes that" pairs. */
-export function WireLink({ color = "var(--cyan)", width = 44 }: { color?: string; width?: number }) {
-  const path = "M 2 12 C 16 12 28 12 42 12";
+export function WireLink({
+  color = 'var(--cyan)',
+  width = 44,
+}: {
+  color?: string
+  width?: number
+}) {
+  const path = 'M 2 12 C 16 12 28 12 42 12'
   return (
-    <svg viewBox="0 0 44 24" width={width} height={24} className="overflow-visible" aria-hidden>
-      <path d={path} fill="none" stroke={color} strokeWidth={1.6} opacity={0.6} />
+    <svg
+      viewBox="0 0 44 24"
+      width={width}
+      height={24}
+      className="overflow-visible"
+      aria-hidden
+    >
+      <path
+        d={path}
+        fill="none"
+        stroke={color}
+        strokeWidth={1.6}
+        opacity={0.6}
+      />
       <circle cx={42} cy={12} r={2.6} fill={color} />
       <circle r={2.8} fill={color}>
         <animateMotion dur="2.2s" repeatCount="indefinite" path={path} />
       </circle>
     </svg>
-  );
+  )
 }

@@ -1,7 +1,7 @@
 packages:
-  - "packages/*"
-  - "examples/*"
-  - "apps/*"
+  - 'packages/*'
+  - 'examples/*'
+  - 'apps/*'
 
 # Some registry mirrors ignore the abbreviated-metadata header and return the
 # full packument — tens of MB for a package with a long release history. The
@@ -17,16 +17,16 @@ onlyBuiltDependencies:
   - unrs-resolver
   # Prisma's postinstall is what places its query engine; without it the
   # generated client has nothing to talk to.
-  - "@prisma/client"
-  - "@prisma/engines"
+  - '@prisma/client'
+  - '@prisma/engines'
   - prisma
 
 ignoredBuiltDependencies:
-  - "@scarf/scarf"
+  - '@scarf/scarf'
 
 allowBuilds:
   esbuild: true
   unrs-resolver: true
-  "@scarf/scarf": false
+  '@scarf/scarf': false
   '@prisma/engines': true
   prisma: true

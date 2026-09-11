@@ -11,7 +11,7 @@
  * GraphQL override registered under `"graphql"` would never match, because the
  * connector that resolves it is typefetch's.
  */
-export type InspectorSource = "http" | "ws" | (string & {});
+export type InspectorSource = 'http' | 'ws' | (string & {})
 
 /**
  * The reactivity contract, redeclared rather than imported from
@@ -19,8 +19,8 @@ export type InspectorSource = "http" | "ws" | (string & {});
  * identical, so anything binding one binds the other.
  */
 export interface Observable<T> {
-  getSnapshot(): T;
-  subscribe(listener: () => void): () => void;
+  getSnapshot(): T
+  subscribe(listener: () => void): () => void
 }
 
 /**
@@ -29,19 +29,19 @@ export interface Observable<T> {
  * panel can render one unified timeline.
  */
 export interface InspectorEvent {
-  source: InspectorSource;
+  source: InspectorSource
   /** Transport-specific event name, e.g. `start`, `ack`, `dropped`. */
-  kind: string;
+  kind: string
   /** Correlates related events: typefetch's `requestId`, typesocket's `frameId`. */
-  id: string;
+  id: string
   /** The `"module.member"` key — `endpointId` or `eventId`. */
-  label: string;
+  label: string
   /** Timestamp (ms). */
-  ts: number;
+  ts: number
   /** The meaningful data for this event: the input, the result, or the error. */
-  payload: unknown;
+  payload: unknown
   /** Elapsed time, on the events that conclude a call. */
-  durationMs?: number;
+  durationMs?: number
   /**
    * Which wire carried this call — `"http"`, `"graphql"`, `"grpc"`, or whatever
    * a third-party adapter names itself. Only the opening event of a call
@@ -50,9 +50,9 @@ export interface InspectorEvent {
    * Optional because a client older than the transport registry emits none, and
    * because typesocket has exactly one wire and says so through `source`.
    */
-  transport?: string;
+  transport?: string
   /** Transport-specific extras (`fromMock`, `queued`, `direction`, `by`, …). */
-  meta?: Record<string, unknown>;
+  meta?: Record<string, unknown>
 }
 
 /**
@@ -64,13 +64,13 @@ export interface InspectorEvent {
  * of what an inspector is for.
  */
 export interface InspectorProgress {
-  phase: "upload" | "download";
-  loaded: number;
-  total?: number;
-  percent?: number;
-  lengthComputable: boolean;
+  phase: 'upload' | 'download'
+  loaded: number
+  total?: number
+  percent?: number
+  lengthComputable: boolean
   /** When this tick was recorded (ms). */
-  ts: number;
+  ts: number
 }
 
 /**
@@ -79,21 +79,21 @@ export interface InspectorProgress {
  */
 export interface InspectorEntry {
   /** `${source}:${id}` — unique across transports. */
-  key: string;
-  source: InspectorSource;
-  id: string;
-  label: string;
-  status: "pending" | "success" | "error" | "dropped" | "info";
-  startedAt: number;
-  durationMs?: number;
-  input?: unknown;
-  output?: unknown;
-  error?: unknown;
+  key: string
+  source: InspectorSource
+  id: string
+  label: string
+  status: 'pending' | 'success' | 'error' | 'dropped' | 'info'
+  startedAt: number
+  durationMs?: number
+  input?: unknown
+  output?: unknown
+  error?: unknown
   /**
    * Which wire carried the call, hoisted from the opening event. Absent when
    * the client never reported one.
    */
-  transport?: string;
+  transport?: string
   /**
    * The failure's normalized classification — typefetch's `ErrorKind`, hoisted
    * out of the error so a panel can show and filter on it without reaching into
@@ -104,10 +104,10 @@ export interface InspectorEntry {
    * `not_found`, so one glance answers "what went wrong" without first asking
    * "on which wire".
    */
-  errorKind?: string;
+  errorKind?: string
   /** Latest transfer progress, while the call is still in flight. */
-  progress?: InspectorProgress;
-  events: InspectorEvent[];
+  progress?: InspectorProgress
+  events: InspectorEvent[]
 }
 
 /**
@@ -117,13 +117,13 @@ export interface InspectorEntry {
  */
 export interface InspectorOverride {
   /** Answer locally: a mocked HTTP response, or a mocked WS ack. */
-  mock?: unknown | ((input: unknown) => unknown);
+  mock?: unknown | ((input: unknown) => unknown)
   /** Force a failure. `status` is HTTP-only; `code`/`message` apply to both. */
-  error?: { status?: number; code?: string; message?: string };
+  error?: { status?: number; code?: string; message?: string }
   /** Artificial latency (ms). */
-  latencyMs?: number;
+  latencyMs?: number
   /** Discard the frame. WS-only — HTTP has no equivalent and ignores it. */
-  drop?: boolean;
+  drop?: boolean
 }
 
 /**
@@ -132,9 +132,9 @@ export interface InspectorOverride {
  */
 export interface Instrumentable<TEvent, TOverride> {
   instrument(hook: {
-    on?: (event: TEvent) => void;
-    resolveOverride?: (id: string, input: unknown) => TOverride | undefined;
-  }): () => void;
+    on?: (event: TEvent) => void
+    resolveOverride?: (id: string, input: unknown) => TOverride | undefined
+  }): () => void
 }
 
 /**
@@ -143,117 +143,117 @@ export interface Instrumentable<TEvent, TOverride> {
  * which carries a transport-specific body alongside these.
  */
 export interface TypeFetchErrorLike {
-  message?: string;
-  status?: number;
-  code?: string;
+  message?: string
+  status?: number
+  code?: string
   /** typefetch's `ErrorKind`: the transport-independent classification. */
-  kind?: string;
-  [key: string]: unknown;
+  kind?: string
+  [key: string]: unknown
 }
 
 /** typefetch's `RequestEvent`, structurally. */
 export type TypeFetchRequestEvent =
   | {
-      type: "start";
-      requestId: string;
-      endpointId: string;
-      method: string;
-      url: string;
+      type: 'start'
+      requestId: string
+      endpointId: string
+      method: string
+      url: string
       /** The adapter that served the call. Absent before the transport registry. */
-      transport?: string;
-      input: unknown;
-      timestamp: number;
+      transport?: string
+      input: unknown
+      timestamp: number
     }
   | {
-      type: "success";
-      requestId: string;
-      endpointId: string;
-      data: unknown;
-      durationMs: number;
-      fromMock: boolean;
+      type: 'success'
+      requestId: string
+      endpointId: string
+      data: unknown
+      durationMs: number
+      fromMock: boolean
     }
   | {
-      type: "error";
-      requestId: string;
-      endpointId: string;
-      status?: number;
-      error: TypeFetchErrorLike;
-      durationMs: number;
+      type: 'error'
+      requestId: string
+      endpointId: string
+      status?: number
+      error: TypeFetchErrorLike
+      durationMs: number
     }
   | {
-      type: "progress";
-      requestId: string;
-      endpointId: string;
-      phase: "upload" | "download";
-      loaded: number;
-      total?: number;
-      percent?: number;
-      lengthComputable: boolean;
-      durationMs: number;
-    };
+      type: 'progress'
+      requestId: string
+      endpointId: string
+      phase: 'upload' | 'download'
+      loaded: number
+      total?: number
+      percent?: number
+      lengthComputable: boolean
+      durationMs: number
+    }
 
 /** typefetch's `Override`, structurally. */
 export interface TypeFetchOverride {
-  mock?: unknown | ((input: unknown) => unknown);
-  error?: { status?: number; code?: string; message?: string; body?: unknown };
-  latencyMs?: number;
+  mock?: unknown | ((input: unknown) => unknown)
+  error?: { status?: number; code?: string; message?: string; body?: unknown }
+  latencyMs?: number
 }
 
 /** typesocket's `SocketEvent`, structurally. */
 export type TypeSocketEvent =
-  | { type: "connect"; ts: number; socketId?: string; attempt: number }
-  | { type: "disconnect"; ts: number; reason: string }
-  | { type: "connect_error"; ts: number; error: unknown }
+  | { type: 'connect'; ts: number; socketId?: string; attempt: number }
+  | { type: 'disconnect'; ts: number; reason: string }
+  | { type: 'connect_error'; ts: number; error: unknown }
   | {
-      type: "outbound";
-      frameId: string;
-      eventId: string;
-      event: string;
-      payload: unknown;
-      ts: number;
-      queued: boolean;
-      expectsAck: boolean;
+      type: 'outbound'
+      frameId: string
+      eventId: string
+      event: string
+      payload: unknown
+      ts: number
+      queued: boolean
+      expectsAck: boolean
     }
   | {
-      type: "ack";
-      frameId: string;
-      eventId: string;
-      data: unknown;
-      durationMs: number;
-      fromMock: boolean;
+      type: 'ack'
+      frameId: string
+      eventId: string
+      data: unknown
+      durationMs: number
+      fromMock: boolean
     }
   | {
-      type: "inbound";
-      frameId: string;
-      eventId: string;
-      event: string;
-      payload: unknown;
-      ts: number;
-      injected: boolean;
+      type: 'inbound'
+      frameId: string
+      eventId: string
+      event: string
+      payload: unknown
+      ts: number
+      injected: boolean
     }
   | {
-      type: "dropped";
-      frameId: string;
-      eventId: string;
-      direction: "inbound" | "outbound";
-      by: "middleware" | "override";
-      ts: number;
+      type: 'dropped'
+      frameId: string
+      eventId: string
+      direction: 'inbound' | 'outbound'
+      by: 'middleware' | 'override'
+      ts: number
     }
   | {
-      type: "frame_error";
-      frameId: string;
-      eventId: string;
-      direction: "inbound" | "outbound";
-      error: unknown;
-      ts: number;
-    };
+      type: 'frame_error'
+      frameId: string
+      eventId: string
+      direction: 'inbound' | 'outbound'
+      error: unknown
+      ts: number
+    }
 
 /** typesocket's `SocketOverride`, structurally. */
 export interface TypeSocketOverride {
-  drop?: boolean;
-  latencyMs?: number;
-  ack?: unknown | ((input: unknown) => unknown);
-  error?: { code?: string; message?: string };
+  drop?: boolean
+  latencyMs?: number
+  ack?: unknown | ((input: unknown) => unknown)
+  error?: { code?: string; message?: string }
 }
 
 // ── query-core, structurally ─────────────────────────────────────────────────
@@ -262,48 +262,48 @@ export interface TypeSocketOverride {
 
 /** query-core's `QueryState`, structurally. */
 export interface QueryStateLike {
-  status: "pending" | "success" | "error";
-  fetchStatus: "idle" | "fetching";
-  data: unknown;
-  error: unknown;
+  status: 'pending' | 'success' | 'error'
+  fetchStatus: 'idle' | 'fetching'
+  data: unknown
+  error: unknown
   /** When `data` was last written (ms). `0` means never. */
-  dataUpdatedAt: number;
+  dataUpdatedAt: number
   /** When `error` was last written (ms). `0` means never. */
-  errorUpdatedAt: number;
-  failureCount: number;
+  errorUpdatedAt: number
+  failureCount: number
   /** Set by `invalidateQueries`; the next read is treated as stale. */
-  isInvalidated: boolean;
+  isInvalidated: boolean
 }
 
 /** A mutation's lifecycle, structurally. */
-export type MutationStatusLike = "idle" | "pending" | "success" | "error";
+export type MutationStatusLike = 'idle' | 'pending' | 'success' | 'error'
 
 /** query-core's `QueryCacheEvent`, structurally. */
 export type QueryCacheEventLike =
-  | { type: "added"; key: string; endpointId: string; state: QueryStateLike }
-  | { type: "updated"; key: string; endpointId: string; state: QueryStateLike }
-  | { type: "removed"; key: string; endpointId: string }
+  | { type: 'added'; key: string; endpointId: string; state: QueryStateLike }
+  | { type: 'updated'; key: string; endpointId: string; state: QueryStateLike }
+  | { type: 'removed'; key: string; endpointId: string }
   | {
-      type: "mutation";
-      endpointId: string;
-      status: MutationStatusLike;
-      variables: unknown;
-      data: unknown;
-      error: unknown;
-    };
+      type: 'mutation'
+      endpointId: string
+      status: MutationStatusLike
+      variables: unknown
+      data: unknown
+      error: unknown
+    }
 
 /** One live query in the cache, reduced to what the inspector reads. */
 export interface QueryCacheEntryLike {
-  readonly key: string;
-  readonly endpointId: string;
-  readonly input: unknown;
-  getState(): QueryStateLike;
+  readonly key: string
+  readonly endpointId: string
+  readonly input: unknown
+  getState(): QueryStateLike
 }
 
 /** Which queries an action targets. A subset of query-core's `QueryFilters`. */
 export interface QueryFiltersLike {
-  endpointId?: string | string[];
-  input?: unknown;
+  endpointId?: string | string[]
+  input?: unknown
 }
 
 /**
@@ -312,35 +312,35 @@ export interface QueryFiltersLike {
  * offers. Structural, so devtools-core never imports the query engine.
  */
 export interface QueryClientLike {
-  subscribe(listener: (event: QueryCacheEventLike) => void): () => void;
-  readonly cache: { getAll(): QueryCacheEntryLike[] };
-  invalidateQueries(filters?: QueryFiltersLike): void;
-  refetchQueries(filters?: QueryFiltersLike): Promise<void>;
-  removeQueries(filters?: QueryFiltersLike): void;
+  subscribe(listener: (event: QueryCacheEventLike) => void): () => void
+  readonly cache: { getAll(): QueryCacheEntryLike[] }
+  invalidateQueries(filters?: QueryFiltersLike): void
+  refetchQueries(filters?: QueryFiltersLike): Promise<void>
+  removeQueries(filters?: QueryFiltersLike): void
 }
 
 /** One row in the cache view: a live query with its current state. */
 export interface QuerySnapshot {
-  key: string;
-  endpointId: string;
-  input: unknown;
-  state: QueryStateLike;
+  key: string
+  endpointId: string
+  input: unknown
+  state: QueryStateLike
 }
 
 /** A recent mutation, kept in a small ring for the cache view's activity list. */
 export interface MutationSnapshot {
   /** Synthetic id — mutations carry no cache key. */
-  id: string;
-  endpointId: string;
-  status: MutationStatusLike;
-  variables: unknown;
-  data: unknown;
-  error: unknown;
-  ts: number;
+  id: string
+  endpointId: string
+  status: MutationStatusLike
+  variables: unknown
+  data: unknown
+  error: unknown
+  ts: number
 }
 
 /** The whole cache, as the panel sees it. Replaced wholesale on every change. */
 export interface QueryInspectorSnapshot {
-  queries: QuerySnapshot[];
-  mutations: MutationSnapshot[];
+  queries: QuerySnapshot[]
+  mutations: MutationSnapshot[]
 }

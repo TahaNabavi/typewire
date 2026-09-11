@@ -12,19 +12,19 @@ name: Docs
 on:
   pull_request:
     paths:
-      - "packages/*/package.json"
-      - "packages/*/docs/**"
-      - "packages/*/README.md"
-      - "scripts/check-docs.mjs"
-      - ".github/workflows/docs.yml"
+      - 'packages/*/package.json'
+      - 'packages/*/docs/**'
+      - 'packages/*/README.md'
+      - 'scripts/check-docs.mjs'
+      - '.github/workflows/docs.yml'
   push:
     branches:
       - main
     paths:
-      - "packages/*/package.json"
-      - "packages/*/docs/**"
-      - "packages/*/README.md"
-      - "scripts/check-docs.mjs"
+      - 'packages/*/package.json'
+      - 'packages/*/docs/**'
+      - 'packages/*/README.md'
+      - 'scripts/check-docs.mjs'
   workflow_dispatch:
 
 permissions:

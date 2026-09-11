@@ -1,4 +1,4 @@
-import type { Method, Middleware, PermissionRequirement } from "@/types";
+import type { Method, Middleware, PermissionRequirement } from '@/types'
 
 /**
  * The decision shape the middleware needs from `authorize`. Declared structurally
@@ -7,21 +7,21 @@ import type { Method, Middleware, PermissionRequirement } from "@/types";
  * seam the NestJS `createPermissionGuard` uses on the server.
  */
 export type PermissionDecisionLike = {
-  granted: boolean;
+  granted: boolean
   /** Flags demanded by `require` that the actor lacks. */
-  missing?: string[];
+  missing?: string[]
   /** The `any` set, when it was the failing condition. */
-  missingAny?: string[];
-  reason?: string;
-};
+  missingAny?: string[]
+  reason?: string
+}
 
 /** Context handed to `onDeny` and carried by {@link PermissionDeniedError}. */
 export type PermissionDenyInfo = {
-  method: string;
-  path: string;
-  requirement: PermissionRequirement;
-  decision: PermissionDecisionLike;
-};
+  method: string
+  path: string
+  requirement: PermissionRequirement
+  decision: PermissionDecisionLike
+}
 
 /**
  * Thrown by {@link createPermissionMiddleware} when a call is blocked **before it
@@ -30,24 +30,24 @@ export type PermissionDenyInfo = {
  * so both failures read the same.
  */
 export class PermissionDeniedError extends Error {
-  readonly code = "PERMISSION_DENIED";
-  readonly status = 403;
-  readonly method: string;
-  readonly path: string;
-  readonly missing: string[];
-  readonly missingAny?: string[];
+  readonly code = 'PERMISSION_DENIED'
+  readonly status = 403
+  readonly method: string
+  readonly path: string
+  readonly missing: string[]
+  readonly missingAny?: string[]
 
   constructor(info: PermissionDenyInfo) {
     super(
       info.requirement.reason ??
-        `Blocked by permission: ${info.method} ${info.path}`,
-    );
-    this.name = "PermissionDeniedError";
-    this.method = info.method;
-    this.path = info.path;
-    this.missing = info.decision.missing ?? [];
+        `Blocked by permission: ${info.method} ${info.path}`
+    )
+    this.name = 'PermissionDeniedError'
+    this.method = info.method
+    this.path = info.path
+    this.missing = info.decision.missing ?? []
     if (info.decision.missingAny?.length) {
-      this.missingAny = info.decision.missingAny;
+      this.missingAny = info.decision.missingAny
     }
   }
 }
@@ -58,7 +58,7 @@ export type PermissionMiddlewareConfig = {
    * (a store snapshot, a decoded JWT). **Keep it cheap:** it runs on every
    * request that declares a `permission`. May be async.
    */
-  getPermissions: () => bigint | Promise<bigint>;
+  getPermissions: () => bigint | Promise<bigint>
 
   /**
    * Evaluate the endpoint's requirement against the actor's bits. Pass your
@@ -68,15 +68,15 @@ export type PermissionMiddlewareConfig = {
    */
   authorize: (
     perms: bigint,
-    requirement: PermissionRequirement,
-  ) => PermissionDecisionLike;
+    requirement: PermissionRequirement
+  ) => PermissionDecisionLike
 
   /**
    * Called on every client-side denial before the error is thrown — the audit
    * seam. Denials are worth logging even when they never reach the server.
    */
-  onDeny?: (info: PermissionDenyInfo) => void;
-};
+  onDeny?: (info: PermissionDenyInfo) => void
+}
 
 /**
  * A middleware that enforces an endpoint's contract [`permission`](../types)
@@ -100,21 +100,21 @@ export type PermissionMiddlewareConfig = {
  * }));
  */
 export function createPermissionMiddleware(
-  config: PermissionMiddlewareConfig,
+  config: PermissionMiddlewareConfig
 ): Middleware {
   return async (ctx, next) => {
-    const requirement = ctx.endpoint.permission;
+    const requirement = ctx.endpoint.permission
     // No requirement on this endpoint → nothing to enforce.
     if (
       !requirement ||
       (!requirement.require?.length && !requirement.any?.length)
     ) {
-      return next();
+      return next()
     }
 
-    const perms = await config.getPermissions();
-    const decision = config.authorize(perms, requirement);
-    if (decision.granted) return next();
+    const perms = await config.getPermissions()
+    const decision = config.authorize(perms, requirement)
+    if (decision.granted) return next()
 
     // Read off `ctx.route` rather than the endpoint: the transport registry is
     // open, so `method`/`path` do not exist on every endpoint variant. For an
@@ -125,8 +125,8 @@ export function createPermissionMiddleware(
       path: ctx.route?.target ?? ctx.url,
       requirement,
       decision,
-    };
-    config.onDeny?.(info);
-    throw new PermissionDeniedError(info);
-  };
+    }
+    config.onDeny?.(info)
+    throw new PermissionDeniedError(info)
+  }
 }

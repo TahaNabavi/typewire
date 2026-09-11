@@ -30,7 +30,12 @@ getUser: {
 sends
 
 ```graphql
-query UserGetUser($id: ID!) { user(id: $id) { id name } }
+query UserGetUser($id: ID!) {
+  user(id: $id) {
+    id
+    name
+  }
+}
 ```
 
 Add a field to `response` and it is requested. Remove one and it stops being
@@ -44,21 +49,19 @@ query engine's cache keys.
 ## Setup
 
 ```ts
-import { ApiClient } from "@tahanabavi/typefetch";
-import { graphqlTransport } from "@tahanabavi/typefetch-graphql";
-import { contracts } from "./contracts";
+import { ApiClient } from '@tahanabavi/typefetch'
+import { graphqlTransport } from '@tahanabavi/typefetch-graphql'
+import { contracts } from './contracts'
 
 const client = new ApiClient(
   {
-    baseUrl: "https://api.example.com",
-    transports: [
-      graphqlTransport({ url: "https://api.example.com/graphql" }),
-    ],
+    baseUrl: 'https://api.example.com',
+    transports: [graphqlTransport({ url: 'https://api.example.com/graphql' })],
   },
-  contracts,
-);
+  contracts
+)
 
-client.init();
+client.init()
 ```
 
 Installing the package is what makes `transport: "graphql"` compile — it augments
@@ -67,14 +70,14 @@ REST-only bundle from paying for it.
 
 ## Endpoint fields
 
-| Field | Required | Meaning |
-| --- | --- | --- |
-| `operation` | yes | `"query"` or `"mutation"` |
-| `root` | — | The single field to unwrap, so `response` describes `data.user` rather than `data`. Also the field the variables attach to as arguments. |
-| `document` | — | A hand-written operation. Omit it to have one generated. |
-| `operationName` | — | Defaults to the endpoint id in PascalCase (`user.get` → `UserGet`). |
-| `variableTypes` | — | GraphQL types for variables the Zod type cannot name — `{ id: "ID!" }`. |
-| `errorPolicy` | — | `"none"` (default) or `"all"`. See below. |
+| Field           | Required | Meaning                                                                                                                                  |
+| --------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `operation`     | yes      | `"query"` or `"mutation"`                                                                                                                |
+| `root`          | —        | The single field to unwrap, so `response` describes `data.user` rather than `data`. Also the field the variables attach to as arguments. |
+| `document`      | —        | A hand-written operation. Omit it to have one generated.                                                                                 |
+| `operationName` | —        | Defaults to the endpoint id in PascalCase (`user.get` → `UserGet`).                                                                      |
+| `variableTypes` | —        | GraphQL types for variables the Zod type cannot name — `{ id: "ID!" }`.                                                                  |
+| `errorPolicy`   | —        | `"none"` (default) or `"all"`. See below.                                                                                                |
 
 Everything transport-independent — `auth`, `permission`, `errors`, `mockData`,
 `headers`, `test` — works exactly as it does for an HTTP endpoint.
@@ -99,12 +102,12 @@ It fails at `client.init()` — not on a request in production — naming the
 endpoint and the path that caused it, and pointing at `document`. Guessing would
 produce a query the server rejects at runtime, which is strictly worse.
 
-| Schema | Why |
-| --- | --- |
+| Schema                      | Why                                                                             |
+| --------------------------- | ------------------------------------------------------------------------------- |
 | `z.union([...])` of objects | needs inline fragments (`... on Type`), and the schema does not say which types |
-| `z.record(...)` | GraphQL has no way to ask for "every field" |
-| recursive schemas | a query must be finite; the depth is a decision only you can make |
-| variables with no `root` | there is no single field to attach the arguments to |
+| `z.record(...)`             | GraphQL has no way to ask for "every field"                                     |
+| recursive schemas           | a query must be finite; the depth is a decision only you can make               |
+| variables with no `root`    | there is no single field to attach the arguments to                             |
 
 Give those endpoints an explicit `document`; everything else about them still
 works, including validation against `response`.
@@ -116,21 +119,21 @@ global handler covers every transport**:
 
 ```ts
 client.onError((error) => {
-  if (error.kind === "unauthenticated") redirectToLogin();
-});
+  if (error.kind === 'unauthenticated') redirectToLogin()
+})
 ```
 
 fires for a GraphQL `UNAUTHENTICATED` exactly as it does for an HTTP 401.
 
-| `extensions.code` | `kind` |
-| --- | --- |
-| `UNAUTHENTICATED` | `unauthenticated` |
-| `FORBIDDEN` | `permission_denied` |
-| `BAD_USER_INPUT`, `GRAPHQL_VALIDATION_FAILED`, `GRAPHQL_PARSE_FAILED` | `invalid_argument` |
-| `NOT_FOUND` | `not_found` |
-| `TOO_MANY_REQUESTS` | `resource_exhausted` |
-| `INTERNAL_SERVER_ERROR` | `internal` |
-| `SERVICE_UNAVAILABLE` | `unavailable` |
+| `extensions.code`                                                     | `kind`               |
+| --------------------------------------------------------------------- | -------------------- |
+| `UNAUTHENTICATED`                                                     | `unauthenticated`    |
+| `FORBIDDEN`                                                           | `permission_denied`  |
+| `BAD_USER_INPUT`, `GRAPHQL_VALIDATION_FAILED`, `GRAPHQL_PARSE_FAILED` | `invalid_argument`   |
+| `NOT_FOUND`                                                           | `not_found`          |
+| `TOO_MANY_REQUESTS`                                                   | `resource_exhausted` |
+| `INTERNAL_SERVER_ERROR`                                               | `internal`           |
+| `SERVICE_UNAVAILABLE`                                                 | `unavailable`        |
 
 Both response media types are handled: the legacy `application/json` (errors
 delivered inside a `200`) and `application/graphql-response+json` (errors with a
@@ -169,21 +172,21 @@ gets wrong in one direction or the other.
 
 ```ts
 graphqlTransport({
-  url: "…",
-  errorPolicy: "all",
+  url: '…',
+  errorPolicy: 'all',
   onPartialErrors: (errors, { endpointId }) => log.warn(endpointId, errors),
-});
+})
 ```
 
 ## Transport options
 
-| Option | Default | Meaning |
-| --- | --- | --- |
-| `url` | `${baseUrl}/graphql` | the endpoint |
-| `method` | `"POST"` | `"GET"` sends **queries** as `?query=…` (CDN-cacheable). Mutations always POST. |
-| `errorPolicy` | `"none"` | default for endpoints that do not declare one |
-| `onPartialErrors` | — | required to see errors under `errorPolicy: "all"` |
-| `headers` | — | extra headers on every GraphQL request |
+| Option            | Default              | Meaning                                                                         |
+| ----------------- | -------------------- | ------------------------------------------------------------------------------- |
+| `url`             | `${baseUrl}/graphql` | the endpoint                                                                    |
+| `method`          | `"POST"`             | `"GET"` sends **queries** as `?query=…` (CDN-cacheable). Mutations always POST. |
+| `errorPolicy`     | `"none"`             | default for endpoints that do not declare one                                   |
+| `onPartialErrors` | —                    | required to see errors under `errorPolicy: "all"`                               |
+| `headers`         | —                    | extra headers on every GraphQL request                                          |
 
 ## Not supported
 

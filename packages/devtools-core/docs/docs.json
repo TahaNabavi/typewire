@@ -1,40 +1,31 @@
 {
   "$schema": "../../../docs/docs.schema.json",
-  "documentsVersion": "1.1.0",
+  "documentsVersion": "1.2.0",
   "pages": [
     {
       "slug": "overview",
       "title": "Overview",
       "readme": true,
       "intro": true,
-      "sections": [
-        "The bridge"
-      ]
+      "sections": ["The bridge"]
     },
     {
       "slug": "overrides",
       "title": "Overrides",
       "readme": true,
-      "sections": [
-        "Overrides"
-      ]
+      "sections": ["Overrides"]
     },
     {
       "slug": "query-cache",
       "title": "Query cache",
       "readme": true,
-      "sections": [
-        "Query cache"
-      ]
+      "sections": ["Query cache"]
     },
     {
       "slug": "api",
       "title": "API",
       "readme": true,
-      "sections": [
-        "Exports",
-        "License"
-      ]
+      "sections": ["Exports", "License"]
     }
   ]
 }

@@ -1,59 +1,61 @@
-import type { ApiTestReport } from "./types";
+import type { ApiTestReport } from './types'
 
 export function createMarkdownReport(report: ApiTestReport): string {
-  const lines: string[] = [];
+  const lines: string[] = []
 
-  lines.push("# TypeFetch API Test Report");
-  lines.push("");
-  lines.push(`Generated at: ${report.generatedAt}`);
-  lines.push(`Mode: ${report.mode}`);
-  lines.push("");
-  lines.push("## Summary");
-  lines.push("");
-  lines.push("| Total | Passed | Failed | Skipped | Duration |");
-  lines.push("|---:|---:|---:|---:|---:|");
+  lines.push('# TypeFetch API Test Report')
+  lines.push('')
+  lines.push(`Generated at: ${report.generatedAt}`)
+  lines.push(`Mode: ${report.mode}`)
+  lines.push('')
+  lines.push('## Summary')
+  lines.push('')
+  lines.push('| Total | Passed | Failed | Skipped | Duration |')
+  lines.push('|---:|---:|---:|---:|---:|')
   lines.push(
-    `| ${report.summary.total} | ${report.summary.passed} | ${report.summary.failed} | ${report.summary.skipped} | ${formatMs(report.summary.durationMs)} |`,
-  );
-  lines.push("");
+    `| ${report.summary.total} | ${report.summary.passed} | ${report.summary.failed} | ${report.summary.skipped} | ${formatMs(report.summary.durationMs)} |`
+  )
+  lines.push('')
 
-  const failed = report.results.filter((item) => item.status === "failed");
+  const failed = report.results.filter((item) => item.status === 'failed')
   if (failed.length) {
-    lines.push("## Failed Endpoints");
-    lines.push("");
+    lines.push('## Failed Endpoints')
+    lines.push('')
     for (const item of failed) {
-      lines.push(`### ${item.module}.${item.endpoint} — ${item.caseName}`);
-      lines.push("");
-      lines.push(`- Phase: ${item.phase}`);
-      lines.push(`- Method: ${item.method}`);
-      lines.push(`- Path: ${item.path}`);
-      lines.push(`- Duration: ${formatMs(item.durationMs)}`);
-      if (item.error?.status) lines.push(`- HTTP Status: ${item.error.status}`);
-      if (item.error?.code) lines.push(`- Code: ${item.error.code}`);
-      lines.push(`- Error: ${escapeMarkdown(item.error?.message ?? "Unknown error")}`);
+      lines.push(`### ${item.module}.${item.endpoint} — ${item.caseName}`)
+      lines.push('')
+      lines.push(`- Phase: ${item.phase}`)
+      lines.push(`- Method: ${item.method}`)
+      lines.push(`- Path: ${item.path}`)
+      lines.push(`- Duration: ${formatMs(item.durationMs)}`)
+      if (item.error?.status) lines.push(`- HTTP Status: ${item.error.status}`)
+      if (item.error?.code) lines.push(`- Code: ${item.error.code}`)
+      lines.push(
+        `- Error: ${escapeMarkdown(item.error?.message ?? 'Unknown error')}`
+      )
       if (item.error?.issues) {
-        lines.push("");
-        lines.push("```json");
-        lines.push(JSON.stringify(item.error.issues, null, 2));
-        lines.push("```");
+        lines.push('')
+        lines.push('```json')
+        lines.push(JSON.stringify(item.error.issues, null, 2))
+        lines.push('```')
       }
-      lines.push("");
+      lines.push('')
     }
   }
 
-  lines.push("## All Results");
-  lines.push("");
-  lines.push("| Status | Endpoint | Case | Phase | Method | Path | Duration |");
-  lines.push("|---|---|---|---|---|---|---:|");
+  lines.push('## All Results')
+  lines.push('')
+  lines.push('| Status | Endpoint | Case | Phase | Method | Path | Duration |')
+  lines.push('|---|---|---|---|---|---|---:|')
 
   for (const item of report.results) {
     lines.push(
-      `| ${item.status} | ${item.module}.${item.endpoint} | ${escapeTable(item.caseName)} | ${item.phase} | ${item.method} | ${escapeTable(item.path)} | ${formatMs(item.durationMs)} |`,
-    );
+      `| ${item.status} | ${item.module}.${item.endpoint} | ${escapeTable(item.caseName)} | ${item.phase} | ${item.method} | ${escapeTable(item.path)} | ${formatMs(item.durationMs)} |`
+    )
   }
 
-  lines.push("");
-  return lines.join("\n");
+  lines.push('')
+  return lines.join('\n')
 }
 
 export function createHtmlReport(report: ApiTestReport): string {
@@ -68,10 +70,10 @@ export function createHtmlReport(report: ApiTestReport): string {
           <td>${escapeHtml(item.method)}</td>
           <td>${escapeHtml(item.path)}</td>
           <td>${formatMs(item.durationMs)}</td>
-          <td>${escapeHtml(item.error?.message ?? "")}</td>
-        </tr>`,
+          <td>${escapeHtml(item.error?.message ?? '')}</td>
+        </tr>`
     )
-    .join("\n");
+    .join('\n')
 
   return `<!doctype html>
 <html lang="en">
@@ -110,26 +112,26 @@ export function createHtmlReport(report: ApiTestReport): string {
     <tbody>${rows}</tbody>
   </table>
 </body>
-</html>`;
+</html>`
 }
 
 function formatMs(ms: number): string {
-  return ms < 1000 ? `${ms}ms` : `${(ms / 1000).toFixed(2)}s`;
+  return ms < 1000 ? `${ms}ms` : `${(ms / 1000).toFixed(2)}s`
 }
 
 function escapeTable(value: string): string {
-  return value.replace(/\|/g, "\\|");
+  return value.replace(/\|/g, '\\|')
 }
 
 function escapeMarkdown(value: string): string {
-  return value.replace(/`/g, "\\`");
+  return value.replace(/\\/g, '\\\\').replace(/`/g, '\\`')
 }
 
 function escapeHtml(value: string): string {
   return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
 }

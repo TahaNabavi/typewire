@@ -1,195 +1,666 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8" />
-<style>
-  :root {
-    --bg0:#100a04; --bg1:#1a1108; --bg2:#20150a;
-    --panel:#1d150c; --panel2:#181008;
-    --border:rgba(148,163,184,.12); --border2:rgba(148,163,184,.18);
-    --text:#e8eef8; --muted:#b5a48f; --dim:#87735c;
-    --accent:#fbbf24; --accent2:#f59e0b; --accentDim:#fcd34d;
-    --blue:#60a5fa; --purple:#a78bfa; --green:#4ade80; --red:#f87171; --cyan:#22d3ee;
-    --mono:"JetBrains Mono","Cascadia Code",Consolas,"SF Mono",Menlo,monospace;
-    --sans:-apple-system,"Segoe UI",Roboto,system-ui,"Helvetica Neue",Arial,sans-serif;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  html,body { width:1600px; height:850px; overflow:hidden; }
-  body {
-    font-family:var(--sans); color:var(--text); position:relative;
-    background:
-      radial-gradient(1200px 700px at 82% -8%, rgba(245,158,11,.15), transparent 60%),
-      radial-gradient(900px 600px at 10% 108%, rgba(234,88,12,.12), transparent 60%),
-      radial-gradient(700px 500px at 96% 96%, rgba(74,222,128,.05), transparent 60%),
-      linear-gradient(160deg,var(--bg0),var(--bg1) 55%,var(--bg2));
-  }
-  .grid { position:absolute; inset:0;
-    background-image:
-      linear-gradient(rgba(148,163,184,.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(148,163,184,.04) 1px, transparent 1px);
-    background-size:44px 44px; mask:radial-gradient(1400px 800px at 60% 40%, #000 30%, transparent 85%); }
-  .wrap { position:relative; width:100%; height:100%; padding:56px 58px; display:flex; gap:44px; }
-  .left { width:628px; flex:none; display:flex; flex-direction:column; }
-  .right { flex:1; display:flex; flex-direction:column; gap:18px; }
-  .right > .win { flex:1; display:flex; flex-direction:column; }
-  .right > .win .flow { flex:1; display:flex; flex-direction:column; justify-content:center; }
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      :root {
+        --bg0: #100a04;
+        --bg1: #1a1108;
+        --bg2: #20150a;
+        --panel: #1d150c;
+        --panel2: #181008;
+        --border: rgba(148, 163, 184, 0.12);
+        --border2: rgba(148, 163, 184, 0.18);
+        --text: #e8eef8;
+        --muted: #b5a48f;
+        --dim: #87735c;
+        --accent: #fbbf24;
+        --accent2: #f59e0b;
+        --accentDim: #fcd34d;
+        --blue: #60a5fa;
+        --purple: #a78bfa;
+        --green: #4ade80;
+        --red: #f87171;
+        --cyan: #22d3ee;
+        --mono:
+          'JetBrains Mono', 'Cascadia Code', Consolas, 'SF Mono', Menlo,
+          monospace;
+        --sans:
+          -apple-system, 'Segoe UI', Roboto, system-ui, 'Helvetica Neue', Arial,
+          sans-serif;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1600px;
+        height: 850px;
+        overflow: hidden;
+      }
+      body {
+        font-family: var(--sans);
+        color: var(--text);
+        position: relative;
+        background:
+          radial-gradient(
+            1200px 700px at 82% -8%,
+            rgba(245, 158, 11, 0.15),
+            transparent 60%
+          ),
+          radial-gradient(
+            900px 600px at 10% 108%,
+            rgba(234, 88, 12, 0.12),
+            transparent 60%
+          ),
+          radial-gradient(
+            700px 500px at 96% 96%,
+            rgba(74, 222, 128, 0.05),
+            transparent 60%
+          ),
+          linear-gradient(160deg, var(--bg0), var(--bg1) 55%, var(--bg2));
+      }
+      .grid {
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(148, 163, 184, 0.04) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(148, 163, 184, 0.04) 1px, transparent 1px);
+        background-size: 44px 44px;
+        mask: radial-gradient(
+          1400px 800px at 60% 40%,
+          #000 30%,
+          transparent 85%
+        );
+      }
+      .wrap {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        padding: 56px 58px;
+        display: flex;
+        gap: 44px;
+      }
+      .left {
+        width: 628px;
+        flex: none;
+        display: flex;
+        flex-direction: column;
+      }
+      .right {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+      .right > .win {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+      .right > .win .flow {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
 
-  .pill { display:inline-flex; align-items:center; gap:11px; align-self:flex-start;
-    padding:9px 16px 9px 14px; border:1px solid rgba(251,191,36,.34); border-radius:999px;
-    background:rgba(245,158,11,.09); font-size:14px; font-weight:700; letter-spacing:.06em; color:#fde68a; }
-  .pill .bar { width:4px; height:15px; border-radius:2px; background:linear-gradient(var(--accent),#f97316); }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 11px;
+        align-self: flex-start;
+        padding: 9px 16px 9px 14px;
+        border: 1px solid rgba(251, 191, 36, 0.34);
+        border-radius: 999px;
+        background: rgba(245, 158, 11, 0.09);
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        color: #fde68a;
+      }
+      .pill .bar {
+        width: 4px;
+        height: 15px;
+        border-radius: 2px;
+        background: linear-gradient(var(--accent), #f97316);
+      }
 
-  h1 { font-weight:800; letter-spacing:-.03em; line-height:.98; margin-top:26px; }
-  h1 .a { display:block; font-size:96px;
-    background:linear-gradient(180deg,#ffffff,#e2d5c2); -webkit-background-clip:text; background-clip:text; color:transparent; }
-  h1 .b { display:block; font-size:96px; margin-top:2px;
-    background:linear-gradient(96deg,#fbbf24 4%,#f59e0b 52%,#f97316 98%); -webkit-background-clip:text; background-clip:text; color:transparent; }
-  .rule { width:118px; height:5px; border-radius:3px; margin:24px 0 16px;
-    background:linear-gradient(90deg,var(--accent2),#f97316 72%, transparent); }
-  .sub { font-size:31px; font-weight:700; letter-spacing:-.01em; color:#eaf1fb; }
-  .tag { font-size:18px; color:var(--muted); margin-top:10px; font-weight:500; line-height:1.5; max-width:560px; }
-  .tag code { font-family:var(--mono); font-size:15px; color:var(--accentDim); background:rgba(251,191,36,.1); padding:1px 7px; border-radius:6px; }
+      h1 {
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        line-height: 0.98;
+        margin-top: 26px;
+      }
+      h1 .a {
+        display: block;
+        font-size: 96px;
+        background: linear-gradient(180deg, #ffffff, #e2d5c2);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      h1 .b {
+        display: block;
+        font-size: 96px;
+        margin-top: 2px;
+        background: linear-gradient(
+          96deg,
+          #fbbf24 4%,
+          #f59e0b 52%,
+          #f97316 98%
+        );
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .rule {
+        width: 118px;
+        height: 5px;
+        border-radius: 3px;
+        margin: 24px 0 16px;
+        background: linear-gradient(
+          90deg,
+          var(--accent2),
+          #f97316 72%,
+          transparent
+        );
+      }
+      .sub {
+        font-size: 31px;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        color: #eaf1fb;
+      }
+      .tag {
+        font-size: 18px;
+        color: var(--muted);
+        margin-top: 10px;
+        font-weight: 500;
+        line-height: 1.5;
+        max-width: 560px;
+      }
+      .tag code {
+        font-family: var(--mono);
+        font-size: 15px;
+        color: var(--accentDim);
+        background: rgba(251, 191, 36, 0.1);
+        padding: 1px 7px;
+        border-radius: 6px;
+      }
 
-  .feats { margin-top:auto; display:flex; flex-direction:column; gap:18px; }
-  .feat { display:flex; gap:15px; align-items:flex-start; }
-  .ico { width:44px; height:44px; flex:none; border-radius:12px; display:grid; place-items:center; border:1px solid var(--border2); }
-  .ico svg { width:22px; height:22px; }
-  .ico.a { background:rgba(251,191,36,.13); box-shadow:inset 0 0 0 1px rgba(251,191,36,.16); }
-  .ico.b { background:rgba(96,165,250,.12); } .ico.c { background:rgba(74,222,128,.12); } .ico.p { background:rgba(167,139,250,.12); }
-  .feat .ttl { font-size:19px; font-weight:700; color:#eef4fd; }
-  .feat .dsc { font-size:14px; color:var(--muted); margin-top:2px; }
-  .feat .dsc b { color:var(--accentDim); font-weight:700; }
-  .feat .dsc code { font-family:var(--mono); font-size:13px; color:#93c5fd; }
+      .feats {
+        margin-top: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+      .feat {
+        display: flex;
+        gap: 15px;
+        align-items: flex-start;
+      }
+      .ico {
+        width: 44px;
+        height: 44px;
+        flex: none;
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+        border: 1px solid var(--border2);
+      }
+      .ico svg {
+        width: 22px;
+        height: 22px;
+      }
+      .ico.a {
+        background: rgba(251, 191, 36, 0.13);
+        box-shadow: inset 0 0 0 1px rgba(251, 191, 36, 0.16);
+      }
+      .ico.b {
+        background: rgba(96, 165, 250, 0.12);
+      }
+      .ico.c {
+        background: rgba(74, 222, 128, 0.12);
+      }
+      .ico.p {
+        background: rgba(167, 139, 250, 0.12);
+      }
+      .feat .ttl {
+        font-size: 19px;
+        font-weight: 700;
+        color: #eef4fd;
+      }
+      .feat .dsc {
+        font-size: 14px;
+        color: var(--muted);
+        margin-top: 2px;
+      }
+      .feat .dsc b {
+        color: var(--accentDim);
+        font-weight: 700;
+      }
+      .feat .dsc code {
+        font-family: var(--mono);
+        font-size: 13px;
+        color: #93c5fd;
+      }
 
-  .win { border:1px solid var(--border); border-radius:16px; overflow:hidden;
-    background:linear-gradient(180deg,var(--panel),var(--panel2));
-    box-shadow:0 30px 70px -30px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.04); }
-  .win .bar { display:flex; align-items:center; gap:8px; padding:13px 16px; border-bottom:1px solid var(--border); background:rgba(255,255,255,.015); }
-  .dot { width:12px; height:12px; border-radius:50%; }
-  .dot.r{background:#ff5f57} .dot.y{background:#febc2e} .dot.g{background:#28c840}
-  .win .title { margin-left:8px; font-family:var(--mono); font-size:13.5px; color:var(--dim); }
-  .win .title b{ color:#d2c2a8; font-weight:600 }
-  .badge0 { margin-left:auto; font-size:12px; font-weight:700; color:var(--accentDim); letter-spacing:.02em;
-    padding:4px 10px; border-radius:999px; background:rgba(251,191,36,.10); border:1px solid rgba(251,191,36,.22); }
+      .win {
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        overflow: hidden;
+        background: linear-gradient(180deg, var(--panel), var(--panel2));
+        box-shadow:
+          0 30px 70px -30px rgba(0, 0, 0, 0.7),
+          inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      }
+      .win .bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 13px 16px;
+        border-bottom: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.015);
+      }
+      .dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+      }
+      .dot.r {
+        background: #ff5f57;
+      }
+      .dot.y {
+        background: #febc2e;
+      }
+      .dot.g {
+        background: #28c840;
+      }
+      .win .title {
+        margin-left: 8px;
+        font-family: var(--mono);
+        font-size: 13.5px;
+        color: var(--dim);
+      }
+      .win .title b {
+        color: #d2c2a8;
+        font-weight: 600;
+      }
+      .badge0 {
+        margin-left: auto;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--accentDim);
+        letter-spacing: 0.02em;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: rgba(251, 191, 36, 0.1);
+        border: 1px solid rgba(251, 191, 36, 0.22);
+      }
 
-  .flow { padding:20px 22px 26px; }
-  .step { font-family:var(--mono); font-size:14.5px; line-height:1.6; color:#cdd8e8; }
-  .lbl { font-family:var(--sans); font-size:11.5px; letter-spacing:.09em; color:var(--dim); font-weight:700; margin-bottom:9px; }
-  .kw{color:#c792ea} .fn{color:#82aaff} .pr{color:#7fdbca} .st{color:#c3e88d} .cm{color:#87735c} .nm{color:var(--accentDim)}
-  .arrow { display:flex; align-items:center; gap:12px; margin:15px 0 13px; }
-  .arrow .ln { flex:1; height:2px; border-radius:2px; background:linear-gradient(90deg,transparent,rgba(251,191,36,.7),transparent); }
-  .arrow .txt { font-size:12px; font-weight:700; letter-spacing:.08em; color:var(--accentDim);
-    padding:5px 12px; border-radius:999px; background:rgba(251,191,36,.11); border:1px solid rgba(251,191,36,.24); white-space:nowrap; }
-  .gql { font-family:var(--mono); font-size:15px; line-height:1.85; color:#e8eef8;
-    padding:15px 17px; border-radius:11px; background:rgba(251,191,36,.06); border:1px solid rgba(251,191,36,.2); }
-  .gql .ky{color:#7fdbca} .gql .pl{color:#c3e88d} .gql .ct{color:#fcd34d} .gql .cm2{color:#87735c}
+      .flow {
+        padding: 20px 22px 26px;
+      }
+      .step {
+        font-family: var(--mono);
+        font-size: 14.5px;
+        line-height: 1.6;
+        color: #cdd8e8;
+      }
+      .lbl {
+        font-family: var(--sans);
+        font-size: 11.5px;
+        letter-spacing: 0.09em;
+        color: var(--dim);
+        font-weight: 700;
+        margin-bottom: 9px;
+      }
+      .kw {
+        color: #c792ea;
+      }
+      .fn {
+        color: #82aaff;
+      }
+      .pr {
+        color: #7fdbca;
+      }
+      .st {
+        color: #c3e88d;
+      }
+      .cm {
+        color: #87735c;
+      }
+      .nm {
+        color: var(--accentDim);
+      }
+      .arrow {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 15px 0 13px;
+      }
+      .arrow .ln {
+        flex: 1;
+        height: 2px;
+        border-radius: 2px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(251, 191, 36, 0.7),
+          transparent
+        );
+      }
+      .arrow .txt {
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        color: var(--accentDim);
+        padding: 5px 12px;
+        border-radius: 999px;
+        background: rgba(251, 191, 36, 0.11);
+        border: 1px solid rgba(251, 191, 36, 0.24);
+        white-space: nowrap;
+      }
+      .gql {
+        font-family: var(--mono);
+        font-size: 15px;
+        line-height: 1.85;
+        color: #e8eef8;
+        padding: 15px 17px;
+        border-radius: 11px;
+        background: rgba(251, 191, 36, 0.06);
+        border: 1px solid rgba(251, 191, 36, 0.2);
+      }
+      .gql .ky {
+        color: #7fdbca;
+      }
+      .gql .pl {
+        color: #c3e88d;
+      }
+      .gql .ct {
+        color: #fcd34d;
+      }
+      .gql .cm2 {
+        color: #87735c;
+      }
 
-  .card { border:1px solid var(--border); border-radius:16px; padding:15px 18px;
-    background:linear-gradient(180deg,var(--panel),var(--panel2)); box-shadow:inset 0 1px 0 rgba(255,255,255,.03); }
-  .row { display:flex; gap:0; }
-  .cell { flex:1; padding:0 16px; border-left:1px solid var(--border); }
-  .cell:first-child { border-left:0; padding-left:0; }
-  .cell .k { font-family:var(--mono); font-size:13px; color:var(--accentDim); font-weight:700; }
-  .cell .v { font-size:13px; color:var(--muted); margin-top:3px; line-height:1.4; }
+      .card {
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 15px 18px;
+        background: linear-gradient(180deg, var(--panel), var(--panel2));
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+      }
+      .row {
+        display: flex;
+        gap: 0;
+      }
+      .cell {
+        flex: 1;
+        padding: 0 16px;
+        border-left: 1px solid var(--border);
+      }
+      .cell:first-child {
+        border-left: 0;
+        padding-left: 0;
+      }
+      .cell .k {
+        font-family: var(--mono);
+        font-size: 13px;
+        color: var(--accentDim);
+        font-weight: 700;
+      }
+      .cell .v {
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 3px;
+        line-height: 1.4;
+      }
 
-  .deps { display:flex; flex-direction:column; gap:9px; }
-  .dep { display:grid; grid-template-columns:1fr auto; align-items:center; font-family:var(--mono); font-size:14px; padding:7px 12px; border-radius:9px; }
-  .dep.was { background:rgba(248,113,113,.09); border:1px solid rgba(248,113,113,.2); }
-  .dep.now { background:rgba(74,222,128,.1); border:1px solid rgba(74,222,128,.24); }
-  .dep .w { color:#a8b6c7; }
-  .dep .n { font-weight:700; }
-  .dep.was .n { color:#fca5a5; } .dep.now .n { color:#86efac; }
-  .note { font-size:13px; color:var(--muted); margin-top:12px; padding-top:11px; border-top:1px solid var(--border); }
-  .note b { color:#86efac; font-family:var(--mono); font-size:12.5px; }
-</style>
-</head>
-<body>
-<div class="grid"></div>
-<div class="wrap">
+      .deps {
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+      }
+      .dep {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        font-family: var(--mono);
+        font-size: 14px;
+        padding: 7px 12px;
+        border-radius: 9px;
+      }
+      .dep.was {
+        background: rgba(248, 113, 113, 0.09);
+        border: 1px solid rgba(248, 113, 113, 0.2);
+      }
+      .dep.now {
+        background: rgba(74, 222, 128, 0.1);
+        border: 1px solid rgba(74, 222, 128, 0.24);
+      }
+      .dep .w {
+        color: #a8b6c7;
+      }
+      .dep .n {
+        font-weight: 700;
+      }
+      .dep.was .n {
+        color: #fca5a5;
+      }
+      .dep.now .n {
+        color: #86efac;
+      }
+      .note {
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 12px;
+        padding-top: 11px;
+        border-top: 1px solid var(--border);
+      }
+      .note b {
+        color: #86efac;
+        font-family: var(--mono);
+        font-size: 12.5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="grid"></div>
+    <div class="wrap">
+      <!-- LEFT -->
+      <div class="left">
+        <span class="pill"
+          ><span class="bar"></span>@tahanabavi/typefetch-encryption</span
+        >
 
-  <!-- LEFT -->
-  <div class="left">
-    <span class="pill"><span class="bar"></span>@tahanabavi/typefetch-encryption</span>
+        <h1><span class="a">Encrypt</span><span class="b">the fields</span></h1>
+        <div class="rule"></div>
+        <div class="sub">Named fields, both directions.</div>
+        <div class="tag">
+          Middleware that encrypts what you name on the way out and decrypts it
+          on the way back — the call site and the contract never know.
+        </div>
 
-    <h1><span class="a">Encrypt</span><span class="b">the fields</span></h1>
-    <div class="rule"></div>
-    <div class="sub">Named fields, both directions.</div>
-    <div class="tag">Middleware that encrypts what you name on the way out and decrypts it on the way back — the call site and the contract never know.</div>
-
-    <div class="feats">
-      <div class="feat">
-        <div class="ico a"><svg viewBox="0 0 24 24" fill="none" stroke="#fcd34d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
-        <div><div class="ttl">Per field, never by accident</div><div class="dsc">A map mirroring the payload — <b>explicit</b> selection only</div></div>
+        <div class="feats">
+          <div class="feat">
+            <div class="ico a">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#fcd34d"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="3" y="11" width="18" height="10" rx="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+            </div>
+            <div>
+              <div class="ttl">Per field, never by accident</div>
+              <div class="dsc">
+                A map mirroring the payload — <b>explicit</b> selection only
+              </div>
+            </div>
+          </div>
+          <div class="feat">
+            <div class="ico b">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#93c5fd"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </div>
+            <div>
+              <div class="ttl">AES · RSA · custom</div>
+              <div class="dsc">
+                Plus legacy interop — and <code>base64</code> labelled
+                <b>encoding, not encryption</b>
+              </div>
+            </div>
+          </div>
+          <div class="feat">
+            <div class="ico c">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#86efac"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+            </div>
+            <div>
+              <div class="ttl">This is what made the core zero-dep</div>
+              <div class="dsc">
+                Two crypto libraries left <b>typefetch</b> with this middleware
+              </div>
+            </div>
+          </div>
+          <div class="feat">
+            <div class="ico p">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#c4b5fd"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M12 3 4 6v6c0 5 3.8 8.5 8 10 4.2-1.5 8-5 8-10V6l-8-3Z"
+                />
+              </svg>
+            </div>
+            <div>
+              <div class="ttl">The types stayed behind</div>
+              <div class="dsc">
+                A contract still <b>declares</b> encryption without installing
+                this
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="feat">
-        <div class="ico b"><svg viewBox="0 0 24 24" fill="none" stroke="#93c5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></div>
-        <div><div class="ttl">AES · RSA · custom</div><div class="dsc">Plus legacy interop — and <code>base64</code> labelled <b>encoding, not encryption</b></div></div>
-      </div>
-      <div class="feat">
-        <div class="ico c"><svg viewBox="0 0 24 24" fill="none" stroke="#86efac" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
-        <div><div class="ttl">This is what made the core zero-dep</div><div class="dsc">Two crypto libraries left <b>typefetch</b> with this middleware</div></div>
-      </div>
-      <div class="feat">
-        <div class="ico p"><svg viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 5 3.8 8.5 8 10 4.2-1.5 8-5 8-10V6l-8-3Z"/></svg></div>
-        <div><div class="ttl">The types stayed behind</div><div class="dsc">A contract still <b>declares</b> encryption without installing this</div></div>
+
+      <!-- RIGHT -->
+      <div class="right">
+        <div class="win">
+          <div class="bar">
+            <span class="dot r"></span><span class="dot y"></span
+            ><span class="dot g"></span>
+            <span class="title"
+              >middleware · <b>encryptionMiddleware()</b></span
+            >
+            <span class="badge0">● opt-in, per field</span>
+          </div>
+          <div class="flow">
+            <div class="lbl">YOU NAME THE FIELDS</div>
+            <div class="step">
+              <span class="fn">encryptionMiddleware</span>({
+              <span class="pr">method</span>: <span class="st">"aes"</span>,
+              <span class="pr">secret</span> }),<br />
+              <span class="pr">fields</span>: { <span class="nm">body</span>: {
+              <span class="nm">ssn</span>: <span class="kw">true</span>,
+              <span class="nm">card</span>: { <span class="nm">number</span>:
+              <span class="kw">true</span> } } }
+            </div>
+
+            <div class="arrow">
+              <span class="ln"></span><span class="txt">on the way out</span
+              ><span class="ln"></span>
+            </div>
+
+            <div class="lbl">WHAT LEAVES THE BROWSER</div>
+            <div class="gql">
+              {<br />
+              &nbsp;&nbsp;<span class="ky">"name"</span>:
+              <span class="pl">"Ada Lovelace"</span>,&nbsp;&nbsp;<span
+                class="cm2"
+                >// untouched</span
+              ><br />
+              &nbsp;&nbsp;<span class="ky">"ssn"</span>:&nbsp;
+              <span class="ct">"U2FsdGVkX1+9Zq3n…"</span>,<br />
+              &nbsp;&nbsp;<span class="ky">"card"</span>: {
+              <span class="ky">"number"</span>:
+              <span class="ct">"U2FsdGVkX1/Kd0p…"</span> }<br />
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top: auto">
+          <div class="lbl" style="margin-bottom: 12px">
+            WHY IT IS ITS OWN PACKAGE
+          </div>
+          <div class="deps">
+            <div class="dep was">
+              <span class="w">typefetch before — every consumer paid</span
+              ><span class="n">crypto-js · node-forge · jiti</span>
+            </div>
+            <div class="dep now">
+              <span class="w">typefetch today — asserted in CI</span
+              ><span class="n">0 runtime dependencies</span>
+            </div>
+          </div>
+          <div class="note">
+            a claim in a README rots; this one fails the build —
+            <b>scripts/assert-no-deps.mjs</b>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="row">
+            <div class="cell">
+              <div class="k">one import path moves</div>
+              <div class="v">
+                a compile error, not a silent behaviour change
+              </div>
+            </div>
+            <div class="cell">
+              <div class="k">behaviour identical</div>
+              <div class="v">
+                the middleware and its tests came across unchanged
+              </div>
+            </div>
+            <div class="cell">
+              <div class="k">for TLS-terminating hops</div>
+              <div class="v">a proxy · a log aggregator · a support tool</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-
-  <!-- RIGHT -->
-  <div class="right">
-    <div class="win">
-      <div class="bar">
-        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
-        <span class="title">middleware · <b>encryptionMiddleware()</b></span>
-        <span class="badge0">● opt-in, per field</span>
-      </div>
-      <div class="flow">
-        <div class="lbl">YOU NAME THE FIELDS</div>
-        <div class="step">
-<span class="fn">encryptionMiddleware</span>({ <span class="pr">method</span>: <span class="st">"aes"</span>, <span class="pr">secret</span> }),<br>
-<span class="pr">fields</span>: { <span class="nm">body</span>: { <span class="nm">ssn</span>: <span class="kw">true</span>, <span class="nm">card</span>: { <span class="nm">number</span>: <span class="kw">true</span> } } }
-        </div>
-
-        <div class="arrow"><span class="ln"></span><span class="txt">on the way out</span><span class="ln"></span></div>
-
-        <div class="lbl">WHAT LEAVES THE BROWSER</div>
-        <div class="gql">
-{<br>
-&nbsp;&nbsp;<span class="ky">"name"</span>: <span class="pl">"Ada Lovelace"</span>,&nbsp;&nbsp;<span class="cm2">// untouched</span><br>
-&nbsp;&nbsp;<span class="ky">"ssn"</span>:&nbsp; <span class="ct">"U2FsdGVkX1+9Zq3n…"</span>,<br>
-&nbsp;&nbsp;<span class="ky">"card"</span>: { <span class="ky">"number"</span>: <span class="ct">"U2FsdGVkX1/Kd0p…"</span> }<br>
-}
-        </div>
-      </div>
-    </div>
-
-    <div class="card" style="margin-top:auto">
-      <div class="lbl" style="margin-bottom:12px">WHY IT IS ITS OWN PACKAGE</div>
-      <div class="deps">
-        <div class="dep was"><span class="w">typefetch before — every consumer paid</span><span class="n">crypto-js · node-forge · jiti</span></div>
-        <div class="dep now"><span class="w">typefetch today — asserted in CI</span><span class="n">0 runtime dependencies</span></div>
-      </div>
-      <div class="note">a claim in a README rots; this one fails the build — <b>scripts/assert-no-deps.mjs</b></div>
-    </div>
-
-    <div class="card">
-      <div class="row">
-        <div class="cell">
-          <div class="k">one import path moves</div>
-          <div class="v">a compile error, not a silent behaviour change</div>
-        </div>
-        <div class="cell">
-          <div class="k">behaviour identical</div>
-          <div class="v">the middleware and its tests came across unchanged</div>
-        </div>
-        <div class="cell">
-          <div class="k">for TLS-terminating hops</div>
-          <div class="v">a proxy · a log aggregator · a support tool</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-</body>
+  </body>
 </html>

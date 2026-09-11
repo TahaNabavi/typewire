@@ -1,12 +1,12 @@
-"use client";
+'use client'
 
-import { useMemo } from "react";
-import { Search, X } from "lucide-react";
+import { useMemo } from 'react'
+import { Search, X } from 'lucide-react'
 
-import { usePackageFilter } from "@/features/packages/store";
-import { PackageCard } from "@/features/packages/package-card";
-import { CATEGORY_LABEL, type PackageEntry } from "@/lib/registry";
-import { cn } from "@/utils";
+import { usePackageFilter } from '@/features/packages/store'
+import { PackageCard } from '@/features/packages/package-card'
+import { CATEGORY_LABEL, type PackageEntry } from '@/lib/registry'
+import { cn } from '@/utils'
 
 /**
  * The package grid, filtered.
@@ -22,25 +22,26 @@ import { cn } from "@/utils";
  * name.
  */
 
-const ALL = "All";
+const ALL = 'All'
 
 export function PackageFilter({ packages }: { packages: PackageEntry[] }) {
-  const category = usePackageFilter((s) => s.category);
-  const setCategory = usePackageFilter((s) => s.setCategory);
-  const query = usePackageFilter((s) => s.query);
-  const setQuery = usePackageFilter((s) => s.setQuery);
+  const category = usePackageFilter((s) => s.category)
+  const setCategory = usePackageFilter((s) => s.setCategory)
+  const query = usePackageFilter((s) => s.query)
+  const setQuery = usePackageFilter((s) => s.setQuery)
 
   const categories = useMemo(() => {
-    const seen = new Map<string, number>();
-    for (const pkg of packages) seen.set(pkg.category, (seen.get(pkg.category) ?? 0) + 1);
-    return [...seen.entries()].sort((a, b) => a[0].localeCompare(b[0]));
-  }, [packages]);
+    const seen = new Map<string, number>()
+    for (const pkg of packages)
+      seen.set(pkg.category, (seen.get(pkg.category) ?? 0) + 1)
+    return [...seen.entries()].sort((a, b) => a[0].localeCompare(b[0]))
+  }, [packages])
 
   const shown = useMemo(() => {
-    const needle = query.trim().toLowerCase();
+    const needle = query.trim().toLowerCase()
     return packages.filter((pkg) => {
-      if (category !== ALL && pkg.category !== category) return false;
-      if (!needle) return true;
+      if (category !== ALL && pkg.category !== category) return false
+      if (!needle) return true
       const haystack = [
         pkg.short,
         pkg.npm,
@@ -49,11 +50,11 @@ export function PackageFilter({ packages }: { packages: PackageEntry[] }) {
         ...pkg.keywords,
         ...pkg.transports,
       ]
-        .join(" ")
-        .toLowerCase();
-      return haystack.includes(needle);
-    });
-  }, [packages, category, query]);
+        .join(' ')
+        .toLowerCase()
+      return haystack.includes(needle)
+    })
+  }, [packages, category, query])
 
   return (
     <div>
@@ -63,10 +64,10 @@ export function PackageFilter({ packages }: { packages: PackageEntry[] }) {
           onClick={() => setCategory(ALL)}
           aria-pressed={category === ALL}
           className={cn(
-            "rounded-full border px-3 py-1.5 font-mono text-[11px] transition-colors",
+            'rounded-full border px-3 py-1.5 font-mono text-[11px] transition-colors',
             category === ALL
-              ? "border-blue/50 bg-blue/10 text-blue"
-              : "border-hair text-muted-foreground hover:border-hair-strong hover:text-fg",
+              ? 'border-blue/50 bg-blue/10 text-blue'
+              : 'border-hair text-muted-foreground hover:border-hair-strong hover:text-fg'
           )}
         >
           All <span className="text-dim">{packages.length}</span>
@@ -79,13 +80,13 @@ export function PackageFilter({ packages }: { packages: PackageEntry[] }) {
             onClick={() => setCategory(key)}
             aria-pressed={category === key}
             className={cn(
-              "rounded-full border px-3 py-1.5 font-mono text-[11px] transition-colors",
+              'rounded-full border px-3 py-1.5 font-mono text-[11px] transition-colors',
               category === key
-                ? "border-blue/50 bg-blue/10 text-blue"
-                : "border-hair text-muted-foreground hover:border-hair-strong hover:text-fg",
+                ? 'border-blue/50 bg-blue/10 text-blue'
+                : 'border-hair text-muted-foreground hover:border-hair-strong hover:text-fg'
             )}
           >
-            {CATEGORY_LABEL[key as keyof typeof CATEGORY_LABEL] ?? key}{" "}
+            {CATEGORY_LABEL[key as keyof typeof CATEGORY_LABEL] ?? key}{' '}
             <span className="text-dim">{count}</span>
           </button>
         ))}
@@ -102,7 +103,7 @@ export function PackageFilter({ packages }: { packages: PackageEntry[] }) {
           {query && (
             <button
               type="button"
-              onClick={() => setQuery("")}
+              onClick={() => setQuery('')}
               aria-label="Clear filter"
               className="shrink-0 text-dim transition-colors hover:text-fg"
             >
@@ -125,13 +126,14 @@ export function PackageFilter({ packages }: { packages: PackageEntry[] }) {
       ) : (
         <div className="mt-5 rounded-xl border border-dashed border-hair-strong p-10 text-center">
           <p className="font-mono text-sm text-muted-foreground">
-            Nothing matches “{query}”{category !== ALL ? ` in ${category}` : ""}.
+            Nothing matches “{query}”{category !== ALL ? ` in ${category}` : ''}
+            .
           </p>
           <button
             type="button"
             onClick={() => {
-              setQuery("");
-              setCategory(ALL);
+              setQuery('')
+              setCategory(ALL)
             }}
             className="mt-3 font-mono text-[11px] text-blue hover:underline"
           >
@@ -140,5 +142,5 @@ export function PackageFilter({ packages }: { packages: PackageEntry[] }) {
         </div>
       )}
     </div>
-  );
+  )
 }

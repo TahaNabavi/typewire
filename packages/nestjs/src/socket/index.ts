@@ -14,19 +14,19 @@
  * with no gateway should not have to install.
  */
 
-export { bindSocketContracts, isInboundEvent } from "./contract";
+export { bindSocketContracts, isInboundEvent } from './contract'
 export {
   SocketEvent,
   SocketEventInfo,
   SocketPayload,
   getSocketEvent,
-} from "./socket-event.decorator";
-export { SocketAckInterceptor } from "./ack.interceptor";
-export { SocketContractException } from "./exceptions";
-export { createSocketEmitter, emitSocketEvent } from "./emitter";
-export { createSocketPermissionGuard } from "./permission.guard";
-export type { SocketPermissionGuardConfig } from "./permission.guard";
-export { SOCKET_EVENT_METADATA, SOCKET_OPTIONS_METADATA } from "./constants";
+} from './socket-event.decorator'
+export { SocketAckInterceptor } from './ack.interceptor'
+export { SocketContractException } from './exceptions'
+export { createSocketEmitter, emitSocketEvent } from './emitter'
+export { createSocketPermissionGuard } from './permission.guard'
+export type { SocketPermissionGuardConfig } from './permission.guard'
+export { SOCKET_EVENT_METADATA, SOCKET_OPTIONS_METADATA } from './constants'
 export type {
   BoundSocketContracts,
   BoundSocketEvent,
@@ -35,4 +35,4 @@ export type {
   InferSocketRequest,
   SocketEmitTarget,
   SocketEventOptions,
-} from "./types";
+} from './types'

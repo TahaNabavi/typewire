@@ -1,5 +1,5 @@
-import { HttpException } from "@nestjs/common";
-import { ContractValidationException } from "../exceptions";
+import { HttpException } from '@nestjs/common'
+import { ContractValidationException } from '../exceptions'
 
 /**
  * Failures, in GraphQL's key space
@@ -16,17 +16,17 @@ import { ContractValidationException } from "../exceptions";
 
 /** One entry of a GraphQL `errors` array. */
 export type GraphqlErrorPayload = {
-  message: string;
+  message: string
   extensions: Record<string, unknown> & {
-    code: string;
+    code: string
     /**
      * Apollo's convention for the status a response *would* have had. It is the
      * only way a failure can carry one on the legacy `application/json` media
      * type, which answers `200` whatever went wrong — and typefetch reads it.
      */
-    http?: { status: number };
-  };
-};
+    http?: { status: number }
+  }
+}
 
 /**
  * Throw a specific GraphQL error code from a resolver.
@@ -39,37 +39,37 @@ export type GraphqlErrorPayload = {
  * throw new GraphqlException("PERSISTED_QUERY_NOT_FOUND", "Unknown hash");
  */
 export class GraphqlException extends Error {
-  readonly code: string;
-  readonly extensions: Record<string, unknown>;
-  readonly status: number;
+  readonly code: string
+  readonly extensions: Record<string, unknown>
+  readonly status: number
 
   constructor(
     code: string,
     message?: string,
     extensions: Record<string, unknown> = {},
     /** Override the status the code maps to — for `405`, which no code names. */
-    status?: number,
+    status?: number
   ) {
-    super(message ?? code);
-    this.name = "GraphqlException";
-    this.code = code;
-    this.extensions = extensions;
-    this.status = status ?? statusFromGraphqlCode(code);
+    super(message ?? code)
+    this.name = 'GraphqlException'
+    this.code = code
+    this.extensions = extensions
+    this.status = status ?? statusFromGraphqlCode(code)
   }
 }
 
 /** HTTP status a handler threw → the `extensions.code` that means it. */
 const CODE_BY_STATUS: Record<number, string> = {
-  400: "BAD_USER_INPUT",
-  401: "UNAUTHENTICATED",
-  403: "FORBIDDEN",
-  404: "NOT_FOUND",
-  409: "CONFLICT",
-  429: "TOO_MANY_REQUESTS",
-  500: "INTERNAL_SERVER_ERROR",
-  503: "SERVICE_UNAVAILABLE",
-  504: "TIMEOUT",
-};
+  400: 'BAD_USER_INPUT',
+  401: 'UNAUTHENTICATED',
+  403: 'FORBIDDEN',
+  404: 'NOT_FOUND',
+  409: 'CONFLICT',
+  429: 'TOO_MANY_REQUESTS',
+  500: 'INTERNAL_SERVER_ERROR',
+  503: 'SERVICE_UNAVAILABLE',
+  504: 'TIMEOUT',
+}
 
 /** The inverse, for an error that named a code but no status. */
 const STATUS_BY_CODE: Record<string, number> = {
@@ -88,16 +88,16 @@ const STATUS_BY_CODE: Record<string, number> = {
   INTERNAL_SERVER_ERROR: 500,
   SERVICE_UNAVAILABLE: 503,
   TIMEOUT: 504,
-};
+}
 
 export function graphqlCodeFromStatus(status: number): string {
-  const mapped = CODE_BY_STATUS[status];
-  if (mapped) return mapped;
-  return status >= 500 ? "INTERNAL_SERVER_ERROR" : "BAD_REQUEST";
+  const mapped = CODE_BY_STATUS[status]
+  if (mapped) return mapped
+  return status >= 500 ? 'INTERNAL_SERVER_ERROR' : 'BAD_REQUEST'
 }
 
 export function statusFromGraphqlCode(code: string): number {
-  return STATUS_BY_CODE[code] ?? 500;
+  return STATUS_BY_CODE[code] ?? 500
 }
 
 /**
@@ -109,66 +109,61 @@ export function statusFromGraphqlCode(code: string): number {
  * the client should not.
  */
 export function toGraphqlError(exception: unknown): {
-  error: GraphqlErrorPayload;
-  status: number;
+  error: GraphqlErrorPayload
+  status: number
 } {
   if (exception instanceof GraphqlException) {
     return build(exception.code, exception.message, exception.status, {
       ...exception.extensions,
-    });
+    })
   }
 
   if (exception instanceof ContractValidationException) {
-    return build("BAD_USER_INPUT", "Request validation failed", 400, {
+    return build('BAD_USER_INPUT', 'Request validation failed', 400, {
       errors: exception.errors,
-    });
+    })
   }
 
   if (exception instanceof HttpException) {
-    const status = exception.getStatus();
-    const body = exception.getResponse();
+    const status = exception.getStatus()
+    const body = exception.getResponse()
 
-    if (typeof body === "string") {
-      return build(graphqlCodeFromStatus(status), body, status, {});
+    if (typeof body === 'string') {
+      return build(graphqlCodeFromStatus(status), body, status, {})
     }
 
-    const record = body as Record<string, unknown>;
+    const record = body as Record<string, unknown>
     const message = Array.isArray(record.message)
-      ? record.message.join(", ")
-      : ((record.message as string | undefined) ?? exception.message);
+      ? record.message.join(', ')
+      : ((record.message as string | undefined) ?? exception.message)
 
     // An app that already speaks GraphQL codes gets to keep its own; anything
     // else (`"USER_NOT_FOUND"`) is application vocabulary and stays out of the
     // slot the client switches on.
     const code =
-      typeof record.code === "string" && STATUS_BY_CODE[record.code]
+      typeof record.code === 'string' && STATUS_BY_CODE[record.code]
         ? record.code
-        : graphqlCodeFromStatus(status);
+        : graphqlCodeFromStatus(status)
 
     return build(code, message, status, {
       ...(record.errors !== undefined ? { errors: record.errors } : {}),
-      ...(typeof record.code === "string" && !STATUS_BY_CODE[record.code]
+      ...(typeof record.code === 'string' && !STATUS_BY_CODE[record.code]
         ? { appCode: record.code }
         : {}),
-    });
+    })
   }
 
-  return build(
-    "INTERNAL_SERVER_ERROR",
-    "Internal server error",
-    500,
-    {},
-  );
+  return build('INTERNAL_SERVER_ERROR', 'Internal server error', 500, {})
 }
 
 function build(
   code: string,
   message: string,
   status: number,
-  extensions: Record<string, unknown>,
+  extensions: Record<string, unknown>
 ): { error: GraphqlErrorPayload; status: number } {
   return {
     error: { message, extensions: { ...extensions, code, http: { status } } },
     status,
-  };
+  }
 }

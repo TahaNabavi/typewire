@@ -1,4 +1,4 @@
-import { send, tcpConfigured } from "@/lib/redis-tcp";
+import { send, tcpConfigured } from '@/lib/redis-tcp'
 
 /**
  * Redis, over whichever transport the environment provides.
@@ -33,54 +33,54 @@ import { send, tcpConfigured } from "@/lib/redis-tcp";
 const REST_URL =
   process.env.UPSTASH_REDIS_REST_URL ??
   process.env.UPSTASH_KV_REST_API_URL ??
-  process.env.KV_REST_API_URL;
+  process.env.KV_REST_API_URL
 
 const REST_TOKEN =
   process.env.UPSTASH_REDIS_REST_TOKEN ??
   process.env.UPSTASH_KV_REST_API_TOKEN ??
-  process.env.KV_REST_API_TOKEN;
+  process.env.KV_REST_API_TOKEN
 
-const restConfigured = Boolean(REST_URL && REST_TOKEN);
+const restConfigured = Boolean(REST_URL && REST_TOKEN)
 
-const redisConfigured = restConfigured || tcpConfigured;
+const redisConfigured = restConfigured || tcpConfigured
 
-type Command = (string | number)[];
+type Command = (string | number)[]
 
 async function exec<T>(command: Command): Promise<T | null> {
   if (restConfigured) {
     try {
       const res = await fetch(REST_URL!, {
-        method: "POST",
+        method: 'POST',
         headers: {
           Authorization: `Bearer ${REST_TOKEN}`,
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(command),
-        cache: "no-store",
-      });
-      if (!res.ok) return null;
-      const json = (await res.json()) as { result?: T; error?: string };
-      return json.error ? null : (json.result ?? null);
+        cache: 'no-store',
+      })
+      if (!res.ok) return null
+      const json = (await res.json()) as { result?: T; error?: string }
+      return json.error ? null : (json.result ?? null)
     } catch {
-      return null;
+      return null
     }
   }
 
   if (tcpConfigured) {
     try {
-      return (await send(command)) as T;
+      return (await send(command)) as T
     } catch {
-      return null;
+      return null
     }
   }
 
-  return null;
+  return null
 }
 
 export const redis = {
   get configured() {
-    return redisConfigured;
+    return redisConfigured
   },
   exec,
-  incr: (key: string) => exec<number>(["INCR", key]),
-};
+  incr: (key: string) => exec<number>(['INCR', key]),
+}

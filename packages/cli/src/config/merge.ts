@@ -11,20 +11,20 @@
  * the base, package-specific ones in the leaf.
  */
 export function mergeConfig<T>(base: T, override: T): T {
-  if (!isPlainObject(base) || !isPlainObject(override)) return override;
+  if (!isPlainObject(base) || !isPlainObject(override)) return override
 
-  const result: Record<string, unknown> = { ...base };
+  const result: Record<string, unknown> = { ...base }
 
   for (const [key, value] of Object.entries(override)) {
-    if (value === undefined) continue;
-    const current = result[key];
+    if (value === undefined) continue
+    const current = result[key]
     result[key] =
       isPlainObject(current) && isPlainObject(value)
         ? mergeConfig(current, value)
-        : value;
+        : value
   }
 
-  return result as T;
+  return result as T
 }
 
 /**
@@ -43,13 +43,13 @@ export function mergeConfig<T>(base: T, override: T): T {
  * `Object.create(null)` has none at all.
  */
 function isPlainObject(value: unknown): value is Record<string, unknown> {
-  if (typeof value !== "object" || value === null) return false;
-  if (Array.isArray(value)) return false;
+  if (typeof value !== 'object' || value === null) return false
+  if (Array.isArray(value)) return false
 
-  const proto = Object.getPrototypeOf(value) as Record<string, unknown> | null;
-  if (proto === null) return true;
-  if (Object.getPrototypeOf(proto) !== null) return false;
+  const proto = Object.getPrototypeOf(value) as Record<string, unknown> | null
+  if (proto === null) return true
+  if (Object.getPrototypeOf(proto) !== null) return false
 
-  const constructor = proto.constructor;
-  return typeof constructor === "function" && constructor.name === "Object";
+  const constructor = proto.constructor
+  return typeof constructor === 'function' && constructor.name === 'Object'
 }

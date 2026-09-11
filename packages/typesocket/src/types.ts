@@ -1,5 +1,5 @@
-import type { z } from "zod";
-import type { ErrorLike } from "./errors";
+import type { z } from 'zod'
+import type { ErrorLike } from './errors'
 
 /* ============================================================================
  * CONTRACT
@@ -15,7 +15,7 @@ import type { ErrorLike } from "./errors";
  * (`@tahanabavi/typewire-nestjs`) does exactly the reverse — from the same
  * object, with no mirrored second declaration to drift.
  */
-export type EventDirection = "client->server" | "server->client";
+export type EventDirection = 'client->server' | 'server->client'
 
 /**
  * A permission requirement a `client->server` event may carry inline (the
@@ -27,54 +27,54 @@ export type EventDirection = "client->server" | "server->client";
  */
 export type PermissionRequirement = {
   /** All of these flags must be held (`hasAll`). */
-  require?: readonly string[];
+  require?: readonly string[]
   /** At least one of these flags must be held (`hasAny`). */
-  any?: readonly string[];
+  any?: readonly string[]
   /** Human reason, surfaced to a guard and the audit log. */
-  reason?: string;
-};
+  reason?: string
+}
 
 /** An event the client sends and the server handles. */
 export type ClientToServerDef<
   TReq extends z.ZodTypeAny = z.ZodTypeAny,
   TAck extends z.ZodTypeAny = z.ZodTypeAny,
 > = {
-  direction: "client->server";
+  direction: 'client->server'
   /** Wire event name. Defaults to the key the event is declared under. */
-  event?: string;
+  event?: string
   /**
    * Optional permission requirement to emit this event. Read by a server-side
    * gateway guard to reject the frame, and by the client to pre-block an emit.
    * Only `client->server` events carry it — the client authorizes what it
    * *sends*, never what it receives. Additive; events without it are unaffected.
    */
-  permission?: PermissionRequirement;
+  permission?: PermissionRequirement
   /** Schema for the payload sent to the server. */
-  request: TReq;
+  request: TReq
   /**
    * Schema for the server's acknowledgement. Declaring this changes the emit
    * from fire-and-forget to `Promise<Ack>` — and the ack is *validated*, which
    * v1 declared but never enforced.
    */
-  ack?: TAck;
+  ack?: TAck
   /** Per-event ack timeout, overriding the client default. */
-  ackTimeoutMs?: number;
+  ackTimeoutMs?: number
   /** Human-readable description, surfaced by devtools and docs tooling. */
-  description?: string;
-};
+  description?: string
+}
 
 /** An event the server pushes and the client listens for. */
 export type ServerToClientDef<TPayload extends z.ZodTypeAny = z.ZodTypeAny> = {
-  direction: "server->client";
+  direction: 'server->client'
   /** Wire event name. Defaults to the key the event is declared under. */
-  event?: string;
+  event?: string
   /** Schema for the payload pushed by the server. */
-  payload: TPayload;
+  payload: TPayload
   /** Human-readable description, surfaced by devtools and docs tooling. */
-  description?: string;
-};
+  description?: string
+}
 
-export type SocketEventDef = ClientToServerDef | ServerToClientDef;
+export type SocketEventDef = ClientToServerDef | ServerToClientDef
 
 /**
  * A module-grouped map of socket events — structurally parallel to
@@ -82,34 +82,34 @@ export type SocketEventDef = ClientToServerDef | ServerToClientDef;
  * `"module.event"` identifier shape and higher layers can key them uniformly.
  */
 export type SocketContracts = {
-  [module: string]: { [event: string]: SocketEventDef };
-};
+  [module: string]: { [event: string]: SocketEventDef }
+}
 
 /* ============================================================================
  * GENERATED SURFACE
  * ========================================================================== */
 
 /** Detaches a listener. Returned by every subscribe call so cleanup is local. */
-export type Unsubscribe = () => void;
+export type Unsubscribe = () => void
 
 export type EmitOptions = {
   /** Overrides the event/client ack timeout for this call. */
-  timeoutMs?: number;
+  timeoutMs?: number
   /** Cancels a pending ack. */
-  signal?: AbortSignal;
+  signal?: AbortSignal
   /** Drops the frame if the socket is not writable (socket.io volatile emit). */
-  volatile?: boolean;
-};
+  volatile?: boolean
+}
 
 export type WaitOptions = {
-  timeoutMs?: number;
-  signal?: AbortSignal;
+  timeoutMs?: number
+  signal?: AbortSignal
   /** Resolve only when the payload satisfies this predicate. */
-  filter?: (payload: any) => boolean;
-};
+  filter?: (payload: any) => boolean
+}
 
 /** Resolves an event's ack schema, or `never` when none is declared. */
-type AckOf<E> = E extends { ack: infer A extends z.ZodTypeAny } ? A : never;
+type AckOf<E> = E extends { ack: infer A extends z.ZodTypeAny } ? A : never
 
 /**
  * The callable produced for a `client->server` event.
@@ -119,73 +119,73 @@ type AckOf<E> = E extends { ack: infer A extends z.ZodTypeAny } ? A : never;
  */
 export type EmitApi<E extends ClientToServerDef = ClientToServerDef> = {
   (
-    input: z.infer<E["request"]>,
-    options?: EmitOptions,
-  ): E extends { ack: z.ZodTypeAny } ? Promise<z.infer<AckOf<E>>> : void;
+    input: z.infer<E['request']>,
+    options?: EmitOptions
+  ): E extends { ack: z.ZodTypeAny } ? Promise<z.infer<AckOf<E>>> : void
 
   /**
    * Validates now, sends on the next connect. Frames flush in declaration
    * order. Throws immediately if `input` fails its schema, so a bad payload
    * can't sit in the buffer until connect to fail invisibly.
    */
-  queue(input: z.infer<E["request"]>): void;
+  queue(input: z.infer<E['request']>): void
 
   /** Stable `"module.event"` identifier — the cross-package key. */
-  readonly eventId: string;
+  readonly eventId: string
   /** The wire event name actually sent. */
-  readonly event: string;
+  readonly event: string
   /** The originating contract definition. */
-  readonly def: E;
-};
+  readonly def: E
+}
 
 /** The listener object produced for a `server->client` event. */
 export type ListenApi<E extends ServerToClientDef = ServerToClientDef> = {
   /** Subscribes. Returns an unsubscribe function. */
-  on(handler: (payload: z.infer<E["payload"]>) => void): Unsubscribe;
+  on(handler: (payload: z.infer<E['payload']>) => void): Unsubscribe
   /** Subscribes for exactly one *valid* payload. */
-  once(handler: (payload: z.infer<E["payload"]>) => void): Unsubscribe;
+  once(handler: (payload: z.infer<E['payload']>) => void): Unsubscribe
   /** Detaches a handler registered via `on`/`once`. */
-  off(handler: (payload: z.infer<E["payload"]>) => void): void;
+  off(handler: (payload: z.infer<E['payload']>) => void): void
   /** Detaches every handler for this event. */
-  offAll(): void;
+  offAll(): void
   /** Resolves with the next valid payload. */
-  wait(options?: WaitOptions): Promise<z.infer<E["payload"]>>;
+  wait(options?: WaitOptions): Promise<z.infer<E['payload']>>
   /** Number of currently attached handlers. */
-  readonly listenerCount: number;
+  readonly listenerCount: number
 
   /** Stable `"module.event"` identifier — the cross-package key. */
-  readonly eventId: string;
+  readonly eventId: string
   /** The wire event name actually listened to. */
-  readonly event: string;
+  readonly event: string
   /** The originating contract definition. */
-  readonly def: E;
-};
+  readonly def: E
+}
 
 /** Picks the right API shape for an event based on its declared direction. */
 export type EventApi<E extends SocketEventDef> = E extends ClientToServerDef
   ? EmitApi<E>
   : E extends ServerToClientDef
     ? ListenApi<E>
-    : never;
+    : never
 
 /** The full generated surface: `client.modules.<module>.<event>`. */
 export type SocketModules<C extends SocketContracts> = {
-  [M in keyof C]: { [E in keyof C[M]]: EventApi<C[M][E]> };
-};
+  [M in keyof C]: { [E in keyof C[M]]: EventApi<C[M][E]> }
+}
 
 /* ============================================================================
  * MIDDLEWARE
  * ========================================================================== */
 
 export type SocketFrame = {
-  direction: "inbound" | "outbound";
+  direction: 'inbound' | 'outbound'
   /** Stable `"module.event"` identifier. */
-  eventId: string;
+  eventId: string
   /** The wire event name. */
-  event: string;
+  event: string
   /** Raw, not-yet-validated payload. */
-  payload: unknown;
-};
+  payload: unknown
+}
 
 /**
  * Runs on every frame in both directions, before validation.
@@ -195,8 +195,8 @@ export type SocketFrame = {
  * `{ payload }`. Returning `undefined` passes the frame through untouched.
  */
 export type SocketMiddleware = (
-  frame: SocketFrame,
-) => void | false | { payload: unknown };
+  frame: SocketFrame
+) => void | false | { payload: unknown }
 
 /* ============================================================================
  * INSTRUMENTATION — the devtools / query-layer seam
@@ -210,64 +210,64 @@ export type SocketMiddleware = (
  * Purely observational: these never change what the caller receives.
  */
 export type SocketLifecycleEvent =
-  | { type: "connect"; ts: number; socketId?: string; attempt: number }
-  | { type: "disconnect"; ts: number; reason: string }
-  | { type: "connect_error"; ts: number; error: ErrorLike };
+  | { type: 'connect'; ts: number; socketId?: string; attempt: number }
+  | { type: 'disconnect'; ts: number; reason: string }
+  | { type: 'connect_error'; ts: number; error: ErrorLike }
 
 export type SocketFrameEvent =
   | {
-      type: "outbound";
+      type: 'outbound'
       /** Correlates this frame with its `ack` / `frame_error`. */
-      frameId: string;
-      eventId: string;
-      event: string;
-      payload: unknown;
-      ts: number;
+      frameId: string
+      eventId: string
+      event: string
+      payload: unknown
+      ts: number
       /** `true` when the frame was buffered rather than sent immediately. */
-      queued: boolean;
+      queued: boolean
       /** `true` when the contract declares an ack. */
-      expectsAck: boolean;
+      expectsAck: boolean
     }
   | {
-      type: "ack";
-      frameId: string;
-      eventId: string;
+      type: 'ack'
+      frameId: string
+      eventId: string
       /** The parsed, typed acknowledgement returned to the caller. */
-      data: unknown;
-      durationMs: number;
+      data: unknown
+      durationMs: number
       /** `true` when an override supplied the ack instead of the server. */
-      fromMock: boolean;
+      fromMock: boolean
     }
   | {
-      type: "inbound";
-      frameId: string;
-      eventId: string;
-      event: string;
+      type: 'inbound'
+      frameId: string
+      eventId: string
+      event: string
       /** The parsed, typed payload delivered to handlers. */
-      payload: unknown;
-      ts: number;
+      payload: unknown
+      ts: number
       /** `true` when an override injected the frame. */
-      injected: boolean;
+      injected: boolean
     }
   | {
-      type: "dropped";
-      frameId: string;
-      eventId: string;
-      direction: "inbound" | "outbound";
+      type: 'dropped'
+      frameId: string
+      eventId: string
+      direction: 'inbound' | 'outbound'
       /** What discarded the frame. */
-      by: "middleware" | "override";
-      ts: number;
+      by: 'middleware' | 'override'
+      ts: number
     }
   | {
-      type: "frame_error";
-      frameId: string;
-      eventId: string;
-      direction: "inbound" | "outbound";
-      error: ErrorLike;
-      ts: number;
-    };
+      type: 'frame_error'
+      frameId: string
+      eventId: string
+      direction: 'inbound' | 'outbound'
+      error: ErrorLike
+      ts: number
+    }
 
-export type SocketEvent = SocketLifecycleEvent | SocketFrameEvent;
+export type SocketEvent = SocketLifecycleEvent | SocketFrameEvent
 
 /**
  * A runtime, per-frame override resolved from an instrumentation hook.
@@ -278,24 +278,24 @@ export type SocketEvent = SocketLifecycleEvent | SocketFrameEvent;
  */
 export type SocketOverride = {
   /** Discard the frame: don't send it (outbound) / don't dispatch it (inbound). */
-  drop?: boolean;
+  drop?: boolean
   /** Artificial latency (ms) applied before the frame is processed. */
-  latencyMs?: number;
+  latencyMs?: number
   /** Replace the payload, or derive a replacement from it. */
-  payload?: unknown | ((payload: unknown) => unknown);
+  payload?: unknown | ((payload: unknown) => unknown)
   /**
    * Answer an ack locally, bypassing the network. Still validated against the
    * (possibly overridden) ack schema, so a mock can't claim a shape the
    * contract forbids.
    */
-  ack?: unknown | ((input: unknown) => unknown);
+  ack?: unknown | ((input: unknown) => unknown)
   /** Force a failure instead of sending/dispatching. */
-  error?: { code?: string; message?: string };
+  error?: { code?: string; message?: string }
   /** Swap the outbound request schema at runtime. */
-  request?: z.ZodTypeAny;
+  request?: z.ZodTypeAny
   /** Swap the inbound payload / ack schema at runtime. */
-  response?: z.ZodTypeAny;
-};
+  response?: z.ZodTypeAny
+}
 
 /**
  * An optional, additive hook registered via `client.instrument(...)`.
@@ -306,23 +306,23 @@ export type SocketOverride = {
  */
 export type SocketInstrumentation = {
   /** Receives each lifecycle and frame event. */
-  on?: (event: SocketEvent) => void;
+  on?: (event: SocketEvent) => void
   /** Resolve a per-frame override, or `undefined` to leave the frame alone. */
   resolveOverride?: (
     eventId: string,
-    payload: unknown,
-  ) => SocketOverride | undefined;
-};
+    payload: unknown
+  ) => SocketOverride | undefined
+}
 
 /** One entry of the contract map, flattened. Used by devtools and codegen. */
 export type SocketEventMeta = {
-  eventId: string;
-  module: string;
-  name: string;
-  event: string;
-  direction: EventDirection;
-  description?: string;
-};
+  eventId: string
+  module: string
+  name: string
+  event: string
+  direction: EventDirection
+  description?: string
+}
 
 /* ============================================================================
  * CONFIG
@@ -330,42 +330,42 @@ export type SocketEventMeta = {
 
 export type SocketClientConfig = {
   /** Server URL, e.g. `https://api.example.com` or `/`. */
-  url: string;
+  url: string
   /** socket.io endpoint path. Defaults to `/socket.io`. */
-  path?: string;
-  autoConnect?: boolean;
-  reconnection?: boolean;
-  reconnectionAttempts?: number;
-  reconnectionDelay?: number;
-  reconnectionDelayMax?: number;
-  timeout?: number;
-  transports?: Array<"websocket" | "polling">;
+  path?: string
+  autoConnect?: boolean
+  reconnection?: boolean
+  reconnectionAttempts?: number
+  reconnectionDelay?: number
+  reconnectionDelayMax?: number
+  timeout?: number
+  transports?: Array<'websocket' | 'polling'>
   /**
    * Handshake auth. A function is re-invoked on every (re)connect, so a
    * refreshed token is picked up without rebuilding the client.
    */
-  auth?: Record<string, unknown> | (() => Record<string, unknown>);
-  query?: Record<string, string>;
-  withCredentials?: boolean;
-  extraHeaders?: Record<string, string>;
+  auth?: Record<string, unknown> | (() => Record<string, unknown>)
+  query?: Record<string, string>
+  withCredentials?: boolean
+  extraHeaders?: Record<string, string>
 
   /** Default ack timeout in ms for emits that declare an ack. Defaults to 10000. */
-  ackTimeoutMs?: number;
+  ackTimeoutMs?: number
   /** Max frames held by `.queue()` while disconnected. Defaults to 100. */
-  maxQueueSize?: number;
+  maxQueueSize?: number
   /** Verbose frame logging. */
-  debug?: boolean;
+  debug?: boolean
 
   /**
    * Called when an *inbound* frame fails its schema. Inbound failures can't
    * throw into unrelated user code, so they surface here. Defaults to
    * `console.error`; pass a no-op to silence.
    */
-  onValidationError?: (error: import("./errors").SocketValidationError) => void;
+  onValidationError?: (error: import('./errors').SocketValidationError) => void
 
   /** Escape hatch for socket.io options not modelled above. */
-  ioOptions?: Record<string, unknown>;
-};
+  ioOptions?: Record<string, unknown>
+}
 
 /**
  * A synchronous pre-emit authorization hook. Runs on every outbound frame,
@@ -378,21 +378,21 @@ export type SocketClientConfig = {
  * bits from an in-memory source (a store snapshot, a decoded token).
  */
 export type OutboundAuthorizer = (frame: {
-  eventId: string;
-  event: string;
-  def: ClientToServerDef;
-  payload: unknown;
-}) => void;
+  eventId: string
+  event: string
+  def: ClientToServerDef
+  payload: unknown
+}) => void
 
 export type SocketClientOptions = {
-  middlewares?: SocketMiddleware[];
+  middlewares?: SocketMiddleware[]
   /**
    * A pre-emit guard that may throw to block an outbound frame — used by
    * `createPermissionMiddleware` to enforce a `client->server` event's
    * `permission` key client-side. See {@link OutboundAuthorizer}.
    */
-  authorizeOutbound?: OutboundAuthorizer;
-  onConnect?: (info: { socketId?: string; attempt: number }) => void;
-  onDisconnect?: (reason: string) => void;
-  onConnectError?: (error: ErrorLike) => void;
-};
+  authorizeOutbound?: OutboundAuthorizer
+  onConnect?: (info: { socketId?: string; attempt: number }) => void
+  onDisconnect?: (reason: string) => void
+  onConnectError?: (error: ErrorLike) => void
+}

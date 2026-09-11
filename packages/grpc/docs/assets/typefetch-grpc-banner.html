@@ -1,196 +1,666 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8" />
-<style>
-  :root {
-    --bg0:#040d12; --bg1:#07161f; --bg2:#081a26;
-    --panel:#0a1a24; --panel2:#08151e;
-    --border:rgba(148,163,184,.12); --border2:rgba(148,163,184,.18);
-    --text:#e8eef8; --muted:#8fa8b5; --dim:#5c7684;
-    --accent:#22d3ee; --accent2:#06b6d4; --accentDim:#67e8f9;
-    --blue:#60a5fa; --purple:#a78bfa; --green:#4ade80; --red:#f87171; --amber:#fbbf24;
-    --mono:"JetBrains Mono","Cascadia Code",Consolas,"SF Mono",Menlo,monospace;
-    --sans:-apple-system,"Segoe UI",Roboto,system-ui,"Helvetica Neue",Arial,sans-serif;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  html,body { width:1600px; height:850px; overflow:hidden; }
-  body {
-    font-family:var(--sans); color:var(--text); position:relative;
-    background:
-      radial-gradient(1200px 700px at 82% -8%, rgba(34,211,238,.16), transparent 60%),
-      radial-gradient(900px 600px at 10% 108%, rgba(59,130,246,.13), transparent 60%),
-      radial-gradient(700px 500px at 96% 96%, rgba(74,222,128,.06), transparent 60%),
-      linear-gradient(160deg,var(--bg0),var(--bg1) 55%,var(--bg2));
-  }
-  .grid { position:absolute; inset:0;
-    background-image:
-      linear-gradient(rgba(148,163,184,.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(148,163,184,.04) 1px, transparent 1px);
-    background-size:44px 44px; mask:radial-gradient(1400px 800px at 60% 40%, #000 30%, transparent 85%); }
-  .wrap { position:relative; width:100%; height:100%; padding:56px 58px; display:flex; gap:44px; }
-  .left { width:628px; flex:none; display:flex; flex-direction:column; }
-  .right { flex:1; display:flex; flex-direction:column; gap:18px; }
-  .right > .win { flex:1; display:flex; flex-direction:column; }
-  .right > .win .flow { flex:1; display:flex; flex-direction:column; justify-content:center; }
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      :root {
+        --bg0: #040d12;
+        --bg1: #07161f;
+        --bg2: #081a26;
+        --panel: #0a1a24;
+        --panel2: #08151e;
+        --border: rgba(148, 163, 184, 0.12);
+        --border2: rgba(148, 163, 184, 0.18);
+        --text: #e8eef8;
+        --muted: #8fa8b5;
+        --dim: #5c7684;
+        --accent: #22d3ee;
+        --accent2: #06b6d4;
+        --accentDim: #67e8f9;
+        --blue: #60a5fa;
+        --purple: #a78bfa;
+        --green: #4ade80;
+        --red: #f87171;
+        --amber: #fbbf24;
+        --mono:
+          'JetBrains Mono', 'Cascadia Code', Consolas, 'SF Mono', Menlo,
+          monospace;
+        --sans:
+          -apple-system, 'Segoe UI', Roboto, system-ui, 'Helvetica Neue', Arial,
+          sans-serif;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1600px;
+        height: 850px;
+        overflow: hidden;
+      }
+      body {
+        font-family: var(--sans);
+        color: var(--text);
+        position: relative;
+        background:
+          radial-gradient(
+            1200px 700px at 82% -8%,
+            rgba(34, 211, 238, 0.16),
+            transparent 60%
+          ),
+          radial-gradient(
+            900px 600px at 10% 108%,
+            rgba(59, 130, 246, 0.13),
+            transparent 60%
+          ),
+          radial-gradient(
+            700px 500px at 96% 96%,
+            rgba(74, 222, 128, 0.06),
+            transparent 60%
+          ),
+          linear-gradient(160deg, var(--bg0), var(--bg1) 55%, var(--bg2));
+      }
+      .grid {
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(148, 163, 184, 0.04) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(148, 163, 184, 0.04) 1px, transparent 1px);
+        background-size: 44px 44px;
+        mask: radial-gradient(
+          1400px 800px at 60% 40%,
+          #000 30%,
+          transparent 85%
+        );
+      }
+      .wrap {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        padding: 56px 58px;
+        display: flex;
+        gap: 44px;
+      }
+      .left {
+        width: 628px;
+        flex: none;
+        display: flex;
+        flex-direction: column;
+      }
+      .right {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+      .right > .win {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+      .right > .win .flow {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
 
-  .pill { display:inline-flex; align-items:center; gap:11px; align-self:flex-start;
-    padding:9px 16px 9px 14px; border:1px solid rgba(34,211,238,.34); border-radius:999px;
-    background:rgba(6,182,212,.09); font-size:14px; font-weight:700; letter-spacing:.06em; color:#a5f3fc; }
-  .pill .bar { width:4px; height:15px; border-radius:2px; background:linear-gradient(var(--accent),var(--blue)); }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 11px;
+        align-self: flex-start;
+        padding: 9px 16px 9px 14px;
+        border: 1px solid rgba(34, 211, 238, 0.34);
+        border-radius: 999px;
+        background: rgba(6, 182, 212, 0.09);
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        color: #a5f3fc;
+      }
+      .pill .bar {
+        width: 4px;
+        height: 15px;
+        border-radius: 2px;
+        background: linear-gradient(var(--accent), var(--blue));
+      }
 
-  h1 { font-weight:800; letter-spacing:-.03em; line-height:.98; margin-top:26px; }
-  h1 .a { display:block; font-size:104px;
-    background:linear-gradient(180deg,#ffffff,#c2d8e2); -webkit-background-clip:text; background-clip:text; color:transparent; }
-  h1 .b { display:block; font-size:88px; margin-top:6px;
-    background:linear-gradient(96deg,#22d3ee 4%,#06b6d4 52%,#3b82f6 98%); -webkit-background-clip:text; background-clip:text; color:transparent; }
-  .rule { width:118px; height:5px; border-radius:3px; margin:24px 0 16px;
-    background:linear-gradient(90deg,var(--accent2),var(--blue) 72%, transparent); }
-  .sub { font-size:31px; font-weight:700; letter-spacing:-.01em; color:#eaf1fb; }
-  .tag { font-size:18px; color:var(--muted); margin-top:10px; font-weight:500; line-height:1.5; max-width:560px; }
-  .tag code { font-family:var(--mono); font-size:15px; color:var(--accentDim); background:rgba(34,211,238,.1); padding:1px 7px; border-radius:6px; }
+      h1 {
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        line-height: 0.98;
+        margin-top: 26px;
+      }
+      h1 .a {
+        display: block;
+        font-size: 104px;
+        background: linear-gradient(180deg, #ffffff, #c2d8e2);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      h1 .b {
+        display: block;
+        font-size: 88px;
+        margin-top: 6px;
+        background: linear-gradient(
+          96deg,
+          #22d3ee 4%,
+          #06b6d4 52%,
+          #3b82f6 98%
+        );
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .rule {
+        width: 118px;
+        height: 5px;
+        border-radius: 3px;
+        margin: 24px 0 16px;
+        background: linear-gradient(
+          90deg,
+          var(--accent2),
+          var(--blue) 72%,
+          transparent
+        );
+      }
+      .sub {
+        font-size: 31px;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        color: #eaf1fb;
+      }
+      .tag {
+        font-size: 18px;
+        color: var(--muted);
+        margin-top: 10px;
+        font-weight: 500;
+        line-height: 1.5;
+        max-width: 560px;
+      }
+      .tag code {
+        font-family: var(--mono);
+        font-size: 15px;
+        color: var(--accentDim);
+        background: rgba(34, 211, 238, 0.1);
+        padding: 1px 7px;
+        border-radius: 6px;
+      }
 
-  .feats { margin-top:auto; display:flex; flex-direction:column; gap:18px; }
-  .feat { display:flex; gap:15px; align-items:flex-start; }
-  .ico { width:44px; height:44px; flex:none; border-radius:12px; display:grid; place-items:center; border:1px solid var(--border2); }
-  .ico svg { width:22px; height:22px; }
-  .ico.a { background:rgba(34,211,238,.13); box-shadow:inset 0 0 0 1px rgba(34,211,238,.16); }
-  .ico.b { background:rgba(96,165,250,.12); } .ico.c { background:rgba(74,222,128,.12); } .ico.p { background:rgba(167,139,250,.12); }
-  .feat .ttl { font-size:19px; font-weight:700; color:#eef4fd; }
-  .feat .dsc { font-size:14px; color:var(--muted); margin-top:2px; }
-  .feat .dsc b { color:var(--accentDim); font-weight:700; }
-  .feat .dsc code { font-family:var(--mono); font-size:13px; color:#93c5fd; }
+      .feats {
+        margin-top: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+      .feat {
+        display: flex;
+        gap: 15px;
+        align-items: flex-start;
+      }
+      .ico {
+        width: 44px;
+        height: 44px;
+        flex: none;
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+        border: 1px solid var(--border2);
+      }
+      .ico svg {
+        width: 22px;
+        height: 22px;
+      }
+      .ico.a {
+        background: rgba(34, 211, 238, 0.13);
+        box-shadow: inset 0 0 0 1px rgba(34, 211, 238, 0.16);
+      }
+      .ico.b {
+        background: rgba(96, 165, 250, 0.12);
+      }
+      .ico.c {
+        background: rgba(74, 222, 128, 0.12);
+      }
+      .ico.p {
+        background: rgba(167, 139, 250, 0.12);
+      }
+      .feat .ttl {
+        font-size: 19px;
+        font-weight: 700;
+        color: #eef4fd;
+      }
+      .feat .dsc {
+        font-size: 14px;
+        color: var(--muted);
+        margin-top: 2px;
+      }
+      .feat .dsc b {
+        color: var(--accentDim);
+        font-weight: 700;
+      }
+      .feat .dsc code {
+        font-family: var(--mono);
+        font-size: 13px;
+        color: #93c5fd;
+      }
 
-  .win { border:1px solid var(--border); border-radius:16px; overflow:hidden;
-    background:linear-gradient(180deg,var(--panel),var(--panel2));
-    box-shadow:0 30px 70px -30px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.04); }
-  .win .bar { display:flex; align-items:center; gap:8px; padding:13px 16px; border-bottom:1px solid var(--border); background:rgba(255,255,255,.015); }
-  .dot { width:12px; height:12px; border-radius:50%; }
-  .dot.r{background:#ff5f57} .dot.y{background:#febc2e} .dot.g{background:#28c840}
-  .win .title { margin-left:8px; font-family:var(--mono); font-size:13.5px; color:var(--dim); }
-  .win .title b{ color:#a8c4d2; font-weight:600 }
-  .badge0 { margin-left:auto; font-size:12px; font-weight:700; color:var(--accentDim); letter-spacing:.02em;
-    padding:4px 10px; border-radius:999px; background:rgba(34,211,238,.10); border:1px solid rgba(34,211,238,.22); }
+      .win {
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        overflow: hidden;
+        background: linear-gradient(180deg, var(--panel), var(--panel2));
+        box-shadow:
+          0 30px 70px -30px rgba(0, 0, 0, 0.7),
+          inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      }
+      .win .bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 13px 16px;
+        border-bottom: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.015);
+      }
+      .dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+      }
+      .dot.r {
+        background: #ff5f57;
+      }
+      .dot.y {
+        background: #febc2e;
+      }
+      .dot.g {
+        background: #28c840;
+      }
+      .win .title {
+        margin-left: 8px;
+        font-family: var(--mono);
+        font-size: 13.5px;
+        color: var(--dim);
+      }
+      .win .title b {
+        color: #a8c4d2;
+        font-weight: 600;
+      }
+      .badge0 {
+        margin-left: auto;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--accentDim);
+        letter-spacing: 0.02em;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: rgba(34, 211, 238, 0.1);
+        border: 1px solid rgba(34, 211, 238, 0.22);
+      }
 
-  .flow { padding:20px 22px 26px; }
-  .step { font-family:var(--mono); font-size:14.5px; line-height:1.6; color:#cdd8e8; }
-  .lbl { font-family:var(--sans); font-size:11.5px; letter-spacing:.09em; color:var(--dim); font-weight:700; margin-bottom:9px; }
-  .kw{color:#c792ea} .fn{color:#82aaff} .pr{color:#7fdbca} .st{color:#c3e88d} .cm{color:#5c7684} .nm{color:var(--accentDim)}
-  .arrow { display:flex; align-items:center; gap:12px; margin:15px 0 13px; }
-  .arrow .ln { flex:1; height:2px; border-radius:2px; background:linear-gradient(90deg,transparent,rgba(34,211,238,.7),transparent); }
-  .arrow .txt { font-size:12px; font-weight:700; letter-spacing:.08em; color:var(--accentDim);
-    padding:5px 12px; border-radius:999px; background:rgba(34,211,238,.11); border:1px solid rgba(34,211,238,.24); white-space:nowrap; }
-  .gql { font-family:var(--mono); font-size:15px; line-height:1.85; color:#e8eef8;
-    padding:15px 17px; border-radius:11px; background:rgba(34,211,238,.06); border:1px solid rgba(34,211,238,.2); }
-  .gql .mt{color:#c792ea} .gql .pt{color:#67e8f9} .gql .hd{color:#7fdbca} .gql .vl{color:#c3e88d} .gql .cm2{color:#5c7684}
+      .flow {
+        padding: 20px 22px 26px;
+      }
+      .step {
+        font-family: var(--mono);
+        font-size: 14.5px;
+        line-height: 1.6;
+        color: #cdd8e8;
+      }
+      .lbl {
+        font-family: var(--sans);
+        font-size: 11.5px;
+        letter-spacing: 0.09em;
+        color: var(--dim);
+        font-weight: 700;
+        margin-bottom: 9px;
+      }
+      .kw {
+        color: #c792ea;
+      }
+      .fn {
+        color: #82aaff;
+      }
+      .pr {
+        color: #7fdbca;
+      }
+      .st {
+        color: #c3e88d;
+      }
+      .cm {
+        color: #5c7684;
+      }
+      .nm {
+        color: var(--accentDim);
+      }
+      .arrow {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 15px 0 13px;
+      }
+      .arrow .ln {
+        flex: 1;
+        height: 2px;
+        border-radius: 2px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(34, 211, 238, 0.7),
+          transparent
+        );
+      }
+      .arrow .txt {
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        color: var(--accentDim);
+        padding: 5px 12px;
+        border-radius: 999px;
+        background: rgba(34, 211, 238, 0.11);
+        border: 1px solid rgba(34, 211, 238, 0.24);
+        white-space: nowrap;
+      }
+      .gql {
+        font-family: var(--mono);
+        font-size: 15px;
+        line-height: 1.85;
+        color: #e8eef8;
+        padding: 15px 17px;
+        border-radius: 11px;
+        background: rgba(34, 211, 238, 0.06);
+        border: 1px solid rgba(34, 211, 238, 0.2);
+      }
+      .gql .mt {
+        color: #c792ea;
+      }
+      .gql .pt {
+        color: #67e8f9;
+      }
+      .gql .hd {
+        color: #7fdbca;
+      }
+      .gql .vl {
+        color: #c3e88d;
+      }
+      .gql .cm2 {
+        color: #5c7684;
+      }
 
-  .card { border:1px solid var(--border); border-radius:16px; padding:15px 18px;
-    background:linear-gradient(180deg,var(--panel),var(--panel2)); box-shadow:inset 0 1px 0 rgba(255,255,255,.03); }
-  .row { display:flex; gap:0; }
-  .cell { flex:1; padding:0 16px; border-left:1px solid var(--border); }
-  .cell:first-child { border-left:0; padding-left:0; }
-  .cell .k { font-family:var(--mono); font-size:13px; color:var(--accentDim); font-weight:700; }
-  .cell .v { font-size:13px; color:var(--muted); margin-top:3px; line-height:1.4; }
+      .card {
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 15px 18px;
+        background: linear-gradient(180deg, var(--panel), var(--panel2));
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+      }
+      .row {
+        display: flex;
+        gap: 0;
+      }
+      .cell {
+        flex: 1;
+        padding: 0 16px;
+        border-left: 1px solid var(--border);
+      }
+      .cell:first-child {
+        border-left: 0;
+        padding-left: 0;
+      }
+      .cell .k {
+        font-family: var(--mono);
+        font-size: 13px;
+        color: var(--accentDim);
+        font-weight: 700;
+      }
+      .cell .v {
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 3px;
+        line-height: 1.4;
+      }
 
-  .maps { display:flex; flex-direction:column; gap:7px; }
-  .map { display:grid; grid-template-columns:196px 58px 26px 1fr; align-items:center; font-family:var(--mono); font-size:14px; }
-  .map .gq { color:#67e8f9; }
-  .map .ht { color:#fbbf24; }
-  .map .ar { color:var(--dim); text-align:center; }
-  .map .ek { color:#7fdbca; }
-  .note { font-size:13px; color:var(--muted); margin-top:12px; padding-top:11px; border-top:1px solid var(--border); }
-  .note b { color:#93c5fd; font-family:var(--mono); font-size:12.5px; }
-</style>
-</head>
-<body>
-<div class="grid"></div>
-<div class="wrap">
+      .maps {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+      }
+      .map {
+        display: grid;
+        grid-template-columns: 196px 58px 26px 1fr;
+        align-items: center;
+        font-family: var(--mono);
+        font-size: 14px;
+      }
+      .map .gq {
+        color: #67e8f9;
+      }
+      .map .ht {
+        color: #fbbf24;
+      }
+      .map .ar {
+        color: var(--dim);
+        text-align: center;
+      }
+      .map .ek {
+        color: #7fdbca;
+      }
+      .note {
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 12px;
+        padding-top: 11px;
+        border-top: 1px solid var(--border);
+      }
+      .note b {
+        color: #93c5fd;
+        font-family: var(--mono);
+        font-size: 12.5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="grid"></div>
+    <div class="wrap">
+      <!-- LEFT -->
+      <div class="left">
+        <span class="pill"
+          ><span class="bar"></span>@tahanabavi/typefetch-grpc</span
+        >
 
-  <!-- LEFT -->
-  <div class="left">
-    <span class="pill"><span class="bar"></span>@tahanabavi/typefetch-grpc</span>
+        <h1><span class="a">gRPC</span><span class="b">no protobuf</span></h1>
+        <div class="rule"></div>
+        <div class="sub">Honest HTTP, real statuses.</div>
+        <div class="tag">
+          Connect unary JSON by default — a plain <code>POST</code> you can
+          <code>curl</code>. Binary grpc-web stays available behind a codec
+          seam.
+        </div>
 
-    <h1><span class="a">gRPC</span><span class="b">no protobuf</span></h1>
-    <div class="rule"></div>
-    <div class="sub">Honest HTTP, real statuses.</div>
-    <div class="tag">Connect unary JSON by default — a plain <code>POST</code> you can <code>curl</code>. Binary grpc-web stays available behind a codec seam.</div>
-
-    <div class="feats">
-      <div class="feat">
-        <div class="ico a"><svg viewBox="0 0 24 24" fill="none" stroke="#67e8f9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17V7l8-4 8 4v10l-8 4-8-4Z"/><path d="m4 7 8 4 8-4M12 11v10"/></svg></div>
-        <div><div class="ttl">Connect JSON by default</div><div class="dsc">Curl-able, readable in a network tab, <b>zero dependencies</b></div></div>
+        <div class="feats">
+          <div class="feat">
+            <div class="ico a">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#67e8f9"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M4 17V7l8-4 8 4v10l-8 4-8-4Z" />
+                <path d="m4 7 8 4 8-4M12 11v10" />
+              </svg>
+            </div>
+            <div>
+              <div class="ttl">Connect JSON by default</div>
+              <div class="dsc">
+                Curl-able, readable in a network tab, <b>zero dependencies</b>
+              </div>
+            </div>
+          </div>
+          <div class="feat">
+            <div class="ico b">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#93c5fd"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="3" y="8" width="4" height="8" rx="1" />
+                <rect x="10" y="6" width="11" height="12" rx="1.5" />
+              </svg>
+            </div>
+            <div>
+              <div class="ttl">Codec seam for binary</div>
+              <div class="dsc">
+                Adapter owns framing · <b>your</b> codec owns message bytes
+              </div>
+            </div>
+          </div>
+          <div class="feat">
+            <div class="ico c">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#86efac"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M21 12a9 9 0 1 1-9-9" />
+                <path d="M12 7v5l3 2" />
+              </svg>
+            </div>
+            <div>
+              <div class="ttl">Codes map both ways</div>
+              <div class="dsc">
+                gRPC ↔ HTTP ↔ <b>ErrorKind</b> — and <code>errors</code> keys on
+                the code
+              </div>
+            </div>
+          </div>
+          <div class="feat">
+            <div class="ico p">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#c4b5fd"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M12 9v4M12 17h.01" />
+                <path
+                  d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"
+                />
+              </svg>
+            </div>
+            <div>
+              <div class="ttl">It names the CORS trap</div>
+              <div class="dsc">
+                A hidden trailer is the #1 grpc-web failure — the error says so
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="feat">
-        <div class="ico b"><svg viewBox="0 0 24 24" fill="none" stroke="#93c5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="4" height="8" rx="1"/><rect x="10" y="6" width="11" height="12" rx="1.5"/></svg></div>
-        <div><div class="ttl">Codec seam for binary</div><div class="dsc">Adapter owns framing · <b>your</b> codec owns message bytes</div></div>
-      </div>
-      <div class="feat">
-        <div class="ico c"><svg viewBox="0 0 24 24" fill="none" stroke="#86efac" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9"/><path d="M12 7v5l3 2"/></svg></div>
-        <div><div class="ttl">Codes map both ways</div><div class="dsc">gRPC ↔ HTTP ↔ <b>ErrorKind</b> — and <code>errors</code> keys on the code</div></div>
-      </div>
-      <div class="feat">
-        <div class="ico p"><svg viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg></div>
-        <div><div class="ttl">It names the CORS trap</div><div class="dsc">A hidden trailer is the #1 grpc-web failure — the error says so</div></div>
+
+      <!-- RIGHT -->
+      <div class="right">
+        <div class="win">
+          <div class="bar">
+            <span class="dot r"></span><span class="dot y"></span
+            ><span class="dot g"></span>
+            <span class="title">contract · <b>user.syncUser</b></span>
+            <span class="badge0">● no .proto, no stubs</span>
+          </div>
+          <div class="flow">
+            <div class="lbl">YOU WRITE</div>
+            <div class="step">
+              <span class="pr">transport</span>:
+              <span class="st">"grpc"</span>,<br />
+              <span class="pr">service</span>:
+              <span class="st">"user.v1.UserService"</span>,
+              <span class="pr">rpc</span>:
+              <span class="st">"SyncUser"</span>,<br />
+              <span class="pr">request</span>: z.<span class="fn">object</span
+              >({ <span class="nm">id</span>: z.<span class="fn">string</span>()
+              }), <span class="pr">response</span>:
+              <span class="nm">User</span>,
+            </div>
+
+            <div class="arrow">
+              <span class="ln"></span
+              ><span class="txt">the URL is the routing</span
+              ><span class="ln"></span>
+            </div>
+
+            <div class="lbl">WHAT GOES OVER THE WIRE</div>
+            <div class="gql">
+              <span class="mt">POST</span>
+              <span class="pt">/user.v1.UserService/SyncUser</span><br />
+              <span class="hd">Content-Type</span>:
+              <span class="vl">application/json</span><br />
+              <span class="hd">Connect-Protocol-Version</span>:
+              <span class="vl">1</span><br />
+              <br />
+              {<span class="hd">"id"</span>:
+              <span class="vl">"1"</span>}&nbsp;&nbsp;<span class="cm2"
+                >// ← that is the whole request</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top: auto">
+          <div class="lbl" style="margin-bottom: 12px">
+            ONE STATUS SET, THREE VOCABULARIES
+          </div>
+          <div class="maps">
+            <div class="map">
+              <span class="gq">5 NOT_FOUND</span><span class="ht">404</span
+              ><span class="ar">→</span><span class="ek">not_found</span>
+            </div>
+            <div class="map">
+              <span class="gq">16 UNAUTHENTICATED</span
+              ><span class="ht">401</span><span class="ar">→</span
+              ><span class="ek">unauthenticated</span>
+            </div>
+            <div class="map">
+              <span class="gq">8 RESOURCE_EXHAUSTED</span
+              ><span class="ht">429</span><span class="ar">→</span
+              ><span class="ek">resource_exhausted</span>
+            </div>
+          </div>
+          <div class="note">
+            mapped in <b>both</b> directions — a proxy's 502 becomes a code, a
+            code becomes a status
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="row">
+            <div class="cell">
+              <div class="k">deadlineMs</div>
+              <div class="v">both spellings sent — Connect and grpc-web</div>
+            </div>
+            <div class="cell">
+              <div class="k">GrpcCodec</div>
+              <div class="v">protobuf lives in yours, never in ours</div>
+            </div>
+            <div class="cell">
+              <div class="k">errors: &#123; 5: … &#125;</div>
+              <div class="v">keyed by gRPC code, not HTTP status</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-
-  <!-- RIGHT -->
-  <div class="right">
-    <div class="win">
-      <div class="bar">
-        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
-        <span class="title">contract · <b>user.syncUser</b></span>
-        <span class="badge0">● no .proto, no stubs</span>
-      </div>
-      <div class="flow">
-        <div class="lbl">YOU WRITE</div>
-        <div class="step">
-<span class="pr">transport</span>: <span class="st">"grpc"</span>,<br>
-<span class="pr">service</span>: <span class="st">"user.v1.UserService"</span>, <span class="pr">rpc</span>: <span class="st">"SyncUser"</span>,<br>
-<span class="pr">request</span>: z.<span class="fn">object</span>({ <span class="nm">id</span>: z.<span class="fn">string</span>() }), <span class="pr">response</span>: <span class="nm">User</span>,
-        </div>
-
-        <div class="arrow"><span class="ln"></span><span class="txt">the URL is the routing</span><span class="ln"></span></div>
-
-        <div class="lbl">WHAT GOES OVER THE WIRE</div>
-        <div class="gql">
-<span class="mt">POST</span> <span class="pt">/user.v1.UserService/SyncUser</span><br>
-<span class="hd">Content-Type</span>: <span class="vl">application/json</span><br>
-<span class="hd">Connect-Protocol-Version</span>: <span class="vl">1</span><br>
-<br>
-{<span class="hd">"id"</span>: <span class="vl">"1"</span>}&nbsp;&nbsp;<span class="cm2">// ← that is the whole request</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="card" style="margin-top:auto">
-      <div class="lbl" style="margin-bottom:12px">ONE STATUS SET, THREE VOCABULARIES</div>
-      <div class="maps">
-        <div class="map"><span class="gq">5 NOT_FOUND</span><span class="ht">404</span><span class="ar">→</span><span class="ek">not_found</span></div>
-        <div class="map"><span class="gq">16 UNAUTHENTICATED</span><span class="ht">401</span><span class="ar">→</span><span class="ek">unauthenticated</span></div>
-        <div class="map"><span class="gq">8 RESOURCE_EXHAUSTED</span><span class="ht">429</span><span class="ar">→</span><span class="ek">resource_exhausted</span></div>
-      </div>
-      <div class="note">mapped in <b>both</b> directions — a proxy's 502 becomes a code, a code becomes a status</div>
-    </div>
-
-    <div class="card">
-      <div class="row">
-        <div class="cell">
-          <div class="k">deadlineMs</div>
-          <div class="v">both spellings sent — Connect and grpc-web</div>
-        </div>
-        <div class="cell">
-          <div class="k">GrpcCodec</div>
-          <div class="v">protobuf lives in yours, never in ours</div>
-        </div>
-        <div class="cell">
-          <div class="k">errors: &#123; 5: … &#125;</div>
-          <div class="v">keyed by gRPC code, not HTTP status</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-</body>
+  </body>
 </html>

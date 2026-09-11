@@ -1,13 +1,13 @@
-import { TypeWireConfigError } from "./errors";
+import { TypeWireConfigError } from './errors'
 import type {
   ResolvedProject,
   ResolvedTypeFetchSection,
   ResolvedTypeWireConfig,
-} from "./types";
+} from './types'
 import type {
   TypeFetchClientLike,
   TypeFetchCreateClientOptions,
-} from "../types";
+} from '../types'
 
 /**
  * The projects a command should operate on.
@@ -19,22 +19,22 @@ import type {
  */
 export function selectProjects(
   config: ResolvedTypeWireConfig,
-  filter?: string[],
+  filter?: string[]
 ): ResolvedProject[] {
-  if (!filter?.length) return config.projects;
+  if (!filter?.length) return config.projects
 
-  const available = config.projects.map((project) => project.name);
-  const unknown = filter.filter((name) => !available.includes(name));
+  const available = config.projects.map((project) => project.name)
+  const unknown = filter.filter((name) => !available.includes(name))
 
   if (unknown.length) {
     throw new TypeWireConfigError(
-      `No project named ${unknown.map((n) => `"${n}"`).join(", ")} in ${config.path}.\n` +
-        `Available: ${available.join(", ")}`,
-      { source: config.path, key: "projects" },
-    );
+      `No project named ${unknown.map((n) => `"${n}"`).join(', ')} in ${config.path}.\n` +
+        `Available: ${available.join(', ')}`,
+      { source: config.path, key: 'projects' }
+    )
   }
 
-  return config.projects.filter((project) => filter.includes(project.name));
+  return config.projects.filter((project) => filter.includes(project.name))
 }
 
 /**
@@ -46,17 +46,22 @@ export function selectProjects(
 export function requireProjectTypeFetch(
   project: ResolvedProject,
   command: string,
-  source: string,
+  source: string
 ): ResolvedTypeFetchSection {
-  if (project.typefetch) return project.typefetch;
+  if (project.typefetch) return project.typefetch
 
   throw new TypeWireConfigError(
     project.implicit
       ? `"${command}" needs a "typefetch" section, and ${source} does not declare one.`
       : `"${command}" needs a "typefetch" section, and project "${project.name}" ` +
-        `in ${source} does not declare one.`,
-    { source, key: project.implicit ? "typefetch" : `projects.${project.name}.typefetch` },
-  );
+          `in ${source} does not declare one.`,
+    {
+      source,
+      key: project.implicit
+        ? 'typefetch'
+        : `projects.${project.name}.typefetch`,
+    }
+  )
 }
 
 /**
@@ -69,19 +74,19 @@ export function requireProjectTypeFetch(
  */
 export function requireTypeFetch(
   config: ResolvedTypeWireConfig,
-  command: string,
+  command: string
 ): ResolvedTypeFetchSection {
   if (config.projects.length > 1) {
     throw new TypeWireConfigError(
       `${config.path} declares ${config.projects.length} projects ` +
-        `(${config.projects.map((p) => p.name).join(", ")}), so "${command}" ` +
+        `(${config.projects.map((p) => p.name).join(', ')}), so "${command}" ` +
         `cannot pick one for you.\n` +
         `Run it against all of them, or name one with --project <name>.`,
-      { source: config.path, key: "projects" },
-    );
+      { source: config.path, key: 'projects' }
+    )
   }
 
-  return requireProjectTypeFetch(config.projects[0]!, command, config.path);
+  return requireProjectTypeFetch(config.projects[0]!, command, config.path)
 }
 
 export async function resolveTypeFetchClient(
@@ -89,15 +94,15 @@ export async function resolveTypeFetchClient(
   command: string,
   options: TypeFetchCreateClientOptions,
   source: string,
-  project?: ResolvedProject,
+  project?: ResolvedProject
 ): Promise<TypeFetchClientLike> {
-  if (section.createClient) return section.createClient(options);
-  if (section.client) return section.client;
+  if (section.createClient) return section.createClient(options)
+  if (section.client) return section.client
 
   const where =
     project && !project.implicit
       ? `the typefetch section of project "${project.name}" in ${source}`
-      : `the typefetch section of ${source}`;
+      : `the typefetch section of ${source}`
 
   throw new TypeWireConfigError(
     `"${command}" makes real requests, so it needs a client.\n` +
@@ -105,9 +110,10 @@ export async function resolveTypeFetchClient(
       `(preferred — it receives --base-url and --token), or "client" for a fixed one.`,
     {
       source,
-      key: project && !project.implicit
-        ? `projects.${project.name}.typefetch.createClient`
-        : "typefetch.createClient",
-    },
-  );
+      key:
+        project && !project.implicit
+          ? `projects.${project.name}.typefetch.createClient`
+          : 'typefetch.createClient',
+    }
+  )
 }

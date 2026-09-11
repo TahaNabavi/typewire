@@ -1,4 +1,4 @@
-import { documentedPackages } from "@/lib/registry";
+import { documentedPackages } from '@/lib/registry'
 
 /**
  * The retrieval half of "Ask the docs".
@@ -17,15 +17,15 @@ import { documentedPackages } from "@/lib/registry";
  */
 
 export interface DocSection {
-  packageSlug: string;
-  packageName: string;
-  pageSlug: string;
-  pageTitle: string;
+  packageSlug: string
+  packageName: string
+  pageSlug: string
+  pageTitle: string
   /** The heading this section sits under, or the page title for the preamble. */
-  heading: string;
-  anchor: string;
-  href: string;
-  text: string;
+  heading: string
+  anchor: string
+  href: string
+  text: string
 }
 
 /**
@@ -37,12 +37,12 @@ export interface DocSection {
  * answer.
  */
 function stripTags(text: string): string {
-  let out = text;
-  for (let previous = ""; out !== previous; ) {
-    previous = out;
-    out = out.replace(/<[^>]+>/g, "");
+  let out = text
+  for (let previous = ''; out !== previous;) {
+    previous = out
+    out = out.replace(/<[^>]+>/g, '')
   }
-  return out;
+  return out
 }
 
 /**
@@ -56,8 +56,8 @@ function stripTags(text: string): string {
 function slugify(text: string): string {
   return stripTags(text)
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
 }
 
 /**
@@ -67,59 +67,64 @@ function slugify(text: string): string {
  */
 function clean(markdown: string): string {
   return markdown
-    .replace(/```[a-z]*\n/gi, "")
-    .replace(/```/g, "")
-    .replace(/^\s*\|.*\|\s*$/gm, (row) => row.replace(/\|/g, " "))
-    .replace(/[*_>#]/g, "")
-    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
+    .replace(/```[a-z]*\n/gi, '')
+    .replace(/```/g, '')
+    .replace(/^\s*\|.*\|\s*$/gm, (row) => row.replace(/\|/g, ' '))
+    .replace(/[*_>#]/g, '')
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
 }
 
 /** Split one page into its H2/H3 sections, keeping anything before the first. */
-function sectionsOf(markdown: string): Array<{ heading: string | null; body: string }> {
-  const lines = markdown.split("\n");
-  const out: Array<{ heading: string | null; body: string }> = [];
-  let heading: string | null = null;
-  let buffer: string[] = [];
-  let inFence = false;
+function sectionsOf(
+  markdown: string
+): Array<{ heading: string | null; body: string }> {
+  const lines = markdown.split('\n')
+  const out: Array<{ heading: string | null; body: string }> = []
+  let heading: string | null = null
+  let buffer: string[] = []
+  let inFence = false
 
   const flush = () => {
-    const body = buffer.join("\n").trim();
-    if (body || heading) out.push({ heading, body });
-    buffer = [];
-  };
+    const body = buffer.join('\n').trim()
+    if (body !== '' || heading !== null) out.push({ heading, body })
+    buffer = []
+  }
 
   for (const line of lines) {
     // A "## " inside a fenced block is shell output or a comment, not a heading.
-    if (/^\s*```/.test(line)) inFence = !inFence;
+    if (/^\s*```/.test(line)) inFence = !inFence
 
-    const match = !inFence && /^(#{2,3})\s+(.*)$/.exec(line);
-    if (match) {
-      flush();
-      heading = match[2]!.trim();
-      continue;
+    if (!inFence) {
+      const match = /^(#{2,3})\s+(.*)$/.exec(line)
+      if (match !== null) {
+        flush()
+        heading = match[2]!.trim()
+        continue
+      }
     }
-    buffer.push(line);
+    buffer.push(line)
   }
-  flush();
-  return out;
+  flush()
+  return out
 }
 
-let cache: DocSection[] | null = null;
+let cache: DocSection[] | null = null
 
 export function corpus(): DocSection[] {
-  if (cache) return cache;
+  if (cache !== null) return cache
 
-  const sections: DocSection[] = [];
+  const sections: DocSection[] = []
   for (const pkg of documentedPackages) {
     for (const page of pkg.docs.pages) {
       for (const { heading, body } of sectionsOf(page.markdown)) {
-        const text = clean(body);
+        const text = clean(body)
         // Sections that are only a heading carry no answer.
-        if (text.length < 40) continue;
-        const title = heading ?? page.title;
-        const anchor = heading ? slugify(heading) : "";
+        if (text.length < 40) continue
+        const title = heading ?? page.title
+        const anchor =
+          heading !== null && heading !== '' ? slugify(heading) : ''
         sections.push({
           packageSlug: pkg.slug,
           packageName: pkg.short,
@@ -127,33 +132,73 @@ export function corpus(): DocSection[] {
           pageTitle: page.title,
           heading: title,
           anchor,
-          href: `/docs/${pkg.slug}/${page.slug}${anchor ? `#${anchor}` : ""}`,
+          href: `/docs/${pkg.slug}/${page.slug}${anchor.length > 0 ? `#${anchor}` : ''}`,
           text: text.slice(0, 2400),
-        });
+        })
       }
     }
   }
 
-  cache = sections;
-  return sections;
+  cache = sections
+  return sections
 }
 
 const STOP = new Set([
-  "the", "a", "an", "and", "or", "but", "is", "are", "was", "were", "be", "been",
-  "to", "of", "in", "on", "for", "with", "at", "by", "from", "as", "it", "its",
-  "this", "that", "these", "those", "i", "you", "how", "do", "does", "can",
-  "what", "when", "where", "which", "why", "my", "me", "we", "should", "would",
-]);
+  'the',
+  'a',
+  'an',
+  'and',
+  'or',
+  'but',
+  'is',
+  'are',
+  'was',
+  'were',
+  'be',
+  'been',
+  'to',
+  'of',
+  'in',
+  'on',
+  'for',
+  'with',
+  'at',
+  'by',
+  'from',
+  'as',
+  'it',
+  'its',
+  'this',
+  'that',
+  'these',
+  'those',
+  'i',
+  'you',
+  'how',
+  'do',
+  'does',
+  'can',
+  'what',
+  'when',
+  'where',
+  'which',
+  'why',
+  'my',
+  'me',
+  'we',
+  'should',
+  'would',
+])
 
 function terms(text: string): string[] {
   return text
     .toLowerCase()
     .split(/[^a-z0-9]+/)
-    .filter((word) => word.length > 1 && !STOP.has(word));
+    .filter((word) => word.length > 1 && !STOP.has(word))
 }
 
 export interface Hit extends DocSection {
-  score: number;
+  score: number
 }
 
 /**
@@ -162,52 +207,54 @@ export interface Hit extends DocSection {
  * that a section is *about* something rather than merely mentioning it.
  */
 export function search(question: string, limit = 5): Hit[] {
-  const query = terms(question);
-  if (query.length === 0) return [];
+  const query = terms(question)
+  if (query.length === 0) return []
 
-  const sections = corpus();
+  const sections = corpus()
   const docs = sections.map((section) => ({
     section,
     tokens: terms(section.text),
     headingTokens: new Set(terms(section.heading)),
-  }));
+  }))
 
-  const avgLen = docs.reduce((sum, d) => sum + d.tokens.length, 0) / (docs.length || 1);
+  const avgLen =
+    docs.reduce((sum, d) => sum + d.tokens.length, 0) /
+    (docs.length > 0 ? docs.length : 1)
 
   // Document frequency per query term, computed once.
-  const df = new Map<string, number>();
+  const df = new Map<string, number>()
   for (const term of new Set(query)) {
-    let n = 0;
-    for (const doc of docs) if (doc.tokens.includes(term)) n += 1;
-    df.set(term, n);
+    let n = 0
+    for (const doc of docs) if (doc.tokens.includes(term)) n += 1
+    df.set(term, n)
   }
 
-  const k1 = 1.5;
-  const b = 0.75;
+  const k1 = 1.5
+  const b = 0.75
 
   const scored = docs.map(({ section, tokens, headingTokens }) => {
-    const len = tokens.length || 1;
-    const counts = new Map<string, number>();
-    for (const token of tokens) counts.set(token, (counts.get(token) ?? 0) + 1);
+    const len = tokens.length === 0 ? 1 : tokens.length
+    const counts = new Map<string, number>()
+    for (const token of tokens) counts.set(token, (counts.get(token) ?? 0) + 1)
 
-    let score = 0;
+    let score = 0
     for (const term of query) {
-      const f = counts.get(term) ?? 0;
+      const f = counts.get(term) ?? 0
       if (f === 0) {
         // A heading match still counts even when the body never repeats it.
-        if (headingTokens.has(term)) score += 1.2;
-        continue;
+        if (headingTokens.has(term)) score += 1.2
+        continue
       }
-      const n = df.get(term) ?? 0;
-      const idf = Math.log(1 + (docs.length - n + 0.5) / (n + 0.5));
-      score += idf * ((f * (k1 + 1)) / (f + k1 * (1 - b + (b * len) / avgLen)));
-      if (headingTokens.has(term)) score += 1.6;
+      const n = df.get(term) ?? 0
+      const idf = Math.log(1 + (docs.length - n + 0.5) / (n + 0.5))
+      score += idf * ((f * (k1 + 1)) / (f + k1 * (1 - b + (b * len) / avgLen)))
+      if (headingTokens.has(term)) score += 1.6
     }
-    return { ...section, score };
-  });
+    return { ...section, score }
+  })
 
   return scored
     .filter((hit) => hit.score > 0)
     .sort((a, b) => b.score - a.score)
-    .slice(0, limit);
+    .slice(0, limit)
 }

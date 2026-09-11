@@ -1,10 +1,10 @@
-import Anthropic from "@anthropic-ai/sdk";
-import { NextResponse } from "next/server";
+import Anthropic from '@anthropic-ai/sdk'
+import { NextResponse } from 'next/server'
 
-import { search, type Hit } from "@/features/docs/corpus";
-import { redis } from "@/lib/redis";
+import { search, type Hit } from '@/features/docs/corpus'
+import { redis } from '@/lib/redis'
 
-export const runtime = "nodejs";
+export const runtime = 'nodejs'
 
 /**
  * Ask the docs.
@@ -22,7 +22,7 @@ export const runtime = "nodejs";
  * path and the page looks the same either way.
  */
 
-const MODEL = "claude-opus-5";
+const MODEL = 'claude-opus-5'
 
 const SYSTEM = `You answer questions about TypeWire, a family of contract-first TypeScript packages published under the @tahanabavi/* scope.
 
@@ -33,15 +33,15 @@ Rules:
 - Be direct and short: a developer asked a question, not for an essay. Two or three sentences, plus a code block when the answer is a call.
 - Use the project's own names exactly as the excerpts spell them (typefetch, typesocket, query-core, ErrorKind, contracts).
 - Do not invent package names, options, or version numbers.
-- Do not add a sources list; the page renders citations from the excerpts it gave you.`;
+- Do not add a sources list; the page renders citations from the excerpts it gave you.`
 
 function contextFrom(hits: Hit[]): string {
   return hits
     .map(
       (hit, i) =>
-        `<excerpt index="${i + 1}" package="${hit.packageName}" page="${hit.pageTitle}" heading="${hit.heading}">\n${hit.text}\n</excerpt>`,
+        `<excerpt index="${i + 1}" package="${hit.packageName}" page="${hit.pageTitle}" heading="${hit.heading}">\n${hit.text}\n</excerpt>`
     )
-    .join("\n\n");
+    .join('\n\n')
 }
 
 /** What the client needs to render a citation chip. */
@@ -49,80 +49,86 @@ function citationsFrom(hits: Hit[]) {
   return hits.map((hit) => ({
     label: `${hit.packageName} · ${hit.heading}`,
     href: hit.href,
-  }));
+  }))
 }
 
 export async function POST(request: Request) {
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "0.0.0.0";
+  const ip =
+    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? '0.0.0.0'
 
   // Twenty questions an hour per IP. Generation costs money; retrieval costs
   // CPU. Both are worth a ceiling.
-  if (redis.configured) {
-    const key = `ask:${ip}:${Math.floor(Date.now() / 3_600_000)}`;
-    const count = await redis.incr(key);
-    await redis.exec(["EXPIRE", key, 3600]);
+  if (redis.configured === true) {
+    const key = `ask:${ip}:${Math.floor(Date.now() / 3_600_000)}`
+    const count = await redis.incr(key)
+    await redis.exec(['EXPIRE', key, 3600])
     if ((count ?? 0) > 20) {
       return NextResponse.json(
-        { error: "That is a lot of questions in one hour. Try again shortly." },
-        { status: 429 },
-      );
+        { error: 'That is a lot of questions in one hour. Try again shortly.' },
+        { status: 429 }
+      )
     }
   }
 
-  let body: { question?: unknown };
+  let body: { question?: unknown }
   try {
-    body = (await request.json()) as typeof body;
+    body = (await request.json()) as typeof body
   } catch {
-    return NextResponse.json({ error: "Invalid body." }, { status: 400 });
+    return NextResponse.json({ error: 'Invalid body.' }, { status: 400 })
   }
 
-  const question = typeof body.question === "string" ? body.question.trim().slice(0, 500) : "";
+  const question =
+    typeof body.question === 'string' ? body.question.trim().slice(0, 500) : ''
   if (question.length < 3) {
-    return NextResponse.json({ error: "Ask a longer question." }, { status: 400 });
+    return NextResponse.json(
+      { error: 'Ask a longer question.' },
+      { status: 400 }
+    )
   }
 
-  const hits = search(question, 5);
-  const citations = citationsFrom(hits);
+  const hits = search(question, 5)
+  const citations = citationsFrom(hits)
 
-  const encoder = new TextEncoder();
+  const encoder = new TextEncoder()
   const send = (controller: ReadableStreamDefaultController, event: unknown) =>
-    controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
+    controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`))
 
   // Nothing matched. Say that rather than asking a model to invent something.
   if (hits.length === 0) {
     const stream = new ReadableStream({
       start(controller) {
         send(controller, {
-          type: "text",
-          text: "Nothing in the docs matches that. Try naming a package (typefetch, typesocket, query-core) or a concept from the pages — transports, contracts, ErrorKind, middleware.",
-        });
-        send(controller, { type: "done", citations: [], mode: "empty" });
-        controller.close();
+          type: 'text',
+          text: 'Nothing in the docs matches that. Try naming a package (typefetch, typesocket, query-core) or a concept from the pages — transports, contracts, ErrorKind, middleware.',
+        })
+        send(controller, { type: 'done', citations: [], mode: 'empty' })
+        controller.close()
       },
-    });
-    return sse(stream);
+    })
+    return sse(stream)
   }
 
-  const key = process.env.ANTHROPIC_API_KEY;
+  const key = process.env.ANTHROPIC_API_KEY
 
-  if (!key) {
+  if (key === undefined || key === null || key === '') {
     // Extractive fallback: the best-matching section, verbatim.
-    const best = hits[0]!;
-    const excerpt = best.text.length > 700 ? `${best.text.slice(0, 700)}…` : best.text;
+    const best = hits[0]!
+    const excerpt =
+      best.text.length > 700 ? `${best.text.slice(0, 700)}…` : best.text
     const stream = new ReadableStream({
       start(controller) {
         send(controller, {
-          type: "text",
+          type: 'text',
           text: `From ${best.packageName} › ${best.heading}:\n\n${excerpt}`,
-        });
-        send(controller, { type: "done", citations, mode: "excerpt" });
-        controller.close();
+        })
+        send(controller, { type: 'done', citations, mode: 'excerpt' })
+        controller.close()
       },
-    });
-    return sse(stream);
+    })
+    return sse(stream)
   }
 
-  const client = new Anthropic({ apiKey: key });
+  const client = new Anthropic({ apiKey: key })
 
   const stream = new ReadableStream({
     async start(controller) {
@@ -134,56 +140,58 @@ export async function POST(request: Request) {
           // Effort is deliberately low: this is retrieval-grounded Q&A over a
           // handful of excerpts, not a reasoning problem, and a docs box that
           // takes ten seconds to start is a docs box nobody uses.
-          output_config: { effort: "low" },
+          output_config: { effort: 'low' },
           messages: [
             {
-              role: "user",
+              role: 'user',
               content: `${contextFrom(hits)}\n\nQuestion: ${question}`,
             },
           ],
-        });
+        })
 
         for await (const event of message) {
-          if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
-            send(controller, { type: "text", text: event.delta.text });
+          if (
+            event.type === 'content_block_delta' &&
+            event.delta.type === 'text_delta'
+          ) {
+            send(controller, { type: 'text', text: event.delta.text })
           }
         }
 
-        const final = await message.finalMessage();
-        if (final.stop_reason === "refusal") {
+        const final = await message.finalMessage()
+        if (final.stop_reason === 'refusal') {
           send(controller, {
-            type: "text",
-            text: "\n\nI could not answer that one. The cited pages below are the closest match.",
-          });
+            type: 'text',
+            text: '\n\nI could not answer that one. The cited pages below are the closest match.',
+          })
         }
-        send(controller, { type: "done", citations, mode: "generated" });
-      } catch (error) {
+        send(controller, { type: 'done', citations, mode: 'generated' })
+      } catch {
         // A failed model call must not lose the retrieval work, which is the
         // part that was actually grounded.
-        const best = hits[0]!;
+        const best = hits[0]!
         send(controller, {
-          type: "text",
+          type: 'text',
           text: `The assistant is unavailable right now. The closest page is ${best.packageName} › ${best.heading}:\n\n${best.text.slice(0, 500)}…`,
-        });
-        send(controller, { type: "done", citations, mode: "excerpt" });
-        if (process.env.NODE_ENV !== "production") console.error("ask:", error);
+        })
+        send(controller, { type: 'done', citations, mode: 'excerpt' })
       } finally {
-        controller.close();
+        controller.close()
       }
     },
-  });
+  })
 
-  return sse(stream);
+  return sse(stream)
 }
 
 function sse(stream: ReadableStream): Response {
   return new Response(stream, {
     headers: {
-      "Content-Type": "text/event-stream; charset=utf-8",
-      "Cache-Control": "no-cache, no-transform",
-      Connection: "keep-alive",
+      'Content-Type': 'text/event-stream; charset=utf-8',
+      'Cache-Control': 'no-cache, no-transform',
+      Connection: 'keep-alive',
       // Vercel and nginx both buffer streamed responses without this.
-      "X-Accel-Buffering": "no",
+      'X-Accel-Buffering': 'no',
     },
-  });
+  })
 }

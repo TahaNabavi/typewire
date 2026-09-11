@@ -1,14 +1,11 @@
-import { SetMetadata, applyDecorators } from "@nestjs/common";
+import { SetMetadata, applyDecorators } from '@nestjs/common'
 import {
   TYPEFETCH_ENDPOINT_METADATA,
   TYPEFETCH_OPTIONS_METADATA,
-} from "../constants";
-import { assertTransport } from "../transport";
-import { GRAPHQL_ENDPOINT_METADATA } from "./constants";
-import type {
-  GraphqlContractEndpoint,
-  GraphqlEndpointOptions,
-} from "./types";
+} from '../constants'
+import { assertTransport } from '../transport'
+import { GRAPHQL_ENDPOINT_METADATA } from './constants'
+import type { GraphqlContractEndpoint, GraphqlEndpointOptions } from './types'
 
 /**
  * Bind a resolver to a GraphQL contract endpoint.
@@ -38,17 +35,17 @@ import type {
  */
 export function GraphQLEndpoint(
   endpoint: GraphqlContractEndpoint,
-  options: GraphqlEndpointOptions = {},
+  options: GraphqlEndpointOptions = {}
 ): MethodDecorator {
-  assertTransport(endpoint, "graphql", "@GraphQLEndpoint()");
+  assertTransport(endpoint, 'graphql', '@GraphQLEndpoint()')
 
-  if (endpoint.operation !== "query" && endpoint.operation !== "mutation") {
+  if (endpoint.operation !== 'query' && endpoint.operation !== 'mutation') {
     throw new Error(
       `[typewire-nestjs] A GraphQL endpoint must declare ` +
         `operation: "query" | "mutation" (got ` +
         `${JSON.stringify(endpoint.operation)}). It is what decides whether ` +
-        `the operation may be served over GET.`,
-    );
+        `the operation may be served over GET.`
+    )
   }
 
   return applyDecorators(
@@ -57,6 +54,6 @@ export function GraphQLEndpoint(
     // resolver exactly as it does in a controller.
     SetMetadata(GRAPHQL_ENDPOINT_METADATA, endpoint),
     SetMetadata(TYPEFETCH_ENDPOINT_METADATA, endpoint),
-    SetMetadata(TYPEFETCH_OPTIONS_METADATA, options),
-  );
+    SetMetadata(TYPEFETCH_OPTIONS_METADATA, options)
+  )
 }

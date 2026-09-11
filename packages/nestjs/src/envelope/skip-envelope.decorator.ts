@@ -1,5 +1,5 @@
-import { SetMetadata } from "@nestjs/common";
-import { TYPEFETCH_SKIP_ENVELOPE_METADATA } from "../constants";
+import { SetMetadata } from '@nestjs/common'
+import { TYPEFETCH_SKIP_ENVELOPE_METADATA } from '../constants'
 
 /**
  * Exempt a route from the global response envelope.
@@ -22,4 +22,4 @@ import { TYPEFETCH_SKIP_ENVELOPE_METADATA } from "../constants";
  * }
  */
 export const SkipEnvelope = () =>
-  SetMetadata(TYPEFETCH_SKIP_ENVELOPE_METADATA, true);
+  SetMetadata(TYPEFETCH_SKIP_ENVELOPE_METADATA, true)

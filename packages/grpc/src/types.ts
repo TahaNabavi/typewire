@@ -9,10 +9,10 @@
  */
 export type GrpcEndpointFields = {
   /** Fully-qualified service name, e.g. `"user.v1.UserService"`. */
-  service: string;
+  service: string
 
   /** The method name as declared in the service, e.g. `"GetUser"`. */
-  rpc: string;
+  rpc: string
 
   /**
    * Server-side deadline in milliseconds, sent as `Connect-Timeout-Ms` /
@@ -23,7 +23,7 @@ export type GrpcEndpointFields = {
    * from holding a database connection. Setting both is normal — the local
    * timeout should be the more generous of the two.
    */
-  deadlineMs?: number;
+  deadlineMs?: number
 
   /**
    * Send this RPC as binary protobuf rather than Connect JSON.
@@ -32,8 +32,8 @@ export type GrpcEndpointFields = {
    * protobuf runtime enters any package published here. The transport owns the
    * framing and the trailers; the codec owns only message bytes.
    */
-  codec?: GrpcCodec;
-};
+  codec?: GrpcCodec
+}
 
 /**
  * GrpcCodec
@@ -47,23 +47,23 @@ export type GrpcEndpointFields = {
  */
 export type GrpcCodec<TIn = any, TOut = any> = {
   /** Defaults to `"application/grpc-web+proto"`. */
-  contentType?: string;
-  encode(message: TIn): Uint8Array;
-  decode(bytes: Uint8Array): TOut;
-};
+  contentType?: string
+  encode(message: TIn): Uint8Array
+  decode(bytes: Uint8Array): TOut
+}
 
-declare module "@tahanabavi/typefetch" {
+declare module '@tahanabavi/typefetch' {
   interface TransportRegistry {
-    grpc: GrpcEndpointFields;
+    grpc: GrpcEndpointFields
   }
 }
 
 /** A Connect error body, as sent for any non-2xx on the JSON path. */
 export type ConnectErrorBody = {
-  code?: string | number;
-  message?: string;
-  details?: unknown[];
-};
+  code?: string | number
+  message?: string
+  details?: unknown[]
+}
 
 export type GrpcTransportConfig = {
   /**
@@ -73,17 +73,17 @@ export type GrpcTransportConfig = {
    * the usual shape, since binary grpc-web generally needs a proxy in front of
    * it.
    */
-  baseUrl?: string;
+  baseUrl?: string
 
   /**
    * Default codec for every RPC, overridable per endpoint. Leave unset for
    * Connect JSON, which is curl-able and needs no generated code.
    */
-  codec?: GrpcCodec;
+  codec?: GrpcCodec
 
   /** Default deadline for endpoints that do not declare one. */
-  deadlineMs?: number;
+  deadlineMs?: number
 
   /** Extra headers (gRPC metadata) on every RPC. */
-  headers?: Record<string, string>;
-};
+  headers?: Record<string, string>
+}

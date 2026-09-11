@@ -1,6 +1,6 @@
-"use client";
+'use client'
 
-import { create } from "zustand";
+import { create } from 'zustand'
 
 /**
  * The devtools preview's own state.
@@ -11,14 +11,14 @@ import { create } from "zustand";
  */
 
 /** The wire names the legend dims by — must match TRANSPORT_LABEL. */
-export type WireName = "HTTP" | "GraphQL" | "gRPC" | "WebSocket";
+export type WireName = 'HTTP' | 'GraphQL' | 'gRPC' | 'WebSocket'
 
 interface DevtoolsState {
-  wireFocus: WireName | null;
-  setWireFocus: (wire: WireName | null) => void;
+  wireFocus: WireName | null
+  setWireFocus: (wire: WireName | null) => void
 }
 
 export const useDevtools = create<DevtoolsState>((set) => ({
   wireFocus: null,
   setWireFocus: (wireFocus) => set({ wireFocus }),
-}));
+}))

@@ -1,6 +1,6 @@
-import type { AnyEndpointDefZ, Contracts } from "@tahanabavi/typefetch";
-import type { GraphqlEndpointFields } from "@tahanabavi/typefetch-graphql";
-import type { ContractEndpointOptions } from "../types";
+import type { AnyEndpointDefZ, Contracts } from '@tahanabavi/typefetch'
+import type { GraphqlEndpointFields } from '@tahanabavi/typefetch-graphql'
+import type { ContractEndpointOptions } from '../types'
 
 /**
  * A contract endpoint declared for the GraphQL transport.
@@ -10,9 +10,9 @@ import type { ContractEndpointOptions } from "../types";
  * `transport: "graphql"` — so this entry point's peer dependency is not an
  * extra cost: without it, the contract could not have been written.
  */
-export type GraphqlContractEndpoint = AnyEndpointDefZ & GraphqlEndpointFields;
+export type GraphqlContractEndpoint = AnyEndpointDefZ & GraphqlEndpointFields
 
-export interface GraphqlEndpointOptions extends ContractEndpointOptions {}
+export type GraphqlEndpointOptions = ContractEndpointOptions
 
 export interface ContractGraphQLOptions {
   /**
@@ -27,10 +27,10 @@ export interface ContractGraphQLOptions {
    * It is also what lets the module report, at bootstrap, which declared
    * operations no resolver claimed.
    */
-  contracts: Contracts;
+  contracts: Contracts
 
   /** Where the endpoint is mounted. Defaults to `/graphql`. */
-  path?: string;
+  path?: string
 
   /**
    * Also accept `GET` (`?query=…&variables=…`), which is what the client sends
@@ -38,7 +38,7 @@ export interface ContractGraphQLOptions {
    * CDN-cacheable. Defaults to `true`; mutations are refused over GET either
    * way.
    */
-  allowGet?: boolean;
+  allowGet?: boolean
 
   /**
    * Fail bootstrap when a GraphQL endpoint in `contracts` has no resolver.
@@ -47,18 +47,18 @@ export interface ContractGraphQLOptions {
    * services. Turn it on in the service that owns the whole schema and an
    * unimplemented operation stops being a runtime 404.
    */
-  requireAllResolvers?: boolean;
+  requireAllResolvers?: boolean
 }
 
 /** One resolvable operation, as the registry holds it. */
 export type GraphqlOperation = {
   /** The name the client sends — `endpoint.operationName`, else derived. */
-  operationName: string;
+  operationName: string
   /** Stable `"module.endpoint"` id. */
-  endpointId: string;
-  endpoint: GraphqlContractEndpoint;
+  endpointId: string
+  endpoint: GraphqlContractEndpoint
   /** The field the result is nested under in `data`, when the contract declares one. */
-  root?: string;
+  root?: string
   /** Runs the resolver through NestJS's guard/interceptor pipeline. */
-  invoke: (request: unknown, response: unknown) => Promise<unknown>;
-};
+  invoke: (request: unknown, response: unknown) => Promise<unknown>
+}

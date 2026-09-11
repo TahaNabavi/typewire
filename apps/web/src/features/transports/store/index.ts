@@ -1,6 +1,6 @@
-"use client";
+'use client'
 
-import { create } from "zustand";
+import { create } from 'zustand'
 
 /**
  * Which wire the transport section is showing.
@@ -10,14 +10,14 @@ import { create } from "zustand";
  * cannot own client state.
  */
 
-export type TransportTab = "REST" | "GraphQL" | "gRPC" | "WebSocket";
+export type TransportTab = 'REST' | 'GraphQL' | 'gRPC' | 'WebSocket'
 
 interface TransportState {
-  transport: TransportTab;
-  setTransport: (tab: TransportTab) => void;
+  transport: TransportTab
+  setTransport: (tab: TransportTab) => void
 }
 
 export const useTransport = create<TransportState>((set) => ({
-  transport: "REST",
+  transport: 'REST',
   setTransport: (transport) => set({ transport }),
-}));
+}))

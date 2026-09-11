@@ -1,4 +1,4 @@
-import { MiddlewareContext, MiddlewareNext } from "@/types";
+import { MiddlewareContext, MiddlewareNext } from '@/types'
 
 /**
  * CacheOptions
@@ -7,7 +7,7 @@ import { MiddlewareContext, MiddlewareNext } from "@/types";
  * - `ttl` (Time To Live): Duration (in milliseconds) to keep cached GET responses.
  *   After this time, cached data expires and a fresh network call is performed.
  */
-export type CacheOptions = { ttl?: number };
+export type CacheOptions = { ttl?: number }
 
 /**
  * cacheMiddleware
@@ -45,50 +45,50 @@ export type CacheOptions = { ttl?: number };
  */
 export const cacheMiddleware = (options: CacheOptions = {}) => {
   // Default TTL = 60 seconds, unless overridden
-  const { ttl = 60000 } = options;
+  const { ttl = 60000 } = options
 
   /**
    * Internal cache store.
    * Keys are composed as `"METHOD:URL"`.
    * Values include cached response data and expiration timestamp.
    */
-  const cache = new Map<string, { data: any; expires: number }>();
+  const cache = new Map<string, { data: any; expires: number }>()
 
   // Return an asynchronous middleware function conforming to the standard signature
   return async (ctx: MiddlewareContext, next: MiddlewareNext) => {
     // Caching only applies to GET requests
-    if (ctx.init.method === "GET") {
-      const key = `${ctx.init.method}:${ctx.url}`;
-      const cached = cache.get(key);
-      const now = Date.now();
+    if (ctx.init.method === 'GET') {
+      const key = `${ctx.init.method}:${ctx.url}`
+      const cached = cache.get(key)
+      const now = Date.now()
 
       // Check if valid cached response exists and hasn't expired
       if (cached && cached.expires > now) {
         // Return a new synthetic Response containing cached data
         return new Response(JSON.stringify(cached.data), {
-          headers: { "Content-Type": "application/json" },
-        });
+          headers: { 'Content-Type': 'application/json' },
+        })
       }
 
       // Perform the actual network request via the next middleware/fetcher
-      const res = await next();
+      const res = await next()
 
       // Attempt to read JSON data from the response (clone avoids stream lock)
       const data = await res
         .clone()
         .json()
-        .catch(() => null);
+        .catch(() => null)
 
       // Store parsed data with expiration if successfully obtained
       if (data) {
-        cache.set(key, { data, expires: now + ttl });
+        cache.set(key, { data, expires: now + ttl })
       }
 
       // Return original response to caller
-      return res;
+      return res
     }
 
     // For all non‑GET requests, just forward the call with no caching logic
-    return next();
-  };
-};
+    return next()
+  }
+}

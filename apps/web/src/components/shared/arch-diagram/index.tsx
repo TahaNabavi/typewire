@@ -1,10 +1,10 @@
-"use client";
+'use client'
 
-import { useMemo, useState } from "react";
-import { VIEWBOX_WIDTH, VIEWBOX_HEIGHT, W } from "./constants";
-import { NODES } from "./data/nodes";
-import { SECTIONS } from "./data/sections";
-import { NodeKey, EdgeSpec, SplitEdgeSpec } from "./types";
+import { useMemo, useState } from 'react'
+import { VIEWBOX_WIDTH, VIEWBOX_HEIGHT, W } from './constants'
+import { NODES } from './data/nodes'
+import { SECTIONS } from './data/sections'
+import { NodeKey, EdgeSpec, SplitEdgeSpec } from './types'
 import {
   edgeBelongsToSection,
   splitEdgeBelongsToSection,
@@ -13,81 +13,81 @@ import {
   pathFor,
   splitPathFor,
   getNodePosition,
-} from "./utils/svg";
-import { EDGES, SPLIT_EDGES } from "./data/edges";
+} from './utils/svg'
+import { EDGES, SPLIT_EDGES } from './data/edges'
 
 export function ArchDiagram() {
-  const [focus, setFocus] = useState<NodeKey | null>(null);
-  const [focusSection, setFocusSection] = useState<string | null>(null);
+  const [focus, setFocus] = useState<NodeKey | null>(null)
+  const [focusSection, setFocusSection] = useState<string | null>(null)
 
   const lit = useMemo(() => {
-    if (!focus) return null;
+    if (focus === null) return null
 
-    const set = new Set<NodeKey>([focus]);
+    const set = new Set<NodeKey>([focus])
 
     for (const e of EDGES) {
-      if (e.from === focus) set.add(e.to);
-      if (e.to === focus) set.add(e.from);
+      if (e.from === focus) set.add(e.to)
+      if (e.to === focus) set.add(e.from)
     }
 
     for (const e of SPLIT_EDGES) {
       if (e.from === focus) {
-        e.to.forEach((node) => set.add(node));
+        e.to.forEach((node) => set.add(node))
       }
 
       if (e.to.includes(focus)) {
-        set.add(e.from);
-        e.to.forEach((node) => set.add(node));
+        set.add(e.from)
+        e.to.forEach((node) => set.add(node))
       }
     }
 
-    return set;
-  }, [focus]);
+    return set
+  }, [focus])
 
   const edgeOn = (e: EdgeSpec) => {
     // Node focus has priority
-    if (focus) {
-      return e.from === focus || e.to === focus;
+    if (focus !== null) {
+      return e.from === focus || e.to === focus
     }
 
     // Section focus
-    if (focusSection) {
-      return edgeBelongsToSection(e, focusSection);
+    if (focusSection !== null) {
+      return edgeBelongsToSection(e, focusSection)
     }
 
-    return true;
-  };
+    return true
+  }
 
   const splitEdgeOn = (e: SplitEdgeSpec) => {
     // Node focus has priority
-    if (focus) {
-      return e.from === focus || e.to.includes(focus);
+    if (focus !== null) {
+      return e.from === focus || e.to.includes(focus)
     }
 
     // Section focus
-    if (focusSection) {
-      return splitEdgeBelongsToSection(e, focusSection);
+    if (focusSection !== null) {
+      return splitEdgeBelongsToSection(e, focusSection)
     }
 
-    return true;
-  };
-  const nodeOn = (key: NodeKey) => !lit || lit.has(key);
+    return true
+  }
+  const nodeOn = (key: NodeKey) => lit === null || lit.has(key)
 
   const nodeVisible = (key: NodeKey) => {
-    const section = getSectionForNode(key);
+    const section = getSectionForNode(key)
 
     // Node hover has priority
-    if (focus) {
-      return nodeOn(key);
+    if (focus !== null) {
+      return nodeOn(key)
     }
 
     // Section hover
-    if (focusSection) {
-      return section === focusSection;
+    if (focusSection !== null) {
+      return section === focusSection
     }
 
-    return true;
-  };
+    return true
+  }
 
   return (
     <div className="h-165 overflow-hidden">
@@ -97,8 +97,8 @@ export function ArchDiagram() {
         role="img"
         aria-label="TypeWire package graph"
         onPointerLeave={() => {
-          setFocus(null);
-          setFocusSection(null);
+          setFocus(null)
+          setFocusSection(null)
         }}
       >
         {/* ─────────────────────────────────────────
@@ -107,13 +107,13 @@ export function ArchDiagram() {
         ───────────────────────────────────────── */}
 
         {SECTIONS.map((section) => {
-          const bounds = getSectionBounds(section);
-          const style = section.style ?? {};
+          const bounds = getSectionBounds(section)
+          const style = section.style ?? {}
 
-          const active = focusSection === section.id;
-          const dimmed = focusSection && !active;
+          const active = focusSection === section.id
+          const dimmed = focusSection !== null && !active
 
-          const padding = style.padding ?? 12;
+          const padding = style.padding ?? 12
 
           return (
             <g
@@ -122,12 +122,12 @@ export function ArchDiagram() {
               role="button"
               aria-label={`${section.title} — highlight section`}
               onPointerEnter={() => {
-                setFocus(null);
-                setFocusSection(section.id);
+                setFocus(null)
+                setFocusSection(section.id)
               }}
               onFocus={() => {
-                setFocus(null);
-                setFocusSection(section.id);
+                setFocus(null)
+                setFocusSection(section.id)
               }}
               onBlur={() => setFocusSection(null)}
               className="cursor-pointer transition-all duration-200"
@@ -150,15 +150,15 @@ export function ArchDiagram() {
                   active
                     ? (style.hoverBackground ??
                       style.background ??
-                      "var(--panel)")
-                    : (style.background ?? "var(--panel)")
+                      'var(--panel)')
+                    : (style.background ?? 'var(--panel)')
                 }
                 stroke={
                   active
                     ? (style.hoverBorder ??
                       style.border ??
-                      "var(--hair-strong)")
-                    : (style.border ?? "var(--hair-strong)")
+                      'var(--hair-strong)')
+                    : (style.border ?? 'var(--hair-strong)')
                 }
                 strokeWidth={
                   active
@@ -176,8 +176,8 @@ export function ArchDiagram() {
                   active
                     ? (style.hoverTitleColor ??
                       style.titleColor ??
-                      "var(--foreground)")
-                    : (style.titleColor ?? "var(--muted-foreground)")
+                      'var(--foreground)')
+                    : (style.titleColor ?? 'var(--muted-foreground)')
                 }
                 fontSize={style.titleSize ?? 8}
                 fontWeight={active ? 700 : 600}
@@ -188,7 +188,9 @@ export function ArchDiagram() {
               </text>
 
               {/* Description */}
-              {section.desc && (
+              {section.desc !== null &&
+              section.desc !== undefined &&
+              section.desc !== '' ? (
                 <text
                   x={bounds.x + padding}
                   y={bounds.y + padding + (style.titleSize ?? 8) + 9}
@@ -196,8 +198,8 @@ export function ArchDiagram() {
                     active
                       ? (style.hoverDescColor ??
                         style.descColor ??
-                        "var(--foreground)")
-                      : (style.descColor ?? "var(--muted-foreground)")
+                        'var(--foreground)')
+                      : (style.descColor ?? 'var(--muted-foreground)')
                   }
                   fontSize={style.descSize ?? 6.5}
                   opacity={active ? 0.9 : 0.65}
@@ -205,9 +207,9 @@ export function ArchDiagram() {
                 >
                   {section.desc}
                 </text>
-              )}
+              ) : null}
             </g>
-          );
+          )
         })}
 
         {/* ─────────────────────────────────────────
@@ -215,12 +217,16 @@ export function ArchDiagram() {
         ───────────────────────────────────────── */}
 
         {EDGES.map((e) => {
-          const path = pathFor(e.from, e.to);
-          const on = edgeOn(e);
+          const path = pathFor(e.from, e.to)
+          const on = edgeOn(e)
 
-          const base = e.dashed ? 0.5 : 0.75;
+          const base =
+            e.dashed !== null && e.dashed !== undefined && e.dashed === true
+              ? 0.5
+              : 0.75
 
-          const activeOpacity = focus || focusSection ? (on ? 1 : 0.08) : base;
+          const activeOpacity =
+            focus !== null || focusSection !== null ? (on ? 1 : 0.08) : base
           return (
             <g
               key={`${e.from}-${e.to}`}
@@ -232,19 +238,27 @@ export function ArchDiagram() {
               <path
                 d={path}
                 fill="none"
-                stroke={e.color ?? "var(--hair-strong)"}
+                stroke={e.color ?? 'var(--hair-strong)'}
                 strokeWidth={
-                  focus && on ? (e.width ?? 1.4) + 0.8 : (e.width ?? 1.4)
+                  focus !== null && on
+                    ? (e.width ?? 1.4) + 0.8
+                    : (e.width ?? 1.4)
                 }
-                strokeDasharray={e.dashed ? "4 4" : undefined}
+                strokeDasharray={
+                  e.dashed !== null &&
+                  e.dashed !== undefined &&
+                  e.dashed === true
+                    ? '4 4'
+                    : undefined
+                }
                 opacity={activeOpacity}
                 className="transition-all duration-200"
               />
 
-              {e.pulse && (
+              {e.pulse !== null && e.pulse !== undefined && e.pulse ? (
                 <circle
                   r={(e.width ?? 1.4) > 2 ? 3 : 2.2}
-                  fill={e.color ?? "var(--muted-foreground)"}
+                  fill={e.color ?? 'var(--muted-foreground)'}
                 >
                   <animateMotion
                     dur={`${e.dur ?? 3}s`}
@@ -252,9 +266,9 @@ export function ArchDiagram() {
                     path={path}
                   />
                 </circle>
-              )}
+              ) : null}
             </g>
-          );
+          )
         })}
 
         {/* ─────────────────────────────────────────
@@ -262,17 +276,21 @@ export function ArchDiagram() {
         ───────────────────────────────────────── */}
 
         {SPLIT_EDGES.map((e) => {
-          const split = splitPathFor(e.from, e.to);
+          const split = splitPathFor(e.from, e.to)
 
-          const on = splitEdgeOn(e);
+          const on = splitEdgeOn(e)
 
-          const base = e.dashed ? 0.5 : 0.75;
+          const base =
+            e.dashed !== null && e.dashed !== undefined && e.dashed === true
+              ? 0.5
+              : 0.75
 
-          const activeOpacity = focus || focusSection ? (on ? 1 : 0.08) : base;
+          const activeOpacity =
+            focus !== null || focusSection !== null ? (on ? 1 : 0.08) : base
 
           return (
             <g
-              key={`${e.from}-${e.to.join("-")}`}
+              key={`${e.from}-${e.to.join('-')}`}
               className="transition-opacity duration-200"
               style={{
                 opacity: on ? 1 : 0.08,
@@ -282,11 +300,19 @@ export function ArchDiagram() {
               <path
                 d={split.trunk}
                 fill="none"
-                stroke={e.color ?? "var(--hair-strong)"}
+                stroke={e.color ?? 'var(--hair-strong)'}
                 strokeWidth={
-                  focus && on ? (e.width ?? 1.4) + 0.8 : (e.width ?? 1.4)
+                  focus !== null && on
+                    ? (e.width ?? 1.4) + 0.8
+                    : (e.width ?? 1.4)
                 }
-                strokeDasharray={e.dashed ? "4 4" : undefined}
+                strokeDasharray={
+                  e.dashed !== null &&
+                  e.dashed !== undefined &&
+                  e.dashed === true
+                    ? '4 4'
+                    : undefined
+                }
                 opacity={activeOpacity}
                 className="transition-all duration-200"
               />
@@ -297,11 +323,19 @@ export function ArchDiagram() {
                   key={index}
                   d={branch}
                   fill="none"
-                  stroke={e.color ?? "var(--hair-strong)"}
+                  stroke={e.color ?? 'var(--hair-strong)'}
                   strokeWidth={
-                    focus && on ? (e.width ?? 1.4) + 0.8 : (e.width ?? 1.4)
+                    focus !== null && on
+                      ? (e.width ?? 1.4) + 0.8
+                      : (e.width ?? 1.4)
                   }
-                  strokeDasharray={e.dashed ? "4 4" : undefined}
+                  strokeDasharray={
+                    e.dashed !== null &&
+                    e.dashed !== undefined &&
+                    e.dashed === true
+                      ? '4 4'
+                      : undefined
+                  }
                   opacity={activeOpacity}
                   className="transition-all duration-200"
                 />
@@ -312,15 +346,15 @@ export function ArchDiagram() {
                 cx={split.junction.x}
                 cy={split.junction.y}
                 r={2}
-                fill={e.color ?? "var(--hair-strong)"}
-                opacity={focus && on ? 1 : base}
+                fill={e.color ?? 'var(--hair-strong)'}
+                opacity={focus !== null && on ? 1 : base}
               />
 
               {/* Animated pulse */}
-              {e.pulse && (
+              {e.pulse !== null && e.pulse !== undefined && e.pulse ? (
                 <circle
                   r={(e.width ?? 1.4) > 2 ? 3 : 2.2}
-                  fill={e.color ?? "var(--muted-foreground)"}
+                  fill={e.color ?? 'var(--muted-foreground)'}
                 >
                   <animateMotion
                     dur={`${e.dur ?? 3}s`}
@@ -328,9 +362,9 @@ export function ArchDiagram() {
                     path={split.trunk}
                   />
                 </circle>
-              )}
+              ) : null}
             </g>
-          );
+          )
         })}
 
         {/* ─────────────────────────────────────────
@@ -338,13 +372,12 @@ export function ArchDiagram() {
         ───────────────────────────────────────── */}
 
         {(Object.keys(NODES) as NodeKey[]).map((key) => {
-          const node = getNodePosition(key);
+          const node = getNodePosition(key)
 
-          const isContract = key === "contract";
+          const isContract = key === 'contract'
 
-          const on = nodeVisible(key);
-          const isFocus = key === focus;
-          const isSectionFocus = focusSection === getSectionForNode(key);
+          const on = nodeVisible(key)
+          const isFocus = key === focus
 
           return (
             <g
@@ -353,16 +386,22 @@ export function ArchDiagram() {
               role="button"
               aria-label={`${node.label} — highlight its links`}
               onPointerEnter={() => {
-                setFocusSection(getSectionForNode(key));
-                setFocus(key);
+                const section = getSectionForNode(key)
+                setFocusSection(
+                  section !== null && section !== undefined ? section : null
+                )
+                setFocus(key)
               }}
               onFocus={() => {
-                setFocusSection(getSectionForNode(key));
-                setFocus(key);
+                const section = getSectionForNode(key)
+                setFocusSection(
+                  section !== null && section !== undefined ? section : null
+                )
+                setFocus(key)
               }}
               onBlur={() => {
-                setFocus(null);
-                setFocusSection(null);
+                setFocus(null)
+                setFocusSection(null)
               }}
               className="cursor-pointer transition-opacity duration-200 focus:outline-none"
               style={{
@@ -390,13 +429,13 @@ export function ArchDiagram() {
                   isFocus
                     ? `color-mix(in oklab, ${node.color} 16%, var(--panel))`
                     : isContract
-                      ? "color-mix(in oklab, var(--cyan) 10%, transparent)"
-                      : "var(--panel)"
+                      ? 'color-mix(in oklab, var(--cyan) 10%, transparent)'
+                      : 'var(--panel)'
                 }
                 stroke={node.color}
-                strokeOpacity={isFocus || isContract ? 1 : 0.45}
+                strokeOpacity={(isFocus || isContract) === true ? 1 : 0.45}
                 strokeWidth={isFocus ? 1.8 : 1}
-                strokeDasharray={key === "permission" ? "4 3" : undefined}
+                strokeDasharray={key === 'permission' ? '4 3' : undefined}
                 className="transition-all duration-200"
               />
 
@@ -405,14 +444,18 @@ export function ArchDiagram() {
                 x={node.x}
                 y={node.y + node.height / 2 + 3.5}
                 textAnchor="middle"
-                fill={isFocus || isContract ? node.color : "var(--foreground)"}
+                fill={
+                  (isFocus || isContract) === true
+                    ? node.color
+                    : 'var(--foreground)'
+                }
                 className="font-mono transition-colors duration-200"
                 fontSize={9.5}
               >
                 {node.label}
               </text>
             </g>
-          );
+          )
         })}
       </svg>
 
@@ -426,5 +469,5 @@ export function ArchDiagram() {
         </span>
       </div>
     </div>
-  );
+  )
 }

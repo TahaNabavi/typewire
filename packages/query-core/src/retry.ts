@@ -1,12 +1,12 @@
-import { CancelledError, isCancelledError } from "./errors";
-import type { RetryDelayValue, RetryValue } from "./types";
+import { CancelledError, isCancelledError } from './errors'
+import type { RetryDelayValue, RetryValue } from './types'
 
 /**
  * `true` is capped rather than infinite: an unbounded retry loop in a shared
  * engine is a footgun that turns one broken endpoint into a permanent request
  * storm. Callers who genuinely want more pass a number or a predicate.
  */
-const RETRY_TRUE_ATTEMPTS = 3;
+const RETRY_TRUE_ATTEMPTS = 3
 
 /**
  * Whether to make another attempt after `failureCount` consecutive failures.
@@ -16,23 +16,23 @@ const RETRY_TRUE_ATTEMPTS = 3;
 export function shouldRetry<TError>(
   retry: RetryValue<TError> | undefined,
   failureCount: number,
-  error: TError,
+  error: TError
 ): boolean {
-  if (retry === undefined || retry === false) return false;
-  if (retry === true) return failureCount <= RETRY_TRUE_ATTEMPTS;
-  if (typeof retry === "number") return failureCount <= retry;
-  return retry(failureCount, error);
+  if (retry === undefined || retry === false) return false
+  if (retry === true) return failureCount <= RETRY_TRUE_ATTEMPTS
+  if (typeof retry === 'number') return failureCount <= retry
+  return retry(failureCount, error)
 }
 
 /** Resolve the delay before the next attempt. Defaults to no delay. */
 export function resolveRetryDelay<TError>(
   retryDelay: RetryDelayValue<TError> | undefined,
   failureCount: number,
-  error: TError,
+  error: TError
 ): number {
-  if (retryDelay === undefined) return 0;
-  if (typeof retryDelay === "number") return retryDelay;
-  return retryDelay(failureCount, error);
+  if (retryDelay === undefined) return 0
+  if (typeof retryDelay === 'number') return retryDelay
+  return retryDelay(failureCount, error)
 }
 
 /**
@@ -42,19 +42,19 @@ export function resolveRetryDelay<TError>(
 export function sleep(ms: number, signal?: AbortSignal): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     if (signal?.aborted) {
-      reject(new CancelledError());
-      return;
+      reject(new CancelledError())
+      return
     }
     const timer = setTimeout(() => {
-      signal?.removeEventListener("abort", onAbort);
-      resolve();
-    }, ms);
+      signal?.removeEventListener('abort', onAbort)
+      resolve()
+    }, ms)
     function onAbort() {
-      clearTimeout(timer);
-      reject(new CancelledError());
+      clearTimeout(timer)
+      reject(new CancelledError())
     }
-    signal?.addEventListener("abort", onAbort, { once: true });
-  });
+    signal?.addEventListener('abort', onAbort, { once: true })
+  })
 }
 
 /**
@@ -66,20 +66,20 @@ export function sleep(ms: number, signal?: AbortSignal): Promise<void> {
  * without this, `cancelQueries` would silently wait out the full request.
  */
 export function rejectOnAbort(signal: AbortSignal): {
-  promise: Promise<never>;
-  dispose: () => void;
+  promise: Promise<never>
+  dispose: () => void
 } {
-  let dispose = () => {};
+  let dispose = () => {}
   const promise = new Promise<never>((_resolve, reject) => {
     if (signal.aborted) {
-      reject(new CancelledError());
-      return;
+      reject(new CancelledError())
+      return
     }
-    const onAbort = () => reject(new CancelledError());
-    signal.addEventListener("abort", onAbort, { once: true });
-    dispose = () => signal.removeEventListener("abort", onAbort);
-  });
-  return { promise, dispose };
+    const onAbort = () => reject(new CancelledError())
+    signal.addEventListener('abort', onAbort, { once: true })
+    dispose = () => signal.removeEventListener('abort', onAbort)
+  })
+  return { promise, dispose }
 }
 
-export { isCancelledError };
+export { isCancelledError }

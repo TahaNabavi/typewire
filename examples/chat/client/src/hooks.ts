@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from "react";
-import type { SocketEvent } from "@tahanabavi/typesocket";
+import { useEffect, useRef, useState } from 'react'
+import type { SocketEvent } from '@tahanabavi/typesocket'
 
-import { socket } from "./socket.js";
+import { socket } from './socket.js'
 
 /**
  * React bindings for typesocket.
@@ -20,16 +20,16 @@ import { socket } from "./socket.js";
  */
 export function useSocketEvent<P>(
   event: { on(handler: (payload: P) => void): () => void },
-  handler: (payload: P) => void,
+  handler: (payload: P) => void
 ): void {
-  const ref = useRef(handler);
-  ref.current = handler;
+  const ref = useRef(handler)
+  ref.current = handler
 
   useEffect(() => {
     // Subscribing through the ref means a new inline handler on every render
     // doesn't tear down and re-create the subscription.
-    return event.on((payload) => ref.current(payload));
-  }, [event]);
+    return event.on((payload) => ref.current(payload))
+  }, [event])
 }
 
 /** Tracks connection state, including the reconnect count. */
@@ -39,32 +39,32 @@ export function useConnection() {
     socketId: socket.id,
     attempt: 0,
     error: null as string | null,
-  }));
+  }))
 
   useEffect(() => {
-    socket.connect();
+    socket.connect()
 
     const offs = [
       socket.onConnect(({ socketId, attempt }) =>
-        setState({ connected: true, socketId, attempt, error: null }),
+        setState({ connected: true, socketId, attempt, error: null })
       ),
       socket.onDisconnect((reason) =>
-        setState((s) => ({ ...s, connected: false, error: reason })),
+        setState((s) => ({ ...s, connected: false, error: reason }))
       ),
       socket.onConnectError((error) =>
-        setState((s) => ({ ...s, connected: false, error: error.message })),
+        setState((s) => ({ ...s, connected: false, error: error.message }))
       ),
-    ];
+    ]
 
     // Deliberately not calling socket.destroy() — the client is module-scoped
     // and outlives this component. Only the subscriptions are cleaned up.
-    return () => offs.forEach((off) => off());
-  }, []);
+    return () => offs.forEach((off) => off())
+  }, [])
 
-  return state;
+  return state
 }
 
-export type Frame = SocketEvent & { key: number };
+export type Frame = SocketEvent & { key: number }
 
 /**
  * Mirrors the instrumentation stream into React state.
@@ -73,18 +73,20 @@ export type Frame = SocketEvent & { key: number };
  * `@tahanabavi/type-devtools` will render exactly this feed.
  */
 export function useFrameLog(limit = 60) {
-  const [frames, setFrames] = useState<Frame[]>([]);
-  const seq = useRef(0);
+  const [frames, setFrames] = useState<Frame[]>([])
+  const seq = useRef(0)
 
   useEffect(
     () =>
       socket.instrument({
         on(event) {
-          setFrames((prev) => [{ ...event, key: seq.current++ }, ...prev].slice(0, limit));
+          setFrames((prev) =>
+            [{ ...event, key: seq.current++ }, ...prev].slice(0, limit)
+          )
         },
       }),
-    [limit],
-  );
+    [limit]
+  )
 
-  return { frames, clear: () => setFrames([]) };
+  return { frames, clear: () => setFrames([]) }
 }

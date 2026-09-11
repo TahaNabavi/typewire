@@ -1,9 +1,5 @@
-import type {
-  ProgressHandler,
-  ResponseType,
-  TypeFetchFile,
-} from "../types";
-import { safeProgress, toProgress } from "./progress";
+import type { ProgressHandler, ResponseType, TypeFetchFile } from '../types'
+import { safeProgress, toProgress } from './progress'
 
 /**
  * Response body decoding
@@ -15,10 +11,10 @@ import { safeProgress, toProgress } from "./progress";
 
 /** `Content-Length` as a number, or `undefined` when absent/unparseable. */
 export function contentLengthOf(res: Response): number | undefined {
-  const raw = res.headers.get("content-length");
-  if (!raw) return undefined;
-  const parsed = Number(raw);
-  return Number.isFinite(parsed) && parsed >= 0 ? parsed : undefined;
+  const raw = res.headers.get('content-length')
+  if (!raw) return undefined
+  const parsed = Number(raw)
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : undefined
 }
 
 /**
@@ -34,36 +30,36 @@ export function contentLengthOf(res: Response): number | undefined {
  * `../../config.json` should not be able to steer that.
  */
 export function parseContentDisposition(
-  header: string | null,
+  header: string | null
 ): string | undefined {
-  if (!header) return undefined;
+  if (!header) return undefined
 
-  const extended = /filename\*\s*=\s*([^']*)'[^']*'([^;]+)/i.exec(header);
+  const extended = /filename\*\s*=\s*([^']*)'[^']*'([^;]+)/i.exec(header)
   if (extended) {
-    const value = extended[2].trim();
+    const value = extended[2].trim()
     try {
-      return sanitizeFilename(decodeURIComponent(value));
+      return sanitizeFilename(decodeURIComponent(value))
     } catch {
       // Malformed percent-encoding: fall back to the raw token rather than
       // discarding a filename the user can still read.
-      return sanitizeFilename(value);
+      return sanitizeFilename(value)
     }
   }
 
-  const quoted = /filename\s*=\s*"([^"]*)"/i.exec(header);
-  if (quoted) return sanitizeFilename(quoted[1]);
+  const quoted = /filename\s*=\s*"([^"]*)"/i.exec(header)
+  if (quoted) return sanitizeFilename(quoted[1])
 
-  const bare = /filename\s*=\s*([^;]+)/i.exec(header);
-  if (bare) return sanitizeFilename(bare[1].trim());
+  const bare = /filename\s*=\s*([^;]+)/i.exec(header)
+  if (bare) return sanitizeFilename(bare[1].trim())
 
-  return undefined;
+  return undefined
 }
 
 /** Reduce a header-supplied name to a single path segment. */
 function sanitizeFilename(name: string): string | undefined {
-  const base = name.split(/[\\/]/).pop()?.trim();
-  if (!base || base === "." || base === "..") return undefined;
-  return base;
+  const base = name.split(/[\\/]/).pop()?.trim()
+  if (!base || base === '.' || base === '..') return undefined
+  return base
 }
 
 /**
@@ -77,48 +73,48 @@ function sanitizeFilename(name: string): string | undefined {
  */
 export function withDownloadProgress(
   res: Response,
-  handler: ProgressHandler,
+  handler: ProgressHandler
 ): Response {
-  if (!res.body || typeof ReadableStream === "undefined") return res;
+  if (!res.body || typeof ReadableStream === 'undefined') return res
 
-  const total = contentLengthOf(res);
-  const lengthComputable = total !== undefined;
-  const reader = res.body.getReader();
-  let loaded = 0;
+  const total = contentLengthOf(res)
+  const lengthComputable = total !== undefined
+  const reader = res.body.getReader()
+  let loaded = 0
 
-  safeProgress(handler, toProgress("download", 0, total, lengthComputable));
+  safeProgress(handler, toProgress('download', 0, total, lengthComputable))
 
   const counted = new ReadableStream<Uint8Array>({
     async pull(controller) {
       try {
-        const { done, value } = await reader.read();
+        const { done, value } = await reader.read()
 
         if (done) {
-          controller.close();
-          return;
+          controller.close()
+          return
         }
 
-        loaded += value.byteLength;
+        loaded += value.byteLength
         safeProgress(
           handler,
-          toProgress("download", loaded, total, lengthComputable),
-        );
-        controller.enqueue(value);
+          toProgress('download', loaded, total, lengthComputable)
+        )
+        controller.enqueue(value)
       } catch (err) {
-        controller.error(err);
+        controller.error(err)
       }
     },
     cancel(reason) {
       // Propagate so an aborted download actually stops the socket read.
-      return reader.cancel(reason);
+      return reader.cancel(reason)
     },
-  });
+  })
 
   return new Response(counted, {
     status: res.status,
     statusText: res.statusText,
     headers: res.headers,
-  });
+  })
 }
 
 /**
@@ -129,43 +125,43 @@ export function withDownloadProgress(
  */
 export async function decodeResponse(
   res: Response,
-  responseType: ResponseType,
+  responseType: ResponseType
 ): Promise<unknown> {
   switch (responseType) {
-    case "text":
-      return res.text();
+    case 'text':
+      return res.text()
 
-    case "blob":
-      return res.blob();
+    case 'blob':
+      return res.blob()
 
-    case "arrayBuffer":
-      return res.arrayBuffer();
+    case 'arrayBuffer':
+      return res.arrayBuffer()
 
-    case "formData":
-      return res.formData();
+    case 'formData':
+      return res.formData()
 
-    case "stream":
-      return res.body;
+    case 'stream':
+      return res.body
 
-    case "response":
-      return res;
+    case 'response':
+      return res
 
-    case "file": {
-      const blob = await res.blob();
+    case 'file': {
+      const blob = await res.blob()
       const file: TypeFetchFile = {
         blob,
         filename: parseContentDisposition(
-          res.headers.get("content-disposition"),
+          res.headers.get('content-disposition')
         ),
-        contentType: res.headers.get("content-type") ?? undefined,
+        contentType: res.headers.get('content-type') ?? undefined,
         size: blob.size,
-      };
-      return file;
+      }
+      return file
     }
 
-    case "json":
+    case 'json':
     default:
-      return decodeJson(res);
+      return decodeJson(res)
   }
 }
 
@@ -179,7 +175,7 @@ export async function decodeResponse(
  * text-first path, which is what tolerates non-JSON and empty bodies.
  */
 function canReadText(res: Response): boolean {
-  return typeof (res as { text?: unknown }).text === "function";
+  return typeof (res as { text?: unknown }).text === 'function'
 }
 
 /**
@@ -190,11 +186,11 @@ function canReadText(res: Response): boolean {
  * common enough that treating that as a parse failure would be wrong.
  */
 async function decodeJson(res: Response): Promise<unknown> {
-  if (!canReadText(res)) return res.json();
+  if (!canReadText(res)) return res.json()
 
-  const text = await res.text();
-  if (text.length === 0) return undefined;
-  return JSON.parse(text);
+  const text = await res.text()
+  if (text.length === 0) return undefined
+  return JSON.parse(text)
 }
 
 /**
@@ -207,32 +203,32 @@ async function decodeJson(res: Response): Promise<unknown> {
  * body is JSON, `{ detail: <text> }` when it is not, and `{}` when it is empty.
  */
 export async function readErrorBody(
-  res: Response,
+  res: Response
 ): Promise<{ body: any; wasJson: boolean }> {
   if (!canReadText(res)) {
     try {
-      return normalizeErrorBody(await res.json());
+      return normalizeErrorBody(await res.json())
     } catch {
-      return { body: {}, wasJson: false };
+      return { body: {}, wasJson: false }
     }
   }
 
-  let text: string;
+  let text: string
 
   try {
-    text = await res.text();
+    text = await res.text()
   } catch {
     // Body already consumed by a middleware, or the connection dropped
     // mid-read. The status is still worth reporting.
-    return { body: {}, wasJson: false };
+    return { body: {}, wasJson: false }
   }
 
-  if (text.trim().length === 0) return { body: {}, wasJson: false };
+  if (text.trim().length === 0) return { body: {}, wasJson: false }
 
   try {
-    return normalizeErrorBody(JSON.parse(text));
+    return normalizeErrorBody(JSON.parse(text))
   } catch {
-    return { body: { detail: text }, wasJson: false };
+    return { body: { detail: text }, wasJson: false }
   }
 }
 
@@ -242,8 +238,8 @@ export async function readErrorBody(
  * builder can treat every case uniformly.
  */
 function normalizeErrorBody(parsed: unknown): { body: any; wasJson: boolean } {
-  if (parsed === null || typeof parsed !== "object") {
-    return { body: { detail: String(parsed) }, wasJson: false };
+  if (parsed === null || typeof parsed !== 'object') {
+    return { body: { detail: String(parsed) }, wasJson: false }
   }
-  return { body: parsed, wasJson: true };
+  return { body: parsed, wasJson: true }
 }

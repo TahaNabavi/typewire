@@ -1,11 +1,11 @@
-import type { QueryClient } from "@tahanabavi/typefetch-query-core";
-import { createContext, createElement, useContext, type ReactNode } from "react";
+import type { QueryClient } from '@tahanabavi/typefetch-query-core'
+import { createContext, createElement, useContext, type ReactNode } from 'react'
 
-const QueryClientContext = createContext<QueryClient | null>(null);
+const QueryClientContext = createContext<QueryClient | null>(null)
 
 export interface TypeFetchProviderProps {
-  client: QueryClient;
-  children?: ReactNode;
+  client: QueryClient
+  children?: ReactNode
 }
 
 /**
@@ -15,17 +15,20 @@ export interface TypeFetchProviderProps {
  * TypeScript — a single provider element is not worth a JSX build config in a
  * package this thin.
  */
-export function TypeFetchProvider({ client, children }: TypeFetchProviderProps) {
-  return createElement(QueryClientContext.Provider, { value: client }, children);
+export function TypeFetchProvider({
+  client,
+  children,
+}: TypeFetchProviderProps) {
+  return createElement(QueryClientContext.Provider, { value: client }, children)
 }
 
 /** The client from the nearest provider. Throws when there is none. */
 export function useQueryClient(): QueryClient {
-  const client = useContext(QueryClientContext);
+  const client = useContext(QueryClientContext)
   if (!client) {
     throw new Error(
-      "No QueryClient found. Wrap your tree in <TypeFetchProvider client={...}>.",
-    );
+      'No QueryClient found. Wrap your tree in <TypeFetchProvider client={...}>.'
+    )
   }
-  return client;
+  return client
 }

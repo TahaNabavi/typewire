@@ -4,14 +4,14 @@ import {
   Injectable,
   Logger,
   NestInterceptor,
-} from "@nestjs/common";
-import type { ClientToServerDef } from "@tahanabavi/typesocket";
-import { Observable } from "rxjs";
-import { map } from "rxjs/operators";
-import { formatZodIssues } from "../exceptions";
-import { SOCKET_EVENT_METADATA, SOCKET_OPTIONS_METADATA } from "./constants";
-import { SocketContractException } from "./exceptions";
-import type { BoundSocketEvent, SocketEventOptions } from "./types";
+} from '@nestjs/common'
+import type { ClientToServerDef } from '@tahanabavi/typesocket'
+import { Observable } from 'rxjs'
+import { map } from 'rxjs/operators'
+import { formatZodIssues } from '../exceptions'
+import { SOCKET_EVENT_METADATA, SOCKET_OPTIONS_METADATA } from './constants'
+import { SocketContractException } from './exceptions'
+import type { BoundSocketEvent, SocketEventOptions } from './types'
 
 /**
  * Validate what a gateway handler acknowledges with.
@@ -26,18 +26,18 @@ import type { BoundSocketEvent, SocketEventOptions } from "./types";
  */
 @Injectable()
 export class SocketAckInterceptor implements NestInterceptor {
-  private readonly logger = new Logger("TypeWireSocket");
+  private readonly logger = new Logger('TypeWireSocket')
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const bound: BoundSocketEvent<ClientToServerDef> | undefined =
-      Reflect.getMetadata(SOCKET_EVENT_METADATA, context.getHandler());
+      Reflect.getMetadata(SOCKET_EVENT_METADATA, context.getHandler())
 
     const options: SocketEventOptions =
-      Reflect.getMetadata(SOCKET_OPTIONS_METADATA, context.getHandler()) ?? {};
+      Reflect.getMetadata(SOCKET_OPTIONS_METADATA, context.getHandler()) ?? {}
 
-    const schema = bound?.def.ack;
+    const schema = bound?.def.ack
     if (!bound || !schema || options.validateAck === false) {
-      return next.handle();
+      return next.handle()
     }
 
     return next.handle().pipe(
@@ -46,20 +46,20 @@ export class SocketAckInterceptor implements NestInterceptor {
         // already failed the contract, but `undefined` is also what a fire-and-
         // forget handler returns — so let the schema decide, since a contract
         // may legitimately declare `ack: z.void()`.
-        const parsed = schema.safeParse(value);
-        if (parsed.success) return parsed.data;
+        const parsed = schema.safeParse(value)
+        if (parsed.success) return parsed.data
 
-        const errors = formatZodIssues(parsed.error);
+        const errors = formatZodIssues(parsed.error)
         this.logger.error(
-          `Ack contract violation on ${bound.eventId}: ${JSON.stringify(errors)}`,
-        );
+          `Ack contract violation on ${bound.eventId}: ${JSON.stringify(errors)}`
+        )
 
         throw new SocketContractException(
           bound.eventId,
-          "Acknowledgement contract violation",
-          "ACK_CONTRACT_VIOLATION",
-        );
-      }),
-    );
+          'Acknowledgement contract violation',
+          'ACK_CONTRACT_VIOLATION'
+        )
+      })
+    )
   }
 }

@@ -1,5 +1,5 @@
-import { z } from "zod";
-import type { JsonSchema } from "./types";
+import { z } from 'zod'
+import type { JsonSchema } from './types'
 
 /**
  * Convert a Zod schema to an OpenAPI 3.0 schema object via Zod 4's native
@@ -15,29 +15,29 @@ import type { JsonSchema } from "./types";
  */
 export function toOpenApiSchema(schema: z.ZodTypeAny): JsonSchema {
   const json = z.toJSONSchema(schema, {
-    target: "openapi-3.0",
-    unrepresentable: "any",
+    target: 'openapi-3.0',
+    unrepresentable: 'any',
     override: (ctx: any) => {
-      const type = ctx.zodSchema?._zod?.def?.type;
-      const out = ctx.jsonSchema;
-      if (type === "date") {
-        out.type = "string";
-        out.format = "date-time";
-      } else if (type === "bigint") {
-        out.type = "string";
-        out.format = "int64";
-      } else if (type === "custom" || type === "file") {
+      const type = ctx.zodSchema?._zod?.def?.type
+      const out = ctx.jsonSchema
+      if (type === 'date') {
+        out.type = 'string'
+        out.format = 'date-time'
+      } else if (type === 'bigint') {
+        out.type = 'string'
+        out.format = 'int64'
+      } else if (type === 'custom' || type === 'file') {
         // z.instanceof(File)/z.file() — treated as an upload payload.
-        out.type = "string";
-        out.format = "binary";
+        out.type = 'string'
+        out.format = 'binary'
       }
     },
-  }) as JsonSchema;
+  }) as JsonSchema
 
   // openapi-3.0 target already omits `$schema`; strip defensively in case a
   // future Zod build leaves it on nested output.
-  delete (json as any).$schema;
-  return json;
+  delete (json as any).$schema
+  return json
 }
 
 /**
@@ -46,12 +46,14 @@ export function toOpenApiSchema(schema: z.ZodTypeAny): JsonSchema {
  * `path`/`query`/`header` parameters from a request-part object.
  */
 export function toParameterSchemas(schema: z.ZodTypeAny): {
-  properties: Record<string, JsonSchema>;
-  required: Set<string>;
+  properties: Record<string, JsonSchema>
+  required: Set<string>
 } {
-  const json = toOpenApiSchema(schema);
+  const json = toOpenApiSchema(schema)
   return {
     properties: (json.properties as Record<string, JsonSchema>) ?? {},
-    required: new Set<string>(Array.isArray(json.required) ? json.required : []),
-  };
+    required: new Set<string>(
+      Array.isArray(json.required) ? json.required : []
+    ),
+  }
 }

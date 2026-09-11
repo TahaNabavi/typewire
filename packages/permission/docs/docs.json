@@ -7,9 +7,7 @@
       "title": "Overview",
       "readme": true,
       "intro": true,
-      "sections": [
-        "Two ways in — progressive disclosure"
-      ]
+      "sections": ["Two ways in — progressive disclosure"]
     },
     {
       "slug": "quick-start",
@@ -24,17 +22,13 @@
       "slug": "roles",
       "title": "Roles",
       "readme": true,
-      "sections": [
-        "Roles, and the escalation guard"
-      ]
+      "sections": ["Roles, and the escalation guard"]
     },
     {
       "slug": "storage",
       "title": "Storage",
       "readme": true,
-      "sections": [
-        "Storage is a codec, never a second mode"
-      ]
+      "sections": ["Storage is a codec, never a second mode"]
     },
     {
       "slug": "bindings",
@@ -49,26 +43,19 @@
       "slug": "contracts",
       "title": "Contract link",
       "readme": true,
-      "sections": [
-        "Contract link (optional, additive)"
-      ]
+      "sections": ["Contract link (optional, additive)"]
     },
     {
       "slug": "security",
       "title": "Trust boundary",
       "readme": true,
-      "sections": [
-        "Trust boundary"
-      ]
+      "sections": ["Trust boundary"]
     },
     {
       "slug": "api",
       "title": "API",
       "readme": true,
-      "sections": [
-        "Exports",
-        "License"
-      ]
+      "sections": ["Exports", "License"]
     }
   ]
 }

@@ -1,7 +1,7 @@
-import { Panel } from "@/components/ui/panel";
-import { Section } from "@/components/ui/section";
-import { site } from "@/config/site";
-import { packages, publishedPackages, roadmap } from "@/lib/registry";
+import { Panel } from '@/components/ui/panel'
+import { Section } from '@/components/ui/section'
+import { site } from '@/config/site'
+import { packages, publishedPackages, roadmap } from '@/lib/registry'
 
 /**
  * Parsed straight from the root README's roadmap checklist at build time.
@@ -17,34 +17,34 @@ import { packages, publishedPackages, roadmap } from "@/lib/registry";
  * itself instead of becoming the stalest paragraph on the page.
  */
 function gaps(): string[] {
-  const out: string[] = [];
+  const out: string[] = []
 
   const drifted = packages.filter(
-    (p) => p.published && p.npmVersion && p.npmVersion !== p.localVersion,
-  );
+    (p) => p.published && p.npmVersion && p.npmVersion !== p.localVersion
+  )
   for (const p of drifted) {
     out.push(
-      `${p.short} is ${p.npmVersion} on npm but ${p.localVersion} in this workspace — the repo is behind its own release.`,
-    );
+      `${p.short} is ${p.npmVersion} on npm but ${p.localVersion} in this workspace — the repo is behind its own release.`
+    )
   }
 
-  const unpublished = packages.filter((p) => !p.published);
+  const unpublished = packages.filter((p) => !p.published)
   if (unpublished.length > 0) {
     out.push(
       `${unpublished.length} packages are built and tested but not on npm: ${unpublished
         .map((p) => p.short)
-        .join(", ")}.`,
-    );
+        .join(', ')}.`
+    )
   }
 
   out.push(
-    "Size budgets are asserted ceilings, not published measurements — CI fails when one is exceeded, but no measured figure is shown.",
-  );
-  return out;
+    'Size budgets are asserted ceilings, not published measurements — CI fails when one is exceeded, but no measured figure is shown.'
+  )
+  return out
 }
 
 export function RoadmapSection() {
-  const unpublished = packages.length - publishedPackages.length;
+  const unpublished = packages.length - publishedPackages.length
 
   return (
     <Section
@@ -71,7 +71,9 @@ export function RoadmapSection() {
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-fg">{item.title}</p>
                 {item.detail && (
-                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{item.detail}</p>
+                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                    {item.detail}
+                  </p>
                 )}
               </div>
             </li>
@@ -82,7 +84,9 @@ export function RoadmapSection() {
             <span
               aria-hidden
               className="relative z-10 mt-1 size-3.5 flex-none rounded-full bg-blue"
-              style={{ animation: "wire-pulse var(--motion-wire) ease-in-out infinite" }}
+              style={{
+                animation: 'wire-pulse var(--motion-wire) ease-in-out infinite',
+              }}
             />
             <div className="min-w-0 flex-1">
               <span className="inline-flex items-center gap-2 rounded-full border border-blue/45 bg-blue/10 px-3 py-1 font-mono text-[10.5px] font-bold tracking-[0.14em] text-blue">
@@ -90,7 +94,9 @@ export function RoadmapSection() {
               </span>
               <p className="mt-2 font-mono text-xs leading-relaxed text-dim">
                 {publishedPackages.length} of {packages.length} packages on npm
-                {unpublished > 0 ? ` · ${unpublished} built, awaiting a first publish` : ""}
+                {unpublished > 0
+                  ? ` · ${unpublished} built, awaiting a first publish`
+                  : ''}
               </p>
             </div>
           </li>
@@ -105,8 +111,8 @@ export function RoadmapSection() {
                 <p
                   className={
                     i === 0
-                      ? "text-sm font-semibold text-fg"
-                      : "text-sm font-semibold text-muted-foreground"
+                      ? 'text-sm font-semibold text-fg'
+                      : 'text-sm font-semibold text-muted-foreground'
                   }
                 >
                   {item.title}
@@ -116,7 +122,11 @@ export function RoadmapSection() {
                     </span>
                   )}
                 </p>
-                {item.detail && <p className="mt-1 text-sm leading-relaxed text-dim">{item.detail}</p>}
+                {item.detail && (
+                  <p className="mt-1 text-sm leading-relaxed text-dim">
+                    {item.detail}
+                  </p>
+                )}
               </div>
             </li>
           ))}
@@ -129,7 +139,9 @@ export function RoadmapSection() {
               <span aria-hidden className="size-2 rounded-full bg-red/70" />
               <span aria-hidden className="size-2 rounded-full bg-amber/70" />
               <span aria-hidden className="size-2 rounded-full bg-green/70" />
-              <span className="ml-1 font-mono text-[11px] text-dim">typewire diff</span>
+              <span className="ml-1 font-mono text-[11px] text-dim">
+                typewire diff
+              </span>
               <span className="ml-auto rounded-full border border-amber/45 bg-amber/10 px-2 py-0.5 font-mono text-[9.5px] font-bold tracking-[0.12em] text-amber">
                 PROPOSED
               </span>
@@ -138,14 +150,18 @@ export function RoadmapSection() {
               <div className="text-dim">$ npx typewire diff v1.4.0 v2.0.0</div>
               <div className="text-green">+ user.getUser.response.email</div>
               <div className="text-red">- user.getUser.response.name</div>
-              <div className="text-amber">~ user.listUsers.request.page → cursor</div>
+              <div className="text-amber">
+                ~ user.listUsers.request.page → cursor
+              </div>
               <div className="mt-2 text-dim">3 changes · 1 breaking</div>
-              <div className="text-cyan">→ 2 call sites will fail typecheck</div>
+              <div className="text-cyan">
+                → 2 call sites will fail typecheck
+              </div>
             </pre>
           </div>
           <p className="font-mono text-[11px] leading-relaxed text-dim">
-            Not a shipped command. The CLI ships init, list, test and release-doc today; diff and
-            lint are designed in{" "}
+            Not a shipped command. The CLI ships init, list, test and
+            release-doc today; diff and lint are designed in{' '}
             <a
               href={`${site.repo.url}/blob/main/docs/CLI.md`}
               target="_blank"
@@ -153,7 +169,7 @@ export function RoadmapSection() {
               className="text-blue hover:underline"
             >
               docs/CLI.md
-            </a>{" "}
+            </a>{' '}
             and are what the roadmap above is heading towards.
           </p>
 
@@ -164,8 +180,14 @@ export function RoadmapSection() {
             </h3>
             <ul className="space-y-3 pt-3">
               {gaps().map((gap) => (
-                <li key={gap} className="flex gap-3 text-sm leading-relaxed text-muted-foreground">
-                  <span aria-hidden className="mt-1.5 size-1.5 flex-none rounded-full bg-amber" />
+                <li
+                  key={gap}
+                  className="flex gap-3 text-sm leading-relaxed text-muted-foreground"
+                >
+                  <span
+                    aria-hidden
+                    className="mt-1.5 size-1.5 flex-none rounded-full bg-amber"
+                  />
                   {gap}
                 </li>
               ))}
@@ -183,5 +205,5 @@ export function RoadmapSection() {
         Full sequencing, including the gaps that are still open ↗
       </a>
     </Section>
-  );
+  )
 }

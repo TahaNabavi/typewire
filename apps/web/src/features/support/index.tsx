@@ -3,38 +3,38 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Panel } from "@/components/ui/panel";
-import { Section } from "@/components/ui/section";
-import { site } from "@/config/site";
-import { faq } from "@/features/support/constants";
+} from '@/components/ui/accordion'
+import { Panel } from '@/components/ui/panel'
+import { Section } from '@/components/ui/section'
+import { site } from '@/config/site'
+import { faq } from '@/features/support/constants'
 
 const CHANNELS = [
   {
-    title: "GitHub Issues",
-    when: "A bug, or a feature you want.",
-    body: "For anything non-trivial, open an issue first so the approach is agreed before you invest time in a PR.",
+    title: 'GitHub Issues',
+    when: 'A bug, or a feature you want.',
+    body: 'For anything non-trivial, open an issue first so the approach is agreed before you invest time in a PR.',
     href: `${site.repo.url}/issues/new/choose`,
-    cta: "Open an issue",
-    tone: "var(--blue)",
+    cta: 'Open an issue',
+    tone: 'var(--blue)',
   },
   {
-    title: "GitHub Discussions",
-    when: "A question, a pattern, or something you built.",
-    body: "Usage questions and design discussion live here rather than in the issue tracker.",
+    title: 'GitHub Discussions',
+    when: 'A question, a pattern, or something you built.',
+    body: 'Usage questions and design discussion live here rather than in the issue tracker.',
     href: `${site.repo.url}/discussions`,
-    cta: "Start a discussion",
-    tone: "var(--cyan)",
+    cta: 'Start a discussion',
+    tone: 'var(--cyan)',
   },
   {
-    title: "Security advisories",
-    when: "A vulnerability.",
+    title: 'Security advisories',
+    when: 'A vulnerability.',
     body: "Please do not report security vulnerabilities through public issues, discussions, or pull requests. Use GitHub's private reporting flow.",
     href: `${site.repo.url}/security/advisories/new`,
-    cta: "Report a vulnerability",
-    tone: "var(--amber)",
+    cta: 'Report a vulnerability',
+    tone: 'var(--amber)',
   },
-];
+]
 
 export function Support() {
   return (
@@ -55,7 +55,9 @@ export function Support() {
             />
             <h3 className="text-lg font-bold text-fg">{channel.title}</h3>
             <p className="mt-1 font-mono text-xs text-dim">{channel.when}</p>
-            <p className="mt-3 flex-1 text-sm leading-relaxed text-muted-foreground">{channel.body}</p>
+            <p className="mt-3 flex-1 text-sm leading-relaxed text-muted-foreground">
+              {channel.body}
+            </p>
             <a
               href={channel.href}
               target="_blank"
@@ -89,5 +91,5 @@ export function Support() {
         </Accordion>
       </div>
     </Section>
-  );
+  )
 }

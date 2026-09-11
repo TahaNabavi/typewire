@@ -14,7 +14,7 @@ to force a mock, an error or latency at runtime. That keeps the example about th
 query layer rather than about transport setup.
 
 The exception is the `media` module. A progress bar is a property of bytes
-actually moving, and an override resolves *before* the transport runs, so upload
+actually moving, and an override resolves _before_ the transport runs, so upload
 and download are served for real — by a Vite plugin in the browser, by a
 `node:http` server in the headless run. Both mount the same handler.
 
@@ -28,21 +28,21 @@ client/                the React app: hooks + devtools panel
 headless/main.ts       the same stack with no UI, asserting as it runs
 ```
 
-`client/` and `headless/` import the *same* `createStack()`, so the UI
+`client/` and `headless/` import the _same_ `createStack()`, so the UI
 demonstrates the wiring rather than re-declaring a second version of it that can
 drift.
 
 ## What the React app shows
 
-| In the UI | Point |
-| --- | --- |
-| The `fresh` / `stale` / `fetching` badge | `useQuery` exposes fetch state separately from data state, so a background refetch does not blank the screen. |
-| Switching **user 1 / user 2** | One cache entry per input. Coming back to a user inside `staleTime` renders with no request. |
-| **rename** → `version` climbs | A mutation invalidated the query and it refetched itself. The component names no key. |
-| The **ws** card | The same `useMutation`, over a socket event. |
-| The **upload** bar | `trackProgress` puts transfer progress in the mutation's own state — no `useState`, no second hook. |
-| **download it back** | `responseType: "file"` hands back `{ blob, filename, contentType, size }`, filename already parsed from `Content-Disposition`. |
-| The panel at the bottom | HTTP and WS rows in one timeline, tagged by source. |
+| In the UI                                | Point                                                                                                                          |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| The `fresh` / `stale` / `fetching` badge | `useQuery` exposes fetch state separately from data state, so a background refetch does not blank the screen.                  |
+| Switching **user 1 / user 2**            | One cache entry per input. Coming back to a user inside `staleTime` renders with no request.                                   |
+| **rename** → `version` climbs            | A mutation invalidated the query and it refetched itself. The component names no key.                                          |
+| The **ws** card                          | The same `useMutation`, over a socket event.                                                                                   |
+| The **upload** bar                       | `trackProgress` puts transfer progress in the mutation's own state — no `useState`, no second hook.                            |
+| **download it back**                     | `responseType: "file"` hands back `{ blob, filename, contentType, size }`, filename already parsed from `Content-Disposition`. |
+| The panel at the bottom                  | HTTP and WS rows in one timeline, tagged by source.                                                                            |
 
 ## The two ideas worth stealing
 
@@ -50,11 +50,11 @@ drift.
 
 ```ts
 const client = new QueryClient({
-  relations: { "user.updateUser": ["user.getUser"] },
-});
+  relations: { 'user.updateUser': ['user.getUser'] },
+})
 ```
 
-Nothing downstream mentions a key. `endpointId` (`"module.endpoint"`) *is* the
+Nothing downstream mentions a key. `endpointId` (`"module.endpoint"`) _is_ the
 key, and the engine derives the rest — so a mutation and the queries it
 invalidates can never drift apart the way hand-written keys do.
 
@@ -63,19 +63,19 @@ typesocket names it `eventId`; the engine reads either, so an acked event is
 just another cacheable source:
 
 ```ts
-const send = useMutation(socket.modules.chat.sendMessage);
+const send = useMutation(socket.modules.chat.sendMessage)
 ```
 
-Fire-and-forget emits and `server->client` listeners are deliberately *not*
+Fire-and-forget emits and `server->client` listeners are deliberately _not_
 queryable — they return `void` or are push, so they belong on the timeline
 rather than in a cache.
 
 ## Progress, and where it does not work
 
 ```tsx
-const upload = useMutation(stack.upload, { trackProgress: "upload" });
+const upload = useMutation(stack.upload, { trackProgress: 'upload' })
 
-<progress value={upload.progress?.upload?.percent ?? 0} max={100} />;
+;<progress value={upload.progress?.upload?.percent ?? 0} max={100} />
 ```
 
 `fetch` has **no upload-progress API**, so passing an upload-progress handler is
@@ -86,8 +86,11 @@ Which means **the headless run cannot demonstrate upload progress**: Node has no
 `XMLHttpRequest`. Rather than hide that, `headless/main.ts` asserts it —
 
 ```ts
-assert.equal(uploadTicks.length, 0,
-  "Node has no XMLHttpRequest, so upload progress cannot be reported");
+assert.equal(
+  uploadTicks.length,
+  0,
+  'Node has no XMLHttpRequest, so upload progress cannot be reported'
+)
 ```
 
 — and the client prints a one-time warning, so a silent zero is never mistaken

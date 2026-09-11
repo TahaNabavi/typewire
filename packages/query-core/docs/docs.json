@@ -7,42 +7,31 @@
       "title": "Overview",
       "readme": true,
       "intro": true,
-      "sections": [
-        "What's in it"
-      ]
+      "sections": ["What's in it"]
     },
     {
       "slug": "quick-start",
       "title": "Quick start",
       "readme": true,
-      "sections": [
-        "Setup"
-      ]
+      "sections": ["Setup"]
     },
     {
       "slug": "reading",
       "title": "Reading",
       "readme": true,
-      "sections": [
-        "Reading"
-      ]
+      "sections": ["Reading"]
     },
     {
       "slug": "writing",
       "title": "Writing",
       "readme": true,
-      "sections": [
-        "Writing"
-      ]
+      "sections": ["Writing"]
     },
     {
       "slug": "adapters",
       "title": "Adapters",
       "readme": true,
-      "sections": [
-        "Adapters",
-        "License"
-      ]
+      "sections": ["Adapters", "License"]
     }
   ]
 }

@@ -5,19 +5,15 @@
  * evaluated identically on client and server. See `docs/PERMISSION.md`.
  */
 
-export { definePermissions } from "./define";
-export type { Permissions } from "./define";
+export { definePermissions } from './define'
+export type { Permissions } from './define'
 
 // Standalone reactive store + resolver (also reachable via `P.createStore` etc).
-export { createStore, createResolver } from "./store";
-export type { PermissionStore, PermissionResolver } from "./store";
+export { createStore, createResolver } from './store'
+export type { PermissionStore, PermissionResolver } from './store'
 
 // Explain result shape.
-export type {
-  ExplainResult,
-  ExplainReason,
-  ExplainTraceEntry,
-} from "./explain";
+export type { ExplainResult, ExplainReason, ExplainTraceEntry } from './explain'
 
 // Public types.
 export type {
@@ -35,4 +31,4 @@ export type {
   LockEntry,
   LockViolation,
   CatalogEntry,
-} from "./types";
+} from './types'

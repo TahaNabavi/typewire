@@ -4,15 +4,15 @@ import {
   Injectable,
   NestInterceptor,
   createParamDecorator,
-} from "@nestjs/common";
-import { GrpcCode } from "@tahanabavi/typefetch-grpc";
-import { Observable, throwError } from "rxjs";
-import { timeout } from "rxjs/operators";
-import { GrpcException } from "./errors";
-import type { GrpcDeadlineInfo } from "./types";
+} from '@nestjs/common'
+import { GrpcCode } from '@tahanabavi/typefetch-grpc'
+import { Observable, throwError } from 'rxjs'
+import { timeout } from 'rxjs/operators'
+import { GrpcException } from './errors'
+import type { GrpcDeadlineInfo } from './types'
 
 /** Where the resolved deadline is parked for `@GrpcDeadline()` to read. */
-export const GRPC_DEADLINE_KEY = Symbol.for("typewire:grpcDeadline");
+export const GRPC_DEADLINE_KEY = Symbol.for('typewire:grpcDeadline')
 
 /**
  * `grpc-timeout` unit suffixes, in milliseconds.
@@ -27,7 +27,7 @@ const UNIT_MS: Record<string, number> = {
   m: 1,
   u: 1e-3,
   n: 1e-6,
-};
+}
 
 /**
  * Read the caller's deadline from either spelling.
@@ -37,33 +37,33 @@ const UNIT_MS: Record<string, number> = {
  * both, but anything else on the wire may send only one.
  */
 export function parseDeadline(
-  headers: Record<string, unknown> | undefined,
+  headers: Record<string, unknown> | undefined
 ): number | undefined {
-  if (!headers) return undefined;
+  if (!headers) return undefined
 
-  const connect = readHeader(headers, "connect-timeout-ms");
+  const connect = readHeader(headers, 'connect-timeout-ms')
   if (connect !== undefined) {
-    const ms = Number(connect);
-    return Number.isFinite(ms) && ms > 0 ? ms : undefined;
+    const ms = Number(connect)
+    return Number.isFinite(ms) && ms > 0 ? ms : undefined
   }
 
-  const grpc = readHeader(headers, "grpc-timeout");
-  if (grpc === undefined) return undefined;
+  const grpc = readHeader(headers, 'grpc-timeout')
+  if (grpc === undefined) return undefined
 
-  const match = /^(\d+)([HMSmun])$/.exec(grpc.trim());
-  if (!match) return undefined;
+  const match = /^(\d+)([HMSmun])$/.exec(grpc.trim())
+  if (!match) return undefined
 
-  const ms = Number(match[1]) * UNIT_MS[match[2]!]!;
-  return Number.isFinite(ms) && ms > 0 ? ms : undefined;
+  const ms = Number(match[1]) * UNIT_MS[match[2]!]!
+  return Number.isFinite(ms) && ms > 0 ? ms : undefined
 }
 
 function readHeader(
   headers: Record<string, unknown>,
-  name: string,
+  name: string
 ): string | undefined {
-  const value = headers[name] ?? headers[name.toLowerCase()];
-  if (value === undefined || value === null) return undefined;
-  return Array.isArray(value) ? String(value[0]) : String(value);
+  const value = headers[name] ?? headers[name.toLowerCase()]
+  if (value === undefined || value === null) return undefined
+  return Array.isArray(value) ? String(value[0]) : String(value)
 }
 
 /**
@@ -80,24 +80,24 @@ function readHeader(
 @Injectable()
 export class ConnectDeadlineInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
-    if (context.getType() !== "http") return next.handle();
+    if (context.getType() !== 'http') return next.handle()
 
-    const request = context.switchToHttp().getRequest();
-    const timeoutMs = parseDeadline(request?.headers);
-    if (timeoutMs === undefined) return next.handle();
+    const request = context.switchToHttp().getRequest()
+    const timeoutMs = parseDeadline(request?.headers)
+    if (timeoutMs === undefined) return next.handle()
 
-    const controller = new AbortController();
-    const expiresAt = Date.now() + timeoutMs;
+    const controller = new AbortController()
+    const expiresAt = Date.now() + timeoutMs
 
     const deadline: GrpcDeadlineInfo = {
       timeoutMs,
       expiresAt,
       signal: controller.signal,
       remaining: () => Math.max(0, expiresAt - Date.now()),
-    };
+    }
 
     try {
-      request[GRPC_DEADLINE_KEY] = deadline;
+      request[GRPC_DEADLINE_KEY] = deadline
     } catch {
       /* frozen request — the interceptor still enforces the deadline */
     }
@@ -106,17 +106,17 @@ export class ConnectDeadlineInterceptor implements NestInterceptor {
       timeout({
         each: timeoutMs,
         with: () => {
-          controller.abort();
+          controller.abort()
           return throwError(
             () =>
               new GrpcException(
                 GrpcCode.DeadlineExceeded,
-                `Deadline of ${timeoutMs}ms exceeded`,
-              ),
-          );
+                `Deadline of ${timeoutMs}ms exceeded`
+              )
+          )
         },
-      }),
-    );
+      })
+    )
   }
 }
 
@@ -134,5 +134,5 @@ export class ConnectDeadlineInterceptor implements NestInterceptor {
  */
 export const GrpcDeadline = createParamDecorator(
   (_data: unknown, ctx: ExecutionContext): GrpcDeadlineInfo | undefined =>
-    ctx.switchToHttp().getRequest()?.[GRPC_DEADLINE_KEY],
-);
+    ctx.switchToHttp().getRequest()?.[GRPC_DEADLINE_KEY]
+)

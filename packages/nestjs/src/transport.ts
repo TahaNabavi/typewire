@@ -1,4 +1,4 @@
-import type { AnyEndpointDefZ, EndpointDefZ } from "@tahanabavi/typefetch";
+import type { AnyEndpointDefZ, EndpointDefZ } from '@tahanabavi/typefetch'
 
 /**
  * Which wire an endpoint was declared for
@@ -19,14 +19,14 @@ import type { AnyEndpointDefZ, EndpointDefZ } from "@tahanabavi/typefetch";
  * transports were pluggable meaning exactly what it did.
  */
 export function transportOf(endpoint: AnyEndpointDefZ): string {
-  return (endpoint as { transport?: string }).transport ?? "http";
+  return (endpoint as { transport?: string }).transport ?? 'http'
 }
 
 /** Narrows to the HTTP variant, the only one carrying `method` and `path`. */
 export function isHttpEndpoint(
-  endpoint: AnyEndpointDefZ,
+  endpoint: AnyEndpointDefZ
 ): endpoint is EndpointDefZ {
-  return transportOf(endpoint) === "http";
+  return transportOf(endpoint) === 'http'
 }
 
 /**
@@ -43,7 +43,7 @@ const SERVED_BY: Record<string, string> = {
   http: '`@TypeFetchEndpoint()` from "@tahanabavi/typewire-nestjs"',
   grpc: '`@GrpcEndpoint()` from "@tahanabavi/typewire-nestjs/grpc"',
   graphql: '`@GraphQLEndpoint()` from "@tahanabavi/typewire-nestjs/graphql"',
-};
+}
 
 /**
  * Reject an endpoint bound by the wrong decorator, **at class-definition time**
@@ -56,13 +56,13 @@ const SERVED_BY: Record<string, string> = {
 export function assertTransport(
   endpoint: AnyEndpointDefZ,
   expected: string,
-  decorator: string,
+  decorator: string
 ): void {
-  const actual = transportOf(endpoint);
-  if (actual === expected) return;
+  const actual = transportOf(endpoint)
+  if (actual === expected) return
 
-  const target = SERVED_BY[actual];
-  const route = describeContractRoute(endpoint);
+  const target = SERVED_BY[actual]
+  const route = describeContractRoute(endpoint)
 
   throw new Error(
     `[typewire-nestjs] ${decorator} serves "${expected}" endpoints, but ` +
@@ -70,8 +70,8 @@ export function assertTransport(
       (target
         ? `Bind it with ${target} instead.`
         : `No decorator in this package serves "${actual}" — bind it yourself ` +
-          `and use @UseContract() for validation.`),
-  );
+          `and use @UseContract() for validation.`)
+  )
 }
 
 /**
@@ -83,20 +83,20 @@ export function assertTransport(
  * to a generic phrase rather than throwing on one it has never heard of.
  */
 export function describeContractRoute(endpoint: AnyEndpointDefZ): string {
-  const any = endpoint as Record<string, unknown>;
+  const any = endpoint as Record<string, unknown>
 
-  if (typeof any.method === "string" && typeof any.path === "string") {
-    return `${any.method} ${any.path}`;
+  if (typeof any.method === 'string' && typeof any.path === 'string') {
+    return `${any.method} ${any.path}`
   }
-  if (typeof any.service === "string" && typeof any.rpc === "string") {
-    return `${any.service}/${any.rpc}`;
+  if (typeof any.service === 'string' && typeof any.rpc === 'string') {
+    return `${any.service}/${any.rpc}`
   }
-  if (typeof any.operation === "string") {
-    const name = any.operationName ?? any.root;
-    return typeof name === "string"
+  if (typeof any.operation === 'string') {
+    const name = any.operationName ?? any.root
+    return typeof name === 'string'
       ? `${any.operation} ${name}`
-      : String(any.operation);
+      : String(any.operation)
   }
 
-  return "the endpoint";
+  return 'the endpoint'
 }

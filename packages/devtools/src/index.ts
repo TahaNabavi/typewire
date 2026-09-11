@@ -11,35 +11,35 @@
  * exception of an injected `@keyframes` block for the row animations.
  */
 
-export { TypeDevtools } from "./panel";
-export type { TypeDevtoolsProps } from "./panel";
+export { TypeDevtools } from './panel'
+export type { TypeDevtoolsProps } from './panel'
 
 export {
   useInspectorEntries,
   useInspectorEvents,
   useInspectorProgress,
   useQueryInspector,
-} from "./use-inspector";
+} from './use-inspector'
 
 // A custom panel needs these to tag its own rows the way the bundled one does.
-export { statusColor, transportColor, transportOf } from "./timeline";
+export { statusColor, transportColor, transportOf } from './timeline'
 
-export { JsonTree } from "./json-tree";
-export type { JsonTreeProps } from "./json-tree";
+export { JsonTree } from './json-tree'
+export type { JsonTreeProps } from './json-tree'
 
-export { createSoundPlayer } from "./sound";
-export type { SoundPlayer, SoundPlayerOptions } from "./sound";
+export { createSoundPlayer } from './sound'
+export type { SoundPlayer, SoundPlayerOptions } from './sound'
 
 export {
   DEFAULT_SETTINGS,
   loadSettings,
   saveSettings,
   useSettings,
-} from "./settings";
-export type { DevtoolsSettings, Density } from "./settings";
+} from './settings'
+export type { DevtoolsSettings, Density } from './settings'
 
-export { PALETTES, resolveThemeName } from "./theme";
-export type { Palette, ThemeName, ThemePreference } from "./theme";
+export { PALETTES, resolveThemeName } from './theme'
+export type { Palette, ThemeName, ThemePreference } from './theme'
 
 // Re-exported so an app needs one dependency to set devtools up.
 export {
@@ -49,7 +49,7 @@ export {
   connectTypeFetch,
   connectTypeSocket,
   selectEntries,
-} from "@tahanabavi/type-devtools-core";
+} from '@tahanabavi/type-devtools-core'
 
 export type {
   InspectorEntry,
@@ -62,4 +62,4 @@ export type {
   QueryInspectorSnapshot,
   QuerySnapshot,
   QueryStateLike,
-} from "@tahanabavi/type-devtools-core";
+} from '@tahanabavi/type-devtools-core'

@@ -1,11 +1,11 @@
-import type { Metadata } from "next";
+import type { Metadata } from 'next'
 
-import { JsonLd } from "@/components/shared/json-ld";
-import { site } from "@/config/site";
-import { HomePage } from "@/features/home";
-import { faq } from "@/features/support/constants";
-import { faqSchema, graph, pageMetadata } from "@/lib/seo";
-import { PATHS } from "@/routes/paths";
+import { JsonLd } from '@/components/shared/json-ld'
+import { site } from '@/config/site'
+import { HomePage } from '@/features/home'
+import { faq } from '@/features/support/constants'
+import { faqSchema, graph, pageMetadata } from '@/lib/seo'
+import { PATHS } from '@/routes/paths'
 
 /**
  * The home page keeps the layout's title rather than adding one — "TypeWire ·
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     keywords: site.keywords,
   }),
   title: { absolute: `${site.name} — ${site.tagline}` },
-};
+}
 
 export default function Page() {
   return (
@@ -30,5 +30,5 @@ export default function Page() {
       <JsonLd data={graph(faqSchema(faq))} />
       <HomePage />
     </>
-  );
+  )
 }

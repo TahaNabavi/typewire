@@ -35,12 +35,12 @@ and flags are unchanged.
 
 ## Commands
 
-| Command | Purpose |
-| --- | --- |
-| `typewire init` | Read the project, ask what it needs, wire it up |
-| `typewire test` | Run the contract tests declared on your endpoints (default) |
-| `typewire list` | Print every route in the contract, with its transport |
-| `typewire release-doc <version>` | Scaffold a release note in `docs/releases` |
+| Command                          | Purpose                                                     |
+| -------------------------------- | ----------------------------------------------------------- |
+| `typewire init`                  | Read the project, ask what it needs, wire it up             |
+| `typewire test`                  | Run the contract tests declared on your endpoints (default) |
+| `typewire list`                  | Print every route in the contract, with its transport       |
+| `typewire release-doc <version>` | Scaffold a release note in `docs/releases`                  |
 
 ### `init`
 
@@ -79,14 +79,14 @@ contracts, query cache, provider, devtools bridge, permissions — prints the
 install command for **your** package manager, and lists what to do next. Files
 that already exist are skipped unless `--force`.
 
-| Flag | Meaning |
-| --- | --- |
-| `--yes` | Take every detected default, ask nothing |
-| `--features <a,b>` | Skip the question — reproducible in CI |
-| `--contracts-path <path>` | Use contracts you already have |
-| `--output <dir>` | Scaffold somewhere other than the project root |
-| `--dry-run` | Print the plan, write nothing |
-| `--force` | Replace existing files instead of skipping them |
+| Flag                      | Meaning                                         |
+| ------------------------- | ----------------------------------------------- |
+| `--yes`                   | Take every detected default, ask nothing        |
+| `--features <a,b>`        | Skip the question — reproducible in CI          |
+| `--contracts-path <path>` | Use contracts you already have                  |
+| `--output <dir>`          | Scaffold somewhere other than the project root  |
+| `--dry-run`               | Print the plan, write nothing                   |
+| `--force`                 | Replace existing files instead of skipping them |
 
 The framework changes what is generated, not just where: a Next.js scaffold
 marks the provider and devtools `"use client"`, and reads
@@ -102,18 +102,18 @@ what it chose** rather than blocking on a prompt nobody can answer.
 npx typewire test --base-url https://staging.example.com --mode smoke
 ```
 
-| Flag | Meaning |
-| --- | --- |
-| `-c, --config <path>` | Config file (default: discovered in cwd) |
-| `-m, --mode <mode>` | Test mode |
-| `--base-url <url>` | Override the client's base URL |
-| `--token <token>` | Auth token |
-| `--timeout <ms>` | Per-case timeout |
-| `--include-tags` / `--exclude-tags` | Filter by tag |
-| `--include-destructive` | Include cases marked `destructive` |
-| `--stop-on-fail` | Halt at the first failure |
-| `-o, --output <path>` | Report output path |
-| `-f, --format <fmt>` | `md`, `html`, or `json` |
+| Flag                                | Meaning                                  |
+| ----------------------------------- | ---------------------------------------- |
+| `-c, --config <path>`               | Config file (default: discovered in cwd) |
+| `-m, --mode <mode>`                 | Test mode                                |
+| `--base-url <url>`                  | Override the client's base URL           |
+| `--token <token>`                   | Auth token                               |
+| `--timeout <ms>`                    | Per-case timeout                         |
+| `--include-tags` / `--exclude-tags` | Filter by tag                            |
+| `--include-destructive`             | Include cases marked `destructive`       |
+| `--stop-on-fail`                    | Halt at the first failure                |
+| `-o, --output <path>`               | Report output path                       |
+| `-f, --format <fmt>`                | `md`, `html`, or `json`                  |
 
 `list` prints every route through the transport's own `describe()`, so a gRPC
 route shows `gRPC unary user.v1.UserService/GetUser` rather than an empty
@@ -124,20 +124,20 @@ method/path — the CLI never reads transport-specific fields directly.
 `typewire.config.ts` in your project root:
 
 ```ts
-import { defineConfig } from "@tahanabavi/typewire-cli";
-import { ApiClient } from "@tahanabavi/typefetch";
-import { contracts } from "./src/contracts";
+import { defineConfig } from '@tahanabavi/typewire-cli'
+import { ApiClient } from '@tahanabavi/typefetch'
+import { contracts } from './src/contracts'
 
 export default defineConfig({
   typefetch: {
     contracts,
     createClient: ({ baseUrl, token }) => {
-      const client = new ApiClient({ baseUrl: baseUrl!, token }, contracts);
-      client.init();
-      return client;
+      const client = new ApiClient({ baseUrl: baseUrl!, token }, contracts)
+      client.init()
+      return client
     },
   },
-});
+})
 ```
 
 One section per package, so nothing has to be renamed when a package is added
@@ -177,22 +177,25 @@ A repo with a dashboard API, an admin API and a landing API declares them as
 ```ts
 export default defineConfig({
   // Shared defaults; a project may override any of them.
-  lint: { rules: { "path-params-declared": "error" } },
+  lint: { rules: { 'path-params-declared': 'error' } },
 
   projects: {
     dashboard: {
-      typefetch: { contracts: dashboardContracts, createClient: createDashboardClient },
+      typefetch: {
+        contracts: dashboardContracts,
+        createClient: createDashboardClient,
+      },
     },
     admin: {
       typefetch: { contracts: adminContracts, createClient: createAdminClient },
-      lint: { rules: { "duplicate-id": "off" } },   // merged over the shared rules
-      diff: { baseline: "admin.lock.json" },        // its own API-surface snapshot
+      lint: { rules: { 'duplicate-id': 'off' } }, // merged over the shared rules
+      diff: { baseline: 'admin.lock.json' }, // its own API-surface snapshot
     },
     landing: {
-      typefetch: { contracts: landingContracts },   // no client — list/lint only
+      typefetch: { contracts: landingContracts }, // no client — list/lint only
     },
   },
-});
+})
 ```
 
 One file rather than three, because the alternative is three configs, three
@@ -231,9 +234,9 @@ imports `@/schemas` resolves the way it does everywhere else in your project.
 
 ```ts
 export default defineConfig({
-  extends: "../../typewire.base.ts",   // or a package name
+  extends: '../../typewire.base.ts', // or a package name
   typefetch: { contracts },
-});
+})
 ```
 
 Merged key by key, with the extending file winning. Arrays are replaced rather
@@ -245,34 +248,34 @@ narrowed to `["json"]`.
 ```ts
 export default defineConfig(({ mode, command, ci }) => ({
   typefetch: { contracts },
-  diff: { baseline: ci ? "typewire.lock.json" : ".typewire/local.lock.json" },
-}));
+  diff: { baseline: ci ? 'typewire.lock.json' : '.typewire/local.lock.json' },
+}))
 ```
 
 So `--mode` can change the baseline or the report format without a second file.
 
 ## Exit codes
 
-| Code | Meaning |
-| --- | --- |
-| `0` | Success |
-| `1` | Findings — tests failed, contracts have problems |
-| `2` | Misconfiguration — the config is missing, invalid, or unreadable |
+| Code | Meaning                                                          |
+| ---- | ---------------------------------------------------------------- |
+| `0`  | Success                                                          |
+| `1`  | Findings — tests failed, contracts have problems                 |
+| `2`  | Misconfiguration — the config is missing, invalid, or unreadable |
 
 A CI job that gates on findings needs to tell "your contracts have problems"
 apart from "your pipeline is broken".
 
 ## Exports
 
-| Export | Purpose |
-| --- | --- |
-| `defineConfig(config)` | Type-safe config helper; accepts an object or a function |
-| `defineTypeFetchTestConfig(config)` | Deprecated alias for the pre-2.0 flat shape |
-| `loadTypeWireConfig(options)` | Find, merge and validate the config yourself |
-| `requireTypeFetch(config, command)` | The `typefetch` section, or an error naming the command |
-| `TypeWireConfigError` | Carries `exitCode: 2` |
-| `runCli(argv)` | Run the CLI programmatically |
-| `writeReportFiles(report, path)` | Write a report as `.md`, `.html` or `.json` |
+| Export                              | Purpose                                                  |
+| ----------------------------------- | -------------------------------------------------------- |
+| `defineConfig(config)`              | Type-safe config helper; accepts an object or a function |
+| `defineTypeFetchTestConfig(config)` | Deprecated alias for the pre-2.0 flat shape              |
+| `loadTypeWireConfig(options)`       | Find, merge and validate the config yourself             |
+| `requireTypeFetch(config, command)` | The `typefetch` section, or an error naming the command  |
+| `TypeWireConfigError`               | Carries `exitCode: 2`                                    |
+| `runCli(argv)`                      | Run the CLI programmatically                             |
+| `writeReportFiles(report, path)`    | Write a report as `.md`, `.html` or `.json`              |
 
 ## License
 

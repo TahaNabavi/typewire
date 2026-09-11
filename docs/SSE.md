@@ -14,7 +14,7 @@ family as another adapter rather than as a new concept.
 
 SSE over `fetch`, not the browser's `EventSource` object. `EventSource` cannot
 send an `Authorization` header, cannot POST, and cannot carry a body — which
-rules out every authenticated endpoint and every "stream the answer to *this*
+rules out every authenticated endpoint and every "stream the answer to _this_
 prompt" call, i.e. the two things people actually want. Reading the response body
 as a stream costs nothing extra and works identically in Node, Bun and Deno, all
 three of which the CI matrix already covers.
@@ -48,23 +48,23 @@ So the seam grows by the smallest amount that admits a stream:
 ```ts
 // transport/adapter.ts
 export type TransportCapabilities = {
-  uploadProgress?: boolean;
-  downloadProgress?: boolean;
-  responseTypes?: readonly ResponseType[];
+  uploadProgress?: boolean
+  downloadProgress?: boolean
+  responseTypes?: readonly ResponseType[]
   /** This wire can return a stream instead of a value. */
-  streaming?: boolean;
-};
+  streaming?: boolean
+}
 
 export type TransportDecoded = {
-  value: unknown;
-  enveloped: boolean;
+  value: unknown
+  enveloped: boolean
   /**
    * The value is a stream the adapter already validates frame by frame.
    * The client skips `endpoint.response.parse` and the response transform,
    * for the same reason a `Blob` skips them: unwrapping it would corrupt it.
    */
-  stream?: true;
-};
+  stream?: true
+}
 ```
 
 That is the entire core change: one optional capability, one optional flag, and
@@ -74,24 +74,28 @@ not run the JSON envelope pipeline over this", so the precedent is set — the
 
 Everything else the adapter does itself, through `send()` — the seam's documented
 escape hatch for "a wire that cannot be expressed as a single `fetch` call".
-Reconnect *is* a second fetch, so this is exactly the case it was written for.
+Reconnect _is_ a second fetch, so this is exactly the case it was written for.
 
 ## 4. The contract
 
 ```ts
-declare module "@tahanabavi/typefetch" {
+declare module '@tahanabavi/typefetch' {
   interface TransportRegistry {
     sse: {
-      path: string;
-      method?: "GET" | "POST";
+      path: string
+      method?: 'GET' | 'POST'
       /** A schema per `event:` name. The union of these is what a frame is. */
-      events: Record<string, StandardSchemaLike>;
+      events: Record<string, StandardSchemaLike>
       /** Resume with `Last-Event-ID` after a drop. Default true. */
-      resume?: boolean;
+      resume?: boolean
       /** Give up after this long with no frame *and* no comment. Default 60s. */
-      idleTimeoutMs?: number;
-      retry?: { maxAttempts?: number; backoffMs?: number; maxBackoffMs?: number };
-    };
+      idleTimeoutMs?: number
+      retry?: {
+        maxAttempts?: number
+        backoffMs?: number
+        maxBackoffMs?: number
+      }
+    }
   }
 }
 ```
@@ -100,20 +104,23 @@ declare module "@tahanabavi/typefetch" {
 export const contracts = {
   chat: {
     stream: {
-      transport: "sse",
-      method: "POST",
-      path: "/chat/:id/stream",
-      request: z.object({ path: z.object({ id: z.string() }), body: z.object({ prompt: z.string() }) }),
+      transport: 'sse',
+      method: 'POST',
+      path: '/chat/:id/stream',
+      request: z.object({
+        path: z.object({ id: z.string() }),
+        body: z.object({ prompt: z.string() }),
+      }),
       events: {
         token: z.object({ text: z.string() }),
         usage: z.object({ input: z.number(), output: z.number() }),
-        done:  z.object({ reason: z.enum(["stop", "length"]) }),
+        done: z.object({ reason: z.enum(['stop', 'length']) }),
       },
-      response: z.void(),   // there is no terminal body; the frames are the answer
+      response: z.void(), // there is no terminal body; the frames are the answer
       auth: true,
     },
   },
-} as const;
+} as const
 ```
 
 `validate()` on the adapter rejects at client construction — not on first call —
@@ -132,23 +139,28 @@ from the `events` map — no conditional type is added to the core, which must
 never read a transport-specific field:
 
 ```ts
-import { sseStream } from "@tahanabavi/typefetch-sse";
+import { sseStream } from '@tahanabavi/typefetch-sse'
 
 const stream = await sseStream(api.modules.chat.stream, {
   path: { id },
   body: { prompt },
-});
+})
 
 for await (const frame of stream) {
   switch (frame.event) {
-    case "token": append(frame.data.text); break;   // data: { text: string }
-    case "usage": meter(frame.data); break;
-    case "done":  return frame.data.reason;
+    case 'token':
+      append(frame.data.text)
+      break // data: { text: string }
+    case 'usage':
+      meter(frame.data)
+      break
+    case 'done':
+      return frame.data.reason
   }
 }
 
-stream.close();          // aborts the request
-stream.lastEventId;      // where a resume would pick up
+stream.close() // aborts the request
+stream.lastEventId // where a resume would pick up
 ```
 
 `for await` is the backpressure: the adapter pulls from the response reader only
@@ -218,52 +230,52 @@ Peers: `@tahanabavi/typefetch` and `zod` (or any Standard Schema validator once
 Registration is explicit, exactly like the other adapters:
 
 ```ts
-const api = new ApiClient({ baseUrl, transports: [sseTransport()] }, contracts);
+const api = new ApiClient({ baseUrl, transports: [sseTransport()] }, contracts)
 ```
 
 ## 9. Failure modes, named
 
-| Mode | Behaviour |
-| --- | --- |
-| Connection drops mid-stream | reconnect with `Last-Event-ID`, backoff, `resumed: true` |
-| Server ignores `Last-Event-ID` | frames repeat; `stream.resumed` says why. Documented, not hidden |
-| Server never sends anything | `idleTimeoutMs` fires → `deadline_exceeded` |
-| One frame fails its schema | that frame carries `kind: "validation"`; the stream continues |
-| Unknown event name | delivered as `{ event, data: unknown, unknown: true }`, never silently dropped |
-| `close()` mid-stream | request aborted, iterator returns, no reconnect |
-| Non-2xx on open | the normal `fail()` path — one `RichError`, one `ErrorKind`, like any other request |
-| Wrong content type | fails at open with `internal` and the received type in the message |
+| Mode                           | Behaviour                                                                           |
+| ------------------------------ | ----------------------------------------------------------------------------------- |
+| Connection drops mid-stream    | reconnect with `Last-Event-ID`, backoff, `resumed: true`                            |
+| Server ignores `Last-Event-ID` | frames repeat; `stream.resumed` says why. Documented, not hidden                    |
+| Server never sends anything    | `idleTimeoutMs` fires → `deadline_exceeded`                                         |
+| One frame fails its schema     | that frame carries `kind: "validation"`; the stream continues                       |
+| Unknown event name             | delivered as `{ event, data: unknown, unknown: true }`, never silently dropped      |
+| `close()` mid-stream           | request aborted, iterator returns, no reconnect                                     |
+| Non-2xx on open                | the normal `fail()` path — one `RichError`, one `ErrorKind`, like any other request |
+| Wrong content type             | fails at open with `internal` and the received type in the message                  |
 
 ## 10. Test matrix
 
 Against a hand-written `node:http` server, in the style of `examples/transports`
 — headless, self-asserting, and therefore covered by `pnpm test`:
 
-| Test | Asserts |
-| --- | --- |
-| `frames split across chunk boundaries parse as one event` | §8 `frames.ts` |
-| `a comment line resets the idle timer` | §6 |
-| `an event with no name arrives as "message"` | SSE default |
-| `data over multiple lines is joined with newlines` | SSE spec |
-| `a dropped connection resumes with the last event id` | §6 |
-| `a resumed stream reports resumed: true exactly once per reconnect` | §6 |
-| `giving up after maxAttempts rejects with unavailable` | §6 |
-| `a malformed frame does not end the stream` | §5 |
-| `an unknown event name is delivered, not dropped` | §9 |
-| `close() aborts the request and does not reconnect` | §9 |
-| `a slow consumer does not buffer the whole stream` | §5 backpressure |
-| `endpoint timeout does not abort an open stream` | §3.2 |
-| `the client does not run response.parse over a stream` | §3.1 |
+| Test                                                                | Asserts         |
+| ------------------------------------------------------------------- | --------------- |
+| `frames split across chunk boundaries parse as one event`           | §8 `frames.ts`  |
+| `a comment line resets the idle timer`                              | §6              |
+| `an event with no name arrives as "message"`                        | SSE default     |
+| `data over multiple lines is joined with newlines`                  | SSE spec        |
+| `a dropped connection resumes with the last event id`               | §6              |
+| `a resumed stream reports resumed: true exactly once per reconnect` | §6              |
+| `giving up after maxAttempts rejects with unavailable`              | §6              |
+| `a malformed frame does not end the stream`                         | §5              |
+| `an unknown event name is delivered, not dropped`                   | §9              |
+| `close() aborts the request and does not reconnect`                 | §9              |
+| `a slow consumer does not buffer the whole stream`                  | §5 backpressure |
+| `endpoint timeout does not abort an open stream`                    | §3.2            |
+| `the client does not run response.parse over a stream`              | §3.1            |
 
 ## 11. Milestones
 
-| # | Milestone | Contains |
-| --- | --- | --- |
-| E1 | Core seam | `streaming` capability + `stream` flag + the timeout exemption. Additive, no behaviour change |
-| E2 | Parser + adapter | framing, `build`/`decode`/`fail`/`describe`, one-shot streams |
-| E3 | Resume | `send()`, backoff, `Last-Event-ID`, idle timeout |
-| E4 | `sseStream()` typing | the per-event discriminated union from `events` |
-| E5 | Downstream | devtools frame rows (reusing the existing progress ticks), query-core's answer to §12.2, nestjs `@SseEndpoint()` |
+| #   | Milestone            | Contains                                                                                                         |
+| --- | -------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| E1  | Core seam            | `streaming` capability + `stream` flag + the timeout exemption. Additive, no behaviour change                    |
+| E2  | Parser + adapter     | framing, `build`/`decode`/`fail`/`describe`, one-shot streams                                                    |
+| E3  | Resume               | `send()`, backoff, `Last-Event-ID`, idle timeout                                                                 |
+| E4  | `sseStream()` typing | the per-event discriminated union from `events`                                                                  |
+| E5  | Downstream           | devtools frame rows (reusing the existing progress ticks), query-core's answer to §12.2, nestjs `@SseEndpoint()` |
 
 ## 12. Open questions
 
@@ -272,7 +284,7 @@ Against a hand-written `node:http` server, in the style of `examples/transports`
    transport declares `streaming` — cleaner to write, but it loosens a type every
    other transport relies on.
 2. **What does query-core do with a stream?** Caching a stream is meaningless;
-   caching its *accumulated* value is exactly what a chat UI wants. Options: out
+   caching its _accumulated_ value is exactly what a chat UI wants. Options: out
    of scope (the app accumulates), or a `reduce` on the endpoint that folds
    frames into the cached value. Current lean: out of scope for E1–E4, revisit
    with a real example.

@@ -1,4 +1,4 @@
-import type { ErrorKind } from "@tahanabavi/typefetch";
+import type { ErrorKind } from '@tahanabavi/typefetch'
 
 /**
  * gRPC status codes
@@ -37,58 +37,58 @@ export enum GrpcCode {
  * what is written.
  */
 const NAME_BY_CODE: Record<number, string> = {
-  [GrpcCode.Ok]: "ok",
-  [GrpcCode.Cancelled]: "canceled",
-  [GrpcCode.Unknown]: "unknown",
-  [GrpcCode.InvalidArgument]: "invalid_argument",
-  [GrpcCode.DeadlineExceeded]: "deadline_exceeded",
-  [GrpcCode.NotFound]: "not_found",
-  [GrpcCode.AlreadyExists]: "already_exists",
-  [GrpcCode.PermissionDenied]: "permission_denied",
-  [GrpcCode.ResourceExhausted]: "resource_exhausted",
-  [GrpcCode.FailedPrecondition]: "failed_precondition",
-  [GrpcCode.Aborted]: "aborted",
-  [GrpcCode.OutOfRange]: "out_of_range",
-  [GrpcCode.Unimplemented]: "unimplemented",
-  [GrpcCode.Internal]: "internal",
-  [GrpcCode.Unavailable]: "unavailable",
-  [GrpcCode.DataLoss]: "data_loss",
-  [GrpcCode.Unauthenticated]: "unauthenticated",
-};
+  [GrpcCode.Ok]: 'ok',
+  [GrpcCode.Cancelled]: 'canceled',
+  [GrpcCode.Unknown]: 'unknown',
+  [GrpcCode.InvalidArgument]: 'invalid_argument',
+  [GrpcCode.DeadlineExceeded]: 'deadline_exceeded',
+  [GrpcCode.NotFound]: 'not_found',
+  [GrpcCode.AlreadyExists]: 'already_exists',
+  [GrpcCode.PermissionDenied]: 'permission_denied',
+  [GrpcCode.ResourceExhausted]: 'resource_exhausted',
+  [GrpcCode.FailedPrecondition]: 'failed_precondition',
+  [GrpcCode.Aborted]: 'aborted',
+  [GrpcCode.OutOfRange]: 'out_of_range',
+  [GrpcCode.Unimplemented]: 'unimplemented',
+  [GrpcCode.Internal]: 'internal',
+  [GrpcCode.Unavailable]: 'unavailable',
+  [GrpcCode.DataLoss]: 'data_loss',
+  [GrpcCode.Unauthenticated]: 'unauthenticated',
+}
 
 const CODE_BY_NAME: Record<string, GrpcCode> = (() => {
-  const table: Record<string, GrpcCode> = {};
+  const table: Record<string, GrpcCode> = {}
   for (const [code, name] of Object.entries(NAME_BY_CODE)) {
-    table[name] = Number(code) as GrpcCode;
+    table[name] = Number(code) as GrpcCode
   }
   // gRPC's own spelling, so a server that writes either is understood.
-  table["cancelled"] = GrpcCode.Cancelled;
-  return table;
-})();
+  table['cancelled'] = GrpcCode.Cancelled
+  return table
+})()
 
 export function codeName(code: GrpcCode | number): string {
-  return NAME_BY_CODE[code] ?? "unknown";
+  return NAME_BY_CODE[code] ?? 'unknown'
 }
 
 /** Parse a Connect error's `code`, which may be the name or the number. */
 export function parseCode(value: unknown): GrpcCode {
-  if (typeof value === "number" && NAME_BY_CODE[value] !== undefined) {
-    return value as GrpcCode;
+  if (typeof value === 'number' && NAME_BY_CODE[value] !== undefined) {
+    return value as GrpcCode
   }
 
-  if (typeof value === "string") {
-    const trimmed = value.trim().toLowerCase();
-    const named = CODE_BY_NAME[trimmed];
-    if (named !== undefined) return named;
+  if (typeof value === 'string') {
+    const trimmed = value.trim().toLowerCase()
+    const named = CODE_BY_NAME[trimmed]
+    if (named !== undefined) return named
 
     // A trailer carries the code as a decimal string.
-    const numeric = Number(trimmed);
+    const numeric = Number(trimmed)
     if (Number.isInteger(numeric) && NAME_BY_CODE[numeric] !== undefined) {
-      return numeric as GrpcCode;
+      return numeric as GrpcCode
     }
   }
 
-  return GrpcCode.Unknown;
+  return GrpcCode.Unknown
 }
 
 /**
@@ -99,26 +99,26 @@ export function parseCode(value: unknown): GrpcCode {
  * rather than the reverse.
  */
 const KIND_BY_CODE: Record<number, ErrorKind> = {
-  [GrpcCode.Cancelled]: "cancelled",
-  [GrpcCode.Unknown]: "unknown",
-  [GrpcCode.InvalidArgument]: "invalid_argument",
-  [GrpcCode.DeadlineExceeded]: "deadline_exceeded",
-  [GrpcCode.NotFound]: "not_found",
-  [GrpcCode.AlreadyExists]: "already_exists",
-  [GrpcCode.PermissionDenied]: "permission_denied",
-  [GrpcCode.ResourceExhausted]: "resource_exhausted",
-  [GrpcCode.FailedPrecondition]: "failed_precondition",
-  [GrpcCode.Aborted]: "aborted",
-  [GrpcCode.OutOfRange]: "out_of_range",
-  [GrpcCode.Unimplemented]: "unimplemented",
-  [GrpcCode.Internal]: "internal",
-  [GrpcCode.Unavailable]: "unavailable",
-  [GrpcCode.DataLoss]: "data_loss",
-  [GrpcCode.Unauthenticated]: "unauthenticated",
-};
+  [GrpcCode.Cancelled]: 'cancelled',
+  [GrpcCode.Unknown]: 'unknown',
+  [GrpcCode.InvalidArgument]: 'invalid_argument',
+  [GrpcCode.DeadlineExceeded]: 'deadline_exceeded',
+  [GrpcCode.NotFound]: 'not_found',
+  [GrpcCode.AlreadyExists]: 'already_exists',
+  [GrpcCode.PermissionDenied]: 'permission_denied',
+  [GrpcCode.ResourceExhausted]: 'resource_exhausted',
+  [GrpcCode.FailedPrecondition]: 'failed_precondition',
+  [GrpcCode.Aborted]: 'aborted',
+  [GrpcCode.OutOfRange]: 'out_of_range',
+  [GrpcCode.Unimplemented]: 'unimplemented',
+  [GrpcCode.Internal]: 'internal',
+  [GrpcCode.Unavailable]: 'unavailable',
+  [GrpcCode.DataLoss]: 'data_loss',
+  [GrpcCode.Unauthenticated]: 'unauthenticated',
+}
 
 export function kindFromGrpcCode(code: GrpcCode | number): ErrorKind {
-  return KIND_BY_CODE[code] ?? "unknown";
+  return KIND_BY_CODE[code] ?? 'unknown'
 }
 
 /**
@@ -145,10 +145,10 @@ const STATUS_BY_CODE: Record<number, number> = {
   [GrpcCode.Unavailable]: 503,
   [GrpcCode.DataLoss]: 500,
   [GrpcCode.Unauthenticated]: 401,
-};
+}
 
 export function statusFromGrpcCode(code: GrpcCode | number): number {
-  return STATUS_BY_CODE[code] ?? 500;
+  return STATUS_BY_CODE[code] ?? 500
 }
 
 /**
@@ -160,29 +160,29 @@ export function statusFromGrpcCode(code: GrpcCode | number): number {
 export function codeFromHttpStatus(status: number): GrpcCode {
   switch (status) {
     case 400:
-      return GrpcCode.InvalidArgument;
+      return GrpcCode.InvalidArgument
     case 401:
-      return GrpcCode.Unauthenticated;
+      return GrpcCode.Unauthenticated
     case 403:
-      return GrpcCode.PermissionDenied;
+      return GrpcCode.PermissionDenied
     case 404:
-      return GrpcCode.Unimplemented;
+      return GrpcCode.Unimplemented
     case 408:
-      return GrpcCode.DeadlineExceeded;
+      return GrpcCode.DeadlineExceeded
     case 409:
-      return GrpcCode.Aborted;
+      return GrpcCode.Aborted
     case 429:
-      return GrpcCode.ResourceExhausted;
+      return GrpcCode.ResourceExhausted
     case 499:
-      return GrpcCode.Cancelled;
+      return GrpcCode.Cancelled
     case 501:
-      return GrpcCode.Unimplemented;
+      return GrpcCode.Unimplemented
     case 502:
     case 503:
-      return GrpcCode.Unavailable;
+      return GrpcCode.Unavailable
     case 504:
-      return GrpcCode.DeadlineExceeded;
+      return GrpcCode.DeadlineExceeded
     default:
-      return status >= 500 ? GrpcCode.Internal : GrpcCode.Unknown;
+      return status >= 500 ? GrpcCode.Internal : GrpcCode.Unknown
   }
 }

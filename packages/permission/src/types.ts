@@ -17,21 +17,21 @@
  */
 export type FlagDef = {
   /** The permanent, explicit bit index. A non-negative integer, unique per tree. */
-  bit: number;
+  bit: number
 
   /**
    * Holding this flag short-circuits to the full mask — the `ADMINISTRATOR`
    * escape hatch. Applied before `implies`/`requires`, and it only ever *adds*
    * bits, so an actor's unknown (newer-version) bits are preserved.
    */
-  grantsAll?: boolean;
+  grantsAll?: boolean
 
   /**
    * Holding this flag also grants these (upward closure). The transitive closure
    * is precomputed at `definePermissions()` time to a single mask, so runtime
    * cost is one `|`, not a graph walk.
    */
-  implies?: string[];
+  implies?: string[]
 
   /**
    * This flag is void unless *all* of these are also held (gating). Applied
@@ -39,23 +39,23 @@ export type FlagDef = {
    * "denied the channel ⇒ can do nothing in it" fall out of the model instead of
    * being re-checked at every call site. Gating cascades to a fixpoint.
    */
-  requires?: string[];
+  requires?: string[]
 
   /**
    * Retired flag. Its bit is burned forever and must never be reused. Still
    * evaluates (the stored data exists) and is reported by the lock check.
    */
-  deprecated?: boolean;
+  deprecated?: boolean
 
   /** Human-readable name for admin UIs. May be an i18n key. */
-  label?: string;
+  label?: string
 
   /** Longer help text for admin UIs. */
-  description?: string;
+  description?: string
 
   /** Internal flag — omitted from `catalog()`, still enforced everywhere. */
-  hidden?: boolean;
-};
+  hidden?: boolean
+}
 
 /**
  * A module-grouped map of flags — structurally parallel to typefetch's
@@ -65,8 +65,8 @@ export type FlagDef = {
  * Nesting is naming only: there is exactly one flat bit space across all modules.
  */
 export type PermissionTree = {
-  [module: string]: { [member: string]: FlagDef };
-};
+  [module: string]: { [member: string]: FlagDef }
+}
 
 /* ============================================================================
  * DERIVED TYPES — the compile-time drift-killer
@@ -79,9 +79,9 @@ export type PermissionTree = {
  */
 export type FlagName<T extends PermissionTree> = {
   [M in keyof T & string]: {
-    [K in keyof T[M] & string]: `${M}.${K}`;
-  }[keyof T[M] & string];
-}[keyof T & string];
+    [K in keyof T[M] & string]: `${M}.${K}`
+  }[keyof T[M] & string]
+}[keyof T & string]
 
 /* ============================================================================
  * RESOLUTION
@@ -95,11 +95,11 @@ export type FlagName<T extends PermissionTree> = {
  * an earlier one. That is Discord's channel-overwrite chain, expressed as data.
  */
 export type Layer = {
-  allow?: bigint | bigint[];
-  deny?: bigint | bigint[];
+  allow?: bigint | bigint[]
+  deny?: bigint | bigint[]
   /** Optional label, surfaced only by `explain()`'s trace. */
-  source?: string;
-};
+  source?: string
+}
 
 /* ============================================================================
  * CONTRACT LINK — the optional `permission` key on an endpoint / event
@@ -116,22 +116,22 @@ export type Layer = {
  */
 export type PermissionRequirement<Name extends string = string> = {
   /** All of these must be held (`hasAll`). */
-  require?: readonly Name[];
+  require?: readonly Name[]
   /** At least one of these must be held (`hasAny`). */
-  any?: readonly Name[];
+  any?: readonly Name[]
   /** Optional human reason, surfaced in the 403 body and the audit log. */
-  reason?: string;
-};
+  reason?: string
+}
 
 /** The outcome of evaluating a {@link PermissionRequirement} against a bitfield. */
 export type AuthorizeDecision<Name extends string = string> = {
-  granted: boolean;
+  granted: boolean
   /** Flags demanded by `require` that the actor lacks. Empty when `granted`. */
-  missing: Name[];
+  missing: Name[]
   /** The `any` set, when it was the failing condition. */
-  missingAny?: Name[];
-  reason?: string;
-};
+  missingAny?: Name[]
+  reason?: string
+}
 
 /* ============================================================================
  * REACTIVITY — the repo-wide Observable contract (redeclared, never imported,
@@ -144,19 +144,19 @@ export type AuthorizeDecision<Name extends string = string> = {
  * (React `useSyncExternalStore`, Vue `shallowRef`, Svelte store, …).
  */
 export interface Observable<T> {
-  getSnapshot(): T;
-  subscribe(listener: () => void): () => void;
+  getSnapshot(): T
+  subscribe(listener: () => void): () => void
 }
 
 /** The snapshot a {@link PermissionStore} holds: a global set plus scoped sets. */
 export type StoreSnapshot = {
   /** Monotonic epoch; bump to invalidate caches (see `docs/PERMISSION.md` §10.4). */
-  version: number;
+  version: number
   /** Bits that apply everywhere — the base set. */
-  global: bigint;
+  global: bigint
   /** Per-scope bits, e.g. `"channel:123"`. Unknown scopes fall back to `global`. */
-  scopes: Record<string, bigint>;
-};
+  scopes: Record<string, bigint>
+}
 
 /* ============================================================================
  * CODECS
@@ -172,22 +172,17 @@ export type StoreSnapshot = {
  * with no name in this version cannot be written as one.
  */
 export type Codec =
-  | "decimal"
-  | "hex"
-  | "base64url"
-  | "chunks"
-  | "names"
-  | "grouped";
+  'decimal' | 'hex' | 'base64url' | 'chunks' | 'names' | 'grouped'
 
 /** The wire type produced by each codec. */
 export type Encoded = {
-  decimal: string;
-  hex: string;
-  base64url: string;
-  chunks: number[];
-  names: string[];
-  grouped: Record<string, string[]>;
-};
+  decimal: string
+  hex: string
+  base64url: string
+  chunks: number[]
+  names: string[]
+  grouped: Record<string, string[]>
+}
 
 /* ============================================================================
  * LOCK FILE — the cross-project interop + drift-detection artifact
@@ -195,32 +190,32 @@ export type Encoded = {
 
 /** One entry of the flat, language-neutral `name → bit` manifest. */
 export type LockEntry = {
-  bit: number;
-  deprecated?: boolean;
-};
+  bit: number
+  deprecated?: boolean
+}
 
 /** The `permissions.lock.json` shape. `version` gates consumer compatibility. */
 export type Lock = {
-  version: number;
-  flags: Record<string, LockEntry>;
-};
+  version: number
+  flags: Record<string, LockEntry>
+}
 
 /** A single drift finding produced by comparing a tree against a prior lock. */
 export type LockViolation =
-  | { kind: "bit-reused"; bit: number; was: string; now: string }
-  | { kind: "bit-changed"; name: string; was: number; now: number }
-  | { kind: "removed"; name: string; bit: number };
+  | { kind: 'bit-reused'; bit: number; was: string; now: string }
+  | { kind: 'bit-changed'; name: string; was: number; now: number }
+  | { kind: 'removed'; name: string; bit: number }
 
 /** One row of `catalog()` — the source for a permission-management UI. */
 export type CatalogEntry = {
-  name: string;
-  module: string;
-  member: string;
-  bit: number;
-  label?: string;
-  description?: string;
-  implies?: string[];
-  requires?: string[];
-  grantsAll: boolean;
-  deprecated: boolean;
-};
+  name: string
+  module: string
+  member: string
+  bit: number
+  label?: string
+  description?: string
+  implies?: string[]
+  requires?: string[]
+  grantsAll: boolean
+  deprecated: boolean
+}

@@ -1,15 +1,15 @@
-import Link from "next/link";
-import type { ReactNode } from "react";
+import Link from 'next/link'
+import type { ReactNode } from 'react'
 
-import { Chip } from "@/components/ui/chip";
-import { Container } from "@/components/ui/container";
+import { Chip } from '@/components/ui/chip'
+import { Container } from '@/components/ui/container'
 import {
   documentedPackages,
   docsBehind,
   type DocHeading,
   type PackageEntry,
-} from "@/lib/registry";
-import { cn } from "@/utils";
+} from '@/lib/registry'
+import { cn } from '@/utils'
 
 /**
  * The docs frame: package tree on the left, page in the middle, this page's own
@@ -22,19 +22,23 @@ import { cn } from "@/utils";
  */
 
 function VersionBadge({ pkg }: { pkg: PackageEntry }) {
-  const documented = pkg.docs?.documentsVersion;
-  if (!documented) return null;
+  const documented = pkg.docs?.documentsVersion
+  if (!documented) return null
 
   // A page describing an older minor is a fact the reader needs, not something
   // to hide until CI catches it.
   if (docsBehind(pkg)) {
     return (
-      <Chip tone="var(--amber)" dashed title="These pages have not been reviewed against the current release">
+      <Chip
+        tone="var(--amber)"
+        dashed
+        title="These pages have not been reviewed against the current release"
+      >
         documents v{documented}
       </Chip>
-    );
+    )
   }
-  return <Chip tone="var(--green)">v{documented}</Chip>;
+  return <Chip tone="var(--green)">v{documented}</Chip>
 }
 
 export function DocsShell({
@@ -43,10 +47,10 @@ export function DocsShell({
   headings,
   children,
 }: {
-  pkg?: PackageEntry;
-  activeSlug?: string;
-  headings?: DocHeading[];
-  children: ReactNode;
+  pkg?: PackageEntry
+  activeSlug?: string
+  headings?: DocHeading[]
+  children: ReactNode
 }) {
   return (
     <Container className="py-12">
@@ -59,8 +63,8 @@ export function DocsShell({
           <Link
             href="/docs"
             className={cn(
-              "block font-mono text-xs uppercase tracking-[0.18em] transition-colors duration-(--motion-ui)",
-              pkg ? "text-dim hover:text-fg" : "text-blue",
+              'block font-mono text-xs uppercase tracking-[0.18em] transition-colors duration-(--motion-ui)',
+              pkg ? 'text-dim hover:text-fg' : 'text-blue'
             )}
           >
             // ALL PACKAGES
@@ -68,16 +72,16 @@ export function DocsShell({
 
           <ul className="mt-4 space-y-1">
             {documentedPackages.map((entry) => {
-              const current = entry.slug === pkg?.slug;
+              const current = entry.slug === pkg?.slug
               return (
                 <li key={entry.slug}>
                   <Link
                     href={`/docs/${entry.slug}`}
                     className={cn(
-                      "block rounded-lg px-2.5 py-1.5 font-mono text-[12.5px] transition-colors duration-(--motion-ui)",
+                      'block rounded-lg px-2.5 py-1.5 font-mono text-[12.5px] transition-colors duration-(--motion-ui)',
                       current
-                        ? "bg-blue/10 text-blue"
-                        : "text-muted-foreground hover:bg-panel hover:text-fg",
+                        ? 'bg-blue/10 text-blue'
+                        : 'text-muted-foreground hover:bg-panel hover:text-fg'
                     )}
                   >
                     {entry.short}
@@ -92,10 +96,10 @@ export function DocsShell({
                           <Link
                             href={`/docs/${entry.slug}/${page.slug}`}
                             className={cn(
-                              "block rounded px-2 py-1 text-[12.5px] transition-colors duration-(--motion-ui)",
+                              'block rounded px-2 py-1 text-[12.5px] transition-colors duration-(--motion-ui)',
                               page.slug === activeSlug
-                                ? "text-fg"
-                                : "text-dim hover:text-muted-foreground",
+                                ? 'text-fg'
+                                : 'text-dim hover:text-muted-foreground'
                             )}
                           >
                             {page.title}
@@ -105,7 +109,7 @@ export function DocsShell({
                     </ul>
                   )}
                 </li>
-              );
+              )
             })}
           </ul>
         </nav>
@@ -125,7 +129,9 @@ export function DocsShell({
                   </Chip>
                 )}
               </div>
-              <p className="mt-2 text-muted-foreground">{pkg.docs?.summary ?? pkg.description}</p>
+              <p className="mt-2 text-muted-foreground">
+                {pkg.docs?.summary ?? pkg.description}
+              </p>
             </header>
           )}
           {children}
@@ -135,15 +141,17 @@ export function DocsShell({
             body narrower than a code block wants to be. */}
         {headings && headings.length > 2 && (
           <aside className="hidden xl:sticky xl:top-20 xl:block xl:max-h-[calc(100vh-6rem)] xl:self-start xl:overflow-y-auto">
-            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-dim">On this page</p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-dim">
+              On this page
+            </p>
             <ul className="mt-3 space-y-1.5">
               {headings.map((heading) => (
                 <li key={heading.id}>
                   <a
                     href={`#${heading.id}`}
                     className={cn(
-                      "block text-[12.5px] leading-snug text-dim transition-colors duration-(--motion-ui) hover:text-fg",
-                      heading.depth === 3 && "pl-3",
+                      'block text-[12.5px] leading-snug text-dim transition-colors duration-(--motion-ui) hover:text-fg',
+                      heading.depth === 3 && 'pl-3'
                     )}
                   >
                     {heading.text}
@@ -155,5 +163,5 @@ export function DocsShell({
         )}
       </div>
     </Container>
-  );
+  )
 }

@@ -1,47 +1,47 @@
-import { z, ZodError } from "zod";
-import { ApiClient, RichError, isContractError } from "../client";
-import { Contracts } from "../types";
-import { makeRequestSchema } from "../utils/make-request-schema";
+import { z, ZodError } from 'zod'
+import { ApiClient, RichError, isContractError } from '../client'
+import { Contracts } from '../types'
+import { makeRequestSchema } from '../utils/make-request-schema'
 
-global.fetch = jest.fn();
+global.fetch = jest.fn()
 
 const contracts = {
   user: {
     getUser: {
-      method: "GET",
-      path: "/user",
+      method: 'GET',
+      path: '/user',
       request: z.object({ id: z.string() }),
       response: z.object({ id: z.string(), name: z.string() }),
       // Add mock data for testing
-      mockData: { id: "mock-1", name: "Mock User" },
+      mockData: { id: 'mock-1', name: 'Mock User' },
     },
     createUser: {
-      method: "POST",
-      path: "/user",
+      method: 'POST',
+      path: '/user',
       auth: true,
       request: z.object({ name: z.string() }),
       response: z.object({ id: z.string(), name: z.string() }),
       // Add dynamic mock data function
       mockData: () => ({
         id: `mock-${Math.random().toString(36).substr(2, 6)}`,
-        name: "Dynamic Mock User",
+        name: 'Dynamic Mock User',
       }),
     },
     listUsers: {
-      method: "GET",
-      path: "/users",
+      method: 'GET',
+      path: '/users',
       request: z.object({}),
       response: z.array(z.object({ id: z.string(), name: z.string() })),
       // No mock data for this endpoint
     },
     getUserById: {
-      method: "GET",
-      path: "/users/:id",
+      method: 'GET',
+      path: '/users/:id',
       request: makeRequestSchema<
         { id: z.ZodString },
         {
-          include: z.ZodOptional<z.ZodString>;
-          active: z.ZodOptional<z.ZodBoolean>;
+          include: z.ZodOptional<z.ZodString>
+          active: z.ZodOptional<z.ZodBoolean>
         }
       >()({
         path: z.object({
@@ -59,14 +59,15 @@ const contracts = {
     },
 
     updateUserStructured: {
-      method: "PATCH",
-      path: "/users/:id",
+      method: 'PATCH',
+      path: '/users/:id',
       request: makeRequestSchema<
         { id: z.ZodString },
+        // eslint-disable-next-line @typescript-eslint/no-empty-object-type
         {},
         z.ZodObject<{
-          name: z.ZodString;
-          age: z.ZodOptional<z.ZodNumber>;
+          name: z.ZodString
+          age: z.ZodOptional<z.ZodNumber>
         }>
       >()({
         path: z.object({
@@ -86,14 +87,15 @@ const contracts = {
     },
 
     searchUsersStructured: {
-      method: "GET",
-      path: "/users/search",
+      method: 'GET',
+      path: '/users/search',
       request: makeRequestSchema<
+        // eslint-disable-next-line @typescript-eslint/no-empty-object-type
         {},
         {
-          q: z.ZodString;
-          tags: z.ZodOptional<z.ZodArray<z.ZodString>>;
-          page: z.ZodOptional<z.ZodNumber>;
+          q: z.ZodString
+          tags: z.ZodOptional<z.ZodArray<z.ZodString>>
+          page: z.ZodOptional<z.ZodNumber>
         }
       >()({
         query: z.object({
@@ -107,18 +109,20 @@ const contracts = {
         z.object({
           id: z.string(),
           name: z.string(),
-        }),
+        })
       ),
     },
 
     createUserStructured: {
-      method: "POST",
-      path: "/users",
+      method: 'POST',
+      path: '/users',
       request: makeRequestSchema<
+        // eslint-disable-next-line @typescript-eslint/no-empty-object-type
         {},
+        // eslint-disable-next-line @typescript-eslint/no-empty-object-type
         {},
         z.ZodObject<{
-          name: z.ZodString;
+          name: z.ZodString
         }>
       >()({
         body: z.object({
@@ -132,15 +136,16 @@ const contracts = {
     },
 
     uploadAvatar: {
-      method: "POST",
-      path: "/users/:id/avatar",
-      bodyType: "form-data",
+      method: 'POST',
+      path: '/users/:id/avatar',
+      bodyType: 'form-data',
       request: makeRequestSchema<
         { id: z.ZodString },
+        // eslint-disable-next-line @typescript-eslint/no-empty-object-type
         {},
         z.ZodObject<{
-          file: z.ZodString;
-          alt: z.ZodOptional<z.ZodString>;
+          file: z.ZodString
+          alt: z.ZodOptional<z.ZodString>
         }>
       >()({
         path: z.object({
@@ -159,208 +164,206 @@ const contracts = {
   admin: {
     // Add this missing module
     getAdminData: {
-      method: "GET",
-      path: "/admin/data",
+      method: 'GET',
+      path: '/admin/data',
       auth: true,
       request: z.object({}),
       response: z.object({ secret: z.string() }),
-      mockData: { secret: "admin-secret" },
+      mockData: { secret: 'admin-secret' },
     },
   },
-} satisfies Contracts;
+} satisfies Contracts
 
-describe("ApiClient", () => {
-  let client: ApiClient<typeof contracts>;
+describe('ApiClient', () => {
+  let client: ApiClient<typeof contracts>
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    client = new ApiClient({ baseUrl: "https://api.test.com" }, contracts);
-    client.init();
-  });
+    jest.clearAllMocks()
+    client = new ApiClient({ baseUrl: 'https://api.test.com' }, contracts)
+    client.init()
+  })
 
-  it("should initialize modules correctly", () => {
-    expect(client.modules.user).toBeDefined();
-    expect(typeof client.modules.user.getUser).toBe("function");
-  });
+  it('should initialize modules correctly', () => {
+    expect(client.modules.user).toBeDefined()
+    expect(typeof client.modules.user.getUser).toBe('function')
+  })
 
-  it("should call fetch with correct URL and headers", async () => {
-    (fetch as jest.Mock).mockResolvedValueOnce({
+  it('should call fetch with correct URL and headers', async () => {
+    ;(fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ id: "1", name: "John" }),
-    });
+      json: async () => ({ id: '1', name: 'John' }),
+    })
 
-    const res = await client.modules.user.getUser({ id: "1" });
-    expect(fetch).toHaveBeenCalledWith("https://api.test.com/user", {
-      method: "GET",
-      headers: { "Content-Type": "application/json" },
+    const res = await client.modules.user.getUser({ id: '1' })
+    expect(fetch).toHaveBeenCalledWith('https://api.test.com/user', {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
       body: undefined,
-    });
-    expect(res).toEqual({ id: "1", name: "John" });
-  });
+    })
+    expect(res).toEqual({ id: '1', name: 'John' })
+  })
 
   // Was "should throw validation error if input is invalid", asserting a raw
   // `ZodError`. Input validation now fails the same way output validation
   // always did — a classified `RichError` that reaches `onError` — so the two
   // ends of the contract behave identically. Zod's field errors are preserved
   // on `RichError.errors`; see `error-kind.test.ts` for the full regression set.
-  it("should throw a classified validation error if input is invalid", async () => {
-    const error = await client.modules.user
-      .getUser({} as any)
-      .catch((e) => e);
+  it('should throw a classified validation error if input is invalid', async () => {
+    const error = await client.modules.user.getUser({} as any).catch((e) => e)
 
-    expect(error).toBeInstanceOf(RichError);
-    expect(error).not.toBeInstanceOf(ZodError);
-    expect(error.kind).toBe("validation");
-  });
+    expect(error).toBeInstanceOf(RichError)
+    expect(error).not.toBeInstanceOf(ZodError)
+    expect(error.kind).toBe('validation')
+  })
 
-  it("should handle auth header when token is provided", async () => {
+  it('should handle auth header when token is provided', async () => {
     const authedClient = new ApiClient(
-      { baseUrl: "https://api.test.com", token: "mytoken" },
-      contracts,
-    );
-    authedClient.init();
+      { baseUrl: 'https://api.test.com', token: 'mytoken' },
+      contracts
+    )
+    authedClient.init()
 
-    (fetch as jest.Mock).mockResolvedValueOnce({
+    ;(fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ id: "2", name: "Alice" }),
-    });
+      json: async () => ({ id: '2', name: 'Alice' }),
+    })
 
-    await authedClient.modules.user.createUser({ name: "Alice" });
+    await authedClient.modules.user.createUser({ name: 'Alice' })
 
-    expect(fetch).toHaveBeenCalledWith("https://api.test.com/user", {
-      method: "POST",
+    expect(fetch).toHaveBeenCalledWith('https://api.test.com/user', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer mytoken",
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer mytoken',
       },
-      body: JSON.stringify({ name: "Alice" }),
-    });
-  });
+      body: JSON.stringify({ name: 'Alice' }),
+    })
+  })
 
-  it("should throw error if auth required and no token provided", async () => {
+  it('should throw error if auth required and no token provided', async () => {
     await expect(
-      client.modules.user.createUser({ name: "Alice" }),
-    ).rejects.toThrow(RichError);
-  });
+      client.modules.user.createUser({ name: 'Alice' })
+    ).rejects.toThrow(RichError)
+  })
 
-  it("should call errorHandler when error occurs", async () => {
-    const handler = jest.fn();
-    client.onError(handler);
+  it('should call errorHandler when error occurs', async () => {
+    const handler = jest.fn()
+    client.onError(handler)
 
-    (fetch as jest.Mock).mockResolvedValueOnce({
+    ;(fetch as jest.Mock).mockResolvedValueOnce({
       ok: false,
       status: 400,
-      statusText: "Bad Request",
-      json: async () => ({ message: "Invalid input" }),
-    });
+      statusText: 'Bad Request',
+      json: async () => ({ message: 'Invalid input' }),
+    })
 
-    await expect(client.modules.user.getUser({ id: "bad" })).rejects.toThrow();
+    await expect(client.modules.user.getUser({ id: 'bad' })).rejects.toThrow()
 
-    expect(handler).toHaveBeenCalled();
-  });
+    expect(handler).toHaveBeenCalled()
+  })
 
-  it("should apply responseTransform", async () => {
-    client.useResponseTransform((data) => ({ ...data, transformed: true }));
+  it('should apply responseTransform', async () => {
+    client.useResponseTransform((data) => ({ ...data, transformed: true }))
 
-    (fetch as jest.Mock).mockResolvedValueOnce({
+    ;(fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ id: "1", name: "John" }),
-    });
+      json: async () => ({ id: '1', name: 'John' }),
+    })
 
-    const res = await client.modules.user.getUser({ id: "1" });
-    expect(res).toEqual({ id: "1", name: "John", transformed: true });
-  });
+    const res = await client.modules.user.getUser({ id: '1' })
+    expect(res).toEqual({ id: '1', name: 'John', transformed: true })
+  })
 
-  it("should execute middleware in order", async () => {
-    const logs: string[] = [];
+  it('should execute middleware in order', async () => {
+    const logs: string[] = []
 
     client.use(async (ctx, next) => {
-      logs.push("before");
-      const res = await next();
-      logs.push("after");
-      return res;
-    });
+      logs.push('before')
+      const res = await next()
+      logs.push('after')
+      return res
+    })
 
-    (fetch as jest.Mock).mockResolvedValueOnce({
+    ;(fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ id: "1", name: "John" }),
-    });
+      json: async () => ({ id: '1', name: 'John' }),
+    })
 
-    await client.modules.user.getUser({ id: "1" });
+    await client.modules.user.getUser({ id: '1' })
 
-    expect(logs).toEqual(["before", "after"]);
-  });
+    expect(logs).toEqual(['before', 'after'])
+  })
 
-  describe("Mock Data Feature", () => {
-    it("should use mock data when mock mode is enabled", async () => {
-      client.setMockMode(true, { min: 0, max: 0 });
-      const result = await client.modules.user.getUser({ id: "1" });
+  describe('Mock Data Feature', () => {
+    it('should use mock data when mock mode is enabled', async () => {
+      client.setMockMode(true, { min: 0, max: 0 })
+      const result = await client.modules.user.getUser({ id: '1' })
 
-      expect(result).toEqual({ id: "mock-1", name: "Mock User" });
-      expect(fetch).not.toHaveBeenCalled();
-    });
+      expect(result).toEqual({ id: 'mock-1', name: 'Mock User' })
+      expect(fetch).not.toHaveBeenCalled()
+    })
 
-    it("should use dynamic mock data function when provided", async () => {
-      client.setMockMode(true, { min: 0, max: 0 });
+    it('should use dynamic mock data function when provided', async () => {
+      client.setMockMode(true, { min: 0, max: 0 })
 
-      const result1 = await client.modules.user.createUser({ name: "Test" });
-      const result2 = await client.modules.user.createUser({ name: "Test" });
+      const result1 = await client.modules.user.createUser({ name: 'Test' })
+      const result2 = await client.modules.user.createUser({ name: 'Test' })
 
-      expect(result1.id).toMatch(/^mock-/);
-      expect(result1.name).toBe("Dynamic Mock User");
-      expect(result2.id).not.toBe(result1.id);
-      expect(fetch).not.toHaveBeenCalled();
-    });
+      expect(result1.id).toMatch(/^mock-/)
+      expect(result1.name).toBe('Dynamic Mock User')
+      expect(result2.id).not.toBe(result1.id)
+      expect(fetch).not.toHaveBeenCalled()
+    })
 
-    it("should fall back to real API when mock data is not provided", async () => {
-      client.setMockMode(true, { min: 0, max: 0 });
+    it('should fall back to real API when mock data is not provided', async () => {
+      client.setMockMode(true, { min: 0, max: 0 })
 
-      (fetch as jest.Mock).mockResolvedValueOnce({
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
-        json: async () => [{ id: "1", name: "User1" }],
-      });
+        json: async () => [{ id: '1', name: 'User1' }],
+      })
 
-      const result = await client.modules.user.listUsers({});
+      const result = await client.modules.user.listUsers({})
 
-      expect(result).toEqual([{ id: "1", name: "User1" }]);
-      expect(fetch).toHaveBeenCalled();
-    });
+      expect(result).toEqual([{ id: '1', name: 'User1' }])
+      expect(fetch).toHaveBeenCalled()
+    })
 
-    it("should add random delay when using mock data", async () => {
+    it('should add random delay when using mock data', async () => {
       const mockDateNow = jest
-        .spyOn(Date, "now")
+        .spyOn(Date, 'now')
         .mockReturnValueOnce(0)
-        .mockReturnValueOnce(100);
+        .mockReturnValueOnce(100)
 
-      client.setMockMode(true, { min: 100, max: 100 });
+      client.setMockMode(true, { min: 100, max: 100 })
 
-      const result = await client.modules.user.getUser({ id: "1" });
+      const result = await client.modules.user.getUser({ id: '1' })
 
-      expect(result).toEqual({ id: "mock-1", name: "Mock User" });
-      expect(fetch).not.toHaveBeenCalled();
+      expect(result).toEqual({ id: 'mock-1', name: 'Mock User' })
+      expect(fetch).not.toHaveBeenCalled()
 
-      mockDateNow.mockRestore();
-    });
+      mockDateNow.mockRestore()
+    })
 
-    it("should toggle mock mode at runtime", async () => {
-      client.setMockMode(true, { min: 0, max: 0 });
-      let result = await client.modules.user.getUser({ id: "1" });
-      expect(result).toEqual({ id: "mock-1", name: "Mock User" });
-      expect(fetch).not.toHaveBeenCalled();
+    it('should toggle mock mode at runtime', async () => {
+      client.setMockMode(true, { min: 0, max: 0 })
+      let result = await client.modules.user.getUser({ id: '1' })
+      expect(result).toEqual({ id: 'mock-1', name: 'Mock User' })
+      expect(fetch).not.toHaveBeenCalled()
 
-      client.setMockMode(false);
-      (fetch as jest.Mock).mockResolvedValueOnce({
+      client.setMockMode(false)
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ id: "real-1", name: "Real User" }),
-      });
+        json: async () => ({ id: 'real-1', name: 'Real User' }),
+      })
 
-      result = await client.modules.user.getUser({ id: "1" });
-      expect(result).toEqual({ id: "real-1", name: "Real User" });
-      expect(fetch).toHaveBeenCalled();
-    });
-  });
+      result = await client.modules.user.getUser({ id: '1' })
+      expect(result).toEqual({ id: 'real-1', name: 'Real User' })
+      expect(fetch).toHaveBeenCalled()
+    })
+  })
 
-  describe("Response Wrapper Feature", () => {
+  describe('Response Wrapper Feature', () => {
     const createApiResponseWrapper = (successResponse: z.ZodTypeAny) =>
       z.union([
         z.object({
@@ -376,95 +379,95 @@ describe("ApiClient", () => {
           timestamp: z.string(),
           requestId: z.string(),
         }),
-      ]);
+      ])
 
-    it("should validate and unwrap successful wrapped responses", async () => {
-      client.setResponseWrapper(createApiResponseWrapper);
+    it('should validate and unwrap successful wrapped responses', async () => {
+      client.setResponseWrapper(createApiResponseWrapper)
 
-      (fetch as jest.Mock).mockResolvedValueOnce({
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           success: true,
-          data: { id: "1", name: "John" },
-          timestamp: "2024-01-15T10:30:00Z",
-          requestId: "req-123",
+          data: { id: '1', name: 'John' },
+          timestamp: '2024-01-15T10:30:00Z',
+          requestId: 'req-123',
         }),
-      });
+      })
 
-      const result = await client.modules.user.getUser({ id: "1" });
+      const result = await client.modules.user.getUser({ id: '1' })
 
-      expect(result).toEqual({ id: "1", name: "John" });
-    });
+      expect(result).toEqual({ id: '1', name: 'John' })
+    })
 
-    it("should throw error for failed wrapped responses", async () => {
-      client.setResponseWrapper(createApiResponseWrapper);
+    it('should throw error for failed wrapped responses', async () => {
+      client.setResponseWrapper(createApiResponseWrapper)
 
-      (fetch as jest.Mock).mockResolvedValueOnce({
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           success: false,
-          message: "User not found",
+          message: 'User not found',
           code: 404,
-          timestamp: "2024-01-15T10:30:00Z",
-          requestId: "req-123",
+          timestamp: '2024-01-15T10:30:00Z',
+          requestId: 'req-123',
         }),
-      });
+      })
 
-      await expect(client.modules.user.getUser({ id: "999" })).rejects.toThrow(
-        RichError,
-      );
-    });
+      await expect(client.modules.user.getUser({ id: '999' })).rejects.toThrow(
+        RichError
+      )
+    })
 
-    it("should work with mock data and response wrapper", async () => {
-      client.setResponseWrapper(createApiResponseWrapper);
-      client.setMockMode(true, { min: 0, max: 0 });
+    it('should work with mock data and response wrapper', async () => {
+      client.setResponseWrapper(createApiResponseWrapper)
+      client.setMockMode(true, { min: 0, max: 0 })
 
-      const result = await client.modules.user.getUser({ id: "1" });
+      const result = await client.modules.user.getUser({ id: '1' })
 
-      expect(result).toEqual({ id: "mock-1", name: "Mock User" });
-    });
+      expect(result).toEqual({ id: 'mock-1', name: 'Mock User' })
+    })
 
-    it("should throw validation error for invalid wrapped response format", async () => {
-      client.setResponseWrapper(createApiResponseWrapper);
+    it('should throw validation error for invalid wrapped response format', async () => {
+      client.setResponseWrapper(createApiResponseWrapper)
 
-      (fetch as jest.Mock).mockResolvedValueOnce({
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
-          invalid: "format",
+          invalid: 'format',
         }),
-      });
+      })
 
       try {
-        await client.modules.user.getUser({ id: "1" });
-        fail("Expected error to be thrown");
+        await client.modules.user.getUser({ id: '1' })
+        fail('Expected error to be thrown')
       } catch (error: any) {
-        expect(error.message).toContain("Validation error");
-        expect(error.message).toMatch(/validation|invalid/i);
+        expect(error.message).toContain('Validation error')
+        expect(error.message).toMatch(/validation|invalid/i)
       }
-    });
+    })
 
-    it("should handle response transform with wrapper", async () => {
-      client.setResponseWrapper(createApiResponseWrapper);
-      client.useResponseTransform((data) => ({ ...data, transformed: true }));
+    it('should handle response transform with wrapper', async () => {
+      client.setResponseWrapper(createApiResponseWrapper)
+      client.useResponseTransform((data) => ({ ...data, transformed: true }))
 
-      (fetch as jest.Mock).mockResolvedValueOnce({
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           success: true,
-          data: { id: "1", name: "John" },
-          timestamp: "2024-01-15T10:30:00Z",
-          requestId: "req-123",
+          data: { id: '1', name: 'John' },
+          timestamp: '2024-01-15T10:30:00Z',
+          requestId: 'req-123',
         }),
-      });
+      })
 
-      const result = await client.modules.user.getUser({ id: "1" });
+      const result = await client.modules.user.getUser({ id: '1' })
 
-      expect(result).toEqual({ id: "1", name: "John", transformed: true });
-    });
-  });
+      expect(result).toEqual({ id: '1', name: 'John', transformed: true })
+    })
+  })
 
-  describe("Integration: Mock Data + Response Wrapper", () => {
-    it("should handle both features together", async () => {
+  describe('Integration: Mock Data + Response Wrapper', () => {
+    it('should handle both features together', async () => {
       const wrapper = (successResponse: z.ZodTypeAny) =>
         z.union([
           z.object({
@@ -480,328 +483,328 @@ describe("ApiClient", () => {
             timestamp: z.string(),
             requestId: z.string(),
           }),
-        ]);
+        ])
 
-      client.setResponseWrapper(wrapper);
-      client.setMockMode(true, { min: 0, max: 0 });
+      client.setResponseWrapper(wrapper)
+      client.setMockMode(true, { min: 0, max: 0 })
 
-      const result = await client.modules.user.getUser({ id: "1" });
+      const result = await client.modules.user.getUser({ id: '1' })
 
-      expect(result).toEqual({ id: "mock-1", name: "Mock User" });
-    });
-  });
+      expect(result).toEqual({ id: 'mock-1', name: 'Mock User' })
+    })
+  })
 
-  describe("Token Provider Feature", () => {
-    it("should use tokenProvider when provided in constructor", async () => {
-      const tokenProvider = jest.fn().mockReturnValue("dynamic-token");
+  describe('Token Provider Feature', () => {
+    it('should use tokenProvider when provided in constructor', async () => {
+      const tokenProvider = jest.fn().mockReturnValue('dynamic-token')
       const clientWithProvider = new ApiClient(
         {
-          baseUrl: "https://api.test.com",
+          baseUrl: 'https://api.test.com',
           tokenProvider,
         },
-        contracts,
-      );
-      clientWithProvider.init();
+        contracts
+      )
+      clientWithProvider.init()
 
-      (fetch as jest.Mock).mockResolvedValueOnce({
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ id: "1", name: "John" }),
-      });
+        json: async () => ({ id: '1', name: 'John' }),
+      })
 
-      await clientWithProvider.modules.user.createUser({ name: "Alice" });
+      await clientWithProvider.modules.user.createUser({ name: 'Alice' })
 
-      expect(tokenProvider).toHaveBeenCalled();
-      expect(fetch).toHaveBeenCalledWith("https://api.test.com/user", {
-        method: "POST",
+      expect(tokenProvider).toHaveBeenCalled()
+      expect(fetch).toHaveBeenCalledWith('https://api.test.com/user', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer dynamic-token",
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer dynamic-token',
         },
-        body: JSON.stringify({ name: "Alice" }),
-      });
-    });
+        body: JSON.stringify({ name: 'Alice' }),
+      })
+    })
 
-    it("should use tokenProvider over static token when both provided", async () => {
-      const tokenProvider = jest.fn().mockReturnValue("dynamic-token");
+    it('should use tokenProvider over static token when both provided', async () => {
+      const tokenProvider = jest.fn().mockReturnValue('dynamic-token')
       const clientWithBoth = new ApiClient(
         {
-          baseUrl: "https://api.test.com",
-          token: "static-token",
+          baseUrl: 'https://api.test.com',
+          token: 'static-token',
           tokenProvider,
         },
-        contracts,
-      );
-      clientWithBoth.init();
+        contracts
+      )
+      clientWithBoth.init()
 
-      (fetch as jest.Mock).mockResolvedValueOnce({
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ id: "1", name: "John" }),
-      });
+        json: async () => ({ id: '1', name: 'John' }),
+      })
 
-      await clientWithBoth.modules.user.createUser({ name: "Alice" });
+      await clientWithBoth.modules.user.createUser({ name: 'Alice' })
 
-      expect(tokenProvider).toHaveBeenCalled();
-      expect(fetch).toHaveBeenCalledWith("https://api.test.com/user", {
-        method: "POST",
+      expect(tokenProvider).toHaveBeenCalled()
+      expect(fetch).toHaveBeenCalledWith('https://api.test.com/user', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer dynamic-token",
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer dynamic-token',
         },
-        body: JSON.stringify({ name: "Alice" }),
-      });
-    });
+        body: JSON.stringify({ name: 'Alice' }),
+      })
+    })
 
-    it("should work with async tokenProvider", async () => {
-      const tokenProvider = jest.fn().mockResolvedValue("async-token");
+    it('should work with async tokenProvider', async () => {
+      const tokenProvider = jest.fn().mockResolvedValue('async-token')
       const clientWithAsyncProvider = new ApiClient(
         {
-          baseUrl: "https://api.test.com",
+          baseUrl: 'https://api.test.com',
           tokenProvider,
         },
-        contracts,
-      );
-      clientWithAsyncProvider.init();
+        contracts
+      )
+      clientWithAsyncProvider.init()
 
-      (fetch as jest.Mock).mockResolvedValueOnce({
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ id: "1", name: "John" }),
-      });
+        json: async () => ({ id: '1', name: 'John' }),
+      })
 
-      await clientWithAsyncProvider.modules.user.createUser({ name: "Alice" });
+      await clientWithAsyncProvider.modules.user.createUser({ name: 'Alice' })
 
-      expect(tokenProvider).toHaveBeenCalled();
-      expect(fetch).toHaveBeenCalledWith("https://api.test.com/user", {
-        method: "POST",
+      expect(tokenProvider).toHaveBeenCalled()
+      expect(fetch).toHaveBeenCalledWith('https://api.test.com/user', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer async-token",
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer async-token',
         },
-        body: JSON.stringify({ name: "Alice" }),
-      });
-    });
+        body: JSON.stringify({ name: 'Alice' }),
+      })
+    })
 
-    it("should set tokenProvider dynamically after initialization", async () => {
-      const tokenProvider = jest.fn().mockReturnValue("dynamic-token");
+    it('should set tokenProvider dynamically after initialization', async () => {
+      const tokenProvider = jest.fn().mockReturnValue('dynamic-token')
 
       // Client without initial token provider
       const clientWithoutProvider = new ApiClient(
         {
-          baseUrl: "https://api.test.com",
+          baseUrl: 'https://api.test.com',
         },
-        contracts,
-      );
-      clientWithoutProvider.init();
+        contracts
+      )
+      clientWithoutProvider.init()
 
       // Set token provider after initialization
-      clientWithoutProvider.setTokenProvider(tokenProvider);
+      clientWithoutProvider.setTokenProvider(tokenProvider)
 
-      (fetch as jest.Mock).mockResolvedValueOnce({
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ id: "1", name: "John" }),
-      });
+        json: async () => ({ id: '1', name: 'John' }),
+      })
 
-      await clientWithoutProvider.modules.user.createUser({ name: "Alice" });
+      await clientWithoutProvider.modules.user.createUser({ name: 'Alice' })
 
-      expect(tokenProvider).toHaveBeenCalled();
-      expect(fetch).toHaveBeenCalledWith("https://api.test.com/user", {
-        method: "POST",
+      expect(tokenProvider).toHaveBeenCalled()
+      expect(fetch).toHaveBeenCalledWith('https://api.test.com/user', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer dynamic-token",
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer dynamic-token',
         },
-        body: JSON.stringify({ name: "Alice" }),
-      });
-    });
+        body: JSON.stringify({ name: 'Alice' }),
+      })
+    })
 
-    it("should get current token from tokenProvider", async () => {
-      const tokenProvider = jest.fn().mockReturnValue("current-token");
+    it('should get current token from tokenProvider', async () => {
+      const tokenProvider = jest.fn().mockReturnValue('current-token')
       const clientWithProvider = new ApiClient(
         {
-          baseUrl: "https://api.test.com",
+          baseUrl: 'https://api.test.com',
           tokenProvider,
         },
-        contracts,
-      );
-      clientWithProvider.init();
+        contracts
+      )
+      clientWithProvider.init()
 
-      const token = await clientWithProvider.getCurrentToken();
+      const token = await clientWithProvider.getCurrentToken()
 
-      expect(tokenProvider).toHaveBeenCalled();
-      expect(token).toBe("current-token");
-    });
+      expect(tokenProvider).toHaveBeenCalled()
+      expect(token).toBe('current-token')
+    })
 
-    it("should get current token from static config when no tokenProvider", async () => {
+    it('should get current token from static config when no tokenProvider', async () => {
       const clientWithStaticToken = new ApiClient(
         {
-          baseUrl: "https://api.test.com",
-          token: "static-token",
+          baseUrl: 'https://api.test.com',
+          token: 'static-token',
         },
-        contracts,
-      );
-      clientWithStaticToken.init();
+        contracts
+      )
+      clientWithStaticToken.init()
 
-      const token = await clientWithStaticToken.getCurrentToken();
+      const token = await clientWithStaticToken.getCurrentToken()
 
-      expect(token).toBe("static-token");
-    });
+      expect(token).toBe('static-token')
+    })
 
-    it("should return undefined when no token or tokenProvider", async () => {
+    it('should return undefined when no token or tokenProvider', async () => {
       const clientWithoutToken = new ApiClient(
         {
-          baseUrl: "https://api.test.com",
+          baseUrl: 'https://api.test.com',
         },
-        contracts,
-      );
-      clientWithoutToken.init();
+        contracts
+      )
+      clientWithoutToken.init()
 
-      const token = await clientWithoutToken.getCurrentToken();
+      const token = await clientWithoutToken.getCurrentToken()
 
-      expect(token).toBeUndefined();
-    });
+      expect(token).toBeUndefined()
+    })
 
-    it("should handle tokenProvider returning empty string", async () => {
-      const tokenProvider = jest.fn().mockReturnValue("");
+    it('should handle tokenProvider returning empty string', async () => {
+      const tokenProvider = jest.fn().mockReturnValue('')
       const clientWithEmptyProvider = new ApiClient(
         {
-          baseUrl: "https://api.test.com",
+          baseUrl: 'https://api.test.com',
           tokenProvider,
         },
-        contracts,
-      );
-      clientWithEmptyProvider.init();
+        contracts
+      )
+      clientWithEmptyProvider.init()
 
       await expect(
-        clientWithEmptyProvider.modules.user.createUser({ name: "Alice" }),
-      ).rejects.toThrow(RichError);
+        clientWithEmptyProvider.modules.user.createUser({ name: 'Alice' })
+      ).rejects.toThrow(RichError)
 
-      expect(tokenProvider).toHaveBeenCalled();
-    });
+      expect(tokenProvider).toHaveBeenCalled()
+    })
 
-    it("should handle tokenProvider returning null/undefined", async () => {
-      const tokenProvider = jest.fn().mockReturnValue(null);
+    it('should handle tokenProvider returning null/undefined', async () => {
+      const tokenProvider = jest.fn().mockReturnValue(null)
       const clientWithNullProvider = new ApiClient(
         {
-          baseUrl: "https://api.test.com",
+          baseUrl: 'https://api.test.com',
           tokenProvider,
         },
-        contracts,
-      );
-      clientWithNullProvider.init();
+        contracts
+      )
+      clientWithNullProvider.init()
 
       await expect(
-        clientWithNullProvider.modules.user.createUser({ name: "Alice" }),
-      ).rejects.toThrow(RichError);
+        clientWithNullProvider.modules.user.createUser({ name: 'Alice' })
+      ).rejects.toThrow(RichError)
 
-      expect(tokenProvider).toHaveBeenCalled();
-    });
+      expect(tokenProvider).toHaveBeenCalled()
+    })
 
-    it("should work with tokenProvider for non-auth endpoints", async () => {
-      const tokenProvider = jest.fn().mockReturnValue("some-token");
+    it('should work with tokenProvider for non-auth endpoints', async () => {
+      const tokenProvider = jest.fn().mockReturnValue('some-token')
       const clientWithProvider = new ApiClient(
         {
-          baseUrl: "https://api.test.com",
+          baseUrl: 'https://api.test.com',
           tokenProvider,
         },
-        contracts,
-      );
-      clientWithProvider.init();
+        contracts
+      )
+      clientWithProvider.init()
 
-      (fetch as jest.Mock).mockResolvedValueOnce({
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ id: "1", name: "John" }),
-      });
+        json: async () => ({ id: '1', name: 'John' }),
+      })
 
-      const result = await clientWithProvider.modules.user.getUser({ id: "1" });
+      const result = await clientWithProvider.modules.user.getUser({ id: '1' })
 
-      expect(result).toEqual({ id: "1", name: "John" });
-      expect(fetch).toHaveBeenCalledWith("https://api.test.com/user", {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
+      expect(result).toEqual({ id: '1', name: 'John' })
+      expect(fetch).toHaveBeenCalledWith('https://api.test.com/user', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
         body: undefined,
-      });
+      })
 
-      const fetchCall = (fetch as jest.Mock).mock.calls[0][1] as RequestInit;
-      expect(fetchCall.headers).not.toHaveProperty("Authorization");
-    });
+      const fetchCall = (fetch as jest.Mock).mock.calls[0][1] as RequestInit
+      expect(fetchCall.headers).not.toHaveProperty('Authorization')
+    })
 
-    it("should call tokenProvider for each auth request", async () => {
-      const tokenProvider = jest.fn().mockReturnValue("dynamic-token");
+    it('should call tokenProvider for each auth request', async () => {
+      const tokenProvider = jest.fn().mockReturnValue('dynamic-token')
       const clientWithProvider = new ApiClient(
         {
-          baseUrl: "https://api.test.com",
+          baseUrl: 'https://api.test.com',
           tokenProvider,
         },
-        contracts,
-      );
-      clientWithProvider.init();
+        contracts
+      )
+      clientWithProvider.init()
 
-      (fetch as jest.Mock)
+      ;(fetch as jest.Mock)
         .mockResolvedValueOnce({
           ok: true,
-          json: async () => ({ id: "1", name: "User1" }),
+          json: async () => ({ id: '1', name: 'User1' }),
         })
         .mockResolvedValueOnce({
           ok: true,
-          json: async () => ({ id: "2", name: "User2" }),
-        });
+          json: async () => ({ id: '2', name: 'User2' }),
+        })
 
-      await clientWithProvider.modules.user.createUser({ name: "User1" });
-      await clientWithProvider.modules.user.createUser({ name: "User2" });
+      await clientWithProvider.modules.user.createUser({ name: 'User1' })
+      await clientWithProvider.modules.user.createUser({ name: 'User2' })
 
-      expect(tokenProvider).toHaveBeenCalledTimes(2);
-    });
+      expect(tokenProvider).toHaveBeenCalledTimes(2)
+    })
 
-    it("should work with mock data and tokenProvider", async () => {
-      const tokenProvider = jest.fn().mockReturnValue("mock-token");
+    it('should work with mock data and tokenProvider', async () => {
+      const tokenProvider = jest.fn().mockReturnValue('mock-token')
       const clientWithProvider = new ApiClient(
         {
-          baseUrl: "https://api.test.com",
+          baseUrl: 'https://api.test.com',
           tokenProvider,
           useMockData: true,
         },
-        contracts,
-      );
-      clientWithProvider.init();
+        contracts
+      )
+      clientWithProvider.init()
 
       const result = await clientWithProvider.modules.user.createUser({
-        name: "Test",
-      });
+        name: 'Test',
+      })
 
-      expect(result.id).toMatch(/^mock-/);
-      expect(result.name).toBe("Dynamic Mock User");
+      expect(result.id).toMatch(/^mock-/)
+      expect(result.name).toBe('Dynamic Mock User')
       // Token provider should not be called when using mock data
-      expect(tokenProvider).not.toHaveBeenCalled();
-      expect(fetch).not.toHaveBeenCalled();
-    });
+      expect(tokenProvider).not.toHaveBeenCalled()
+      expect(fetch).not.toHaveBeenCalled()
+    })
 
-    it("should handle tokenProvider errors gracefully", async () => {
+    it('should handle tokenProvider errors gracefully', async () => {
       const tokenProvider = jest.fn().mockImplementation(() => {
-        throw new Error("Token provider failed");
-      });
+        throw new Error('Token provider failed')
+      })
       const clientWithFailingProvider = new ApiClient(
         {
-          baseUrl: "https://api.test.com",
+          baseUrl: 'https://api.test.com',
           tokenProvider,
         },
-        contracts,
-      );
-      clientWithFailingProvider.init();
+        contracts
+      )
+      clientWithFailingProvider.init()
 
       await expect(
-        clientWithFailingProvider.modules.user.createUser({ name: "Alice" }),
-      ).rejects.toThrow("Token provider failed");
-    });
+        clientWithFailingProvider.modules.user.createUser({ name: 'Alice' })
+      ).rejects.toThrow('Token provider failed')
+    })
 
-    it("should work with response wrapper and tokenProvider", async () => {
-      const tokenProvider = jest.fn().mockReturnValue("wrapper-token");
+    it('should work with response wrapper and tokenProvider', async () => {
+      const tokenProvider = jest.fn().mockReturnValue('wrapper-token')
       const clientWithProvider = new ApiClient(
         {
-          baseUrl: "https://api.test.com",
+          baseUrl: 'https://api.test.com',
           tokenProvider,
         },
-        contracts,
-      );
-      clientWithProvider.init();
+        contracts
+      )
+      clientWithProvider.init()
 
       clientWithProvider.setResponseWrapper((successResponse) =>
         z.union([
@@ -813,74 +816,74 @@ describe("ApiClient", () => {
             success: z.literal(false),
             error: z.string(),
           }),
-        ]),
-      );
+        ])
+      )
 
-      (fetch as jest.Mock).mockResolvedValueOnce({
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           success: true,
-          data: { id: "1", name: "John" },
+          data: { id: '1', name: 'John' },
         }),
-      });
+      })
 
       const result = await clientWithProvider.modules.user.createUser({
-        name: "Alice",
-      });
+        name: 'Alice',
+      })
 
-      expect(tokenProvider).toHaveBeenCalled();
-      expect(result).toEqual({ id: "1", name: "John" });
-    });
+      expect(tokenProvider).toHaveBeenCalled()
+      expect(result).toEqual({ id: '1', name: 'John' })
+    })
 
-    it("should work with multiple modules and tokenProvider", async () => {
-      const tokenProvider = jest.fn().mockReturnValue("multi-token");
+    it('should work with multiple modules and tokenProvider', async () => {
+      const tokenProvider = jest.fn().mockReturnValue('multi-token')
       const clientWithProvider = new ApiClient(
         {
-          baseUrl: "https://api.test.com",
+          baseUrl: 'https://api.test.com',
           tokenProvider,
         },
-        contracts,
-      );
-      clientWithProvider.init();
+        contracts
+      )
+      clientWithProvider.init()
 
-      (fetch as jest.Mock)
+      ;(fetch as jest.Mock)
         .mockResolvedValueOnce({
           ok: true,
-          json: async () => ({ id: "1", name: "User1" }),
+          json: async () => ({ id: '1', name: 'User1' }),
         })
         .mockResolvedValueOnce({
           ok: true,
-          json: async () => ({ secret: "admin-data" }),
-        });
+          json: async () => ({ secret: 'admin-data' }),
+        })
 
-      await clientWithProvider.modules.user.createUser({ name: "User1" });
-      await clientWithProvider.modules.admin.getAdminData({});
+      await clientWithProvider.modules.user.createUser({ name: 'User1' })
+      await clientWithProvider.modules.admin.getAdminData({})
 
-      expect(tokenProvider).toHaveBeenCalledTimes(2);
-      expect(fetch).toHaveBeenNthCalledWith(1, "https://api.test.com/user", {
-        method: "POST",
+      expect(tokenProvider).toHaveBeenCalledTimes(2)
+      expect(fetch).toHaveBeenNthCalledWith(1, 'https://api.test.com/user', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer multi-token",
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer multi-token',
         },
-        body: JSON.stringify({ name: "User1" }),
-      });
+        body: JSON.stringify({ name: 'User1' }),
+      })
       expect(fetch).toHaveBeenNthCalledWith(
         2,
-        "https://api.test.com/admin/data",
+        'https://api.test.com/admin/data',
         {
-          method: "GET",
+          method: 'GET',
           headers: {
-            "Content-Type": "application/json",
-            Authorization: "Bearer multi-token",
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer multi-token',
           },
           body: undefined,
-        },
-      );
-    });
-  });
+        }
+      )
+    })
+  })
 
-  describe("Response Wrapper Feature", () => {
+  describe('Response Wrapper Feature', () => {
     const createApiResponseWrapper = (successResponse: z.ZodTypeAny) =>
       z.union([
         z.object({
@@ -896,86 +899,86 @@ describe("ApiClient", () => {
           timestamp: z.string(),
           requestId: z.string(),
         }),
-      ]);
+      ])
 
-    it("should validate and unwrap successful wrapped responses", async () => {
-      client.setResponseWrapper(createApiResponseWrapper);
+    it('should validate and unwrap successful wrapped responses', async () => {
+      client.setResponseWrapper(createApiResponseWrapper)
 
-      (fetch as jest.Mock).mockResolvedValueOnce({
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           success: true,
-          data: { id: "1", name: "John" },
-          timestamp: "2024-01-15T10:30:00Z",
-          requestId: "req-123",
+          data: { id: '1', name: 'John' },
+          timestamp: '2024-01-15T10:30:00Z',
+          requestId: 'req-123',
         }),
-      });
+      })
 
-      const result = await client.modules.user.getUser({ id: "1" });
+      const result = await client.modules.user.getUser({ id: '1' })
 
-      expect(result).toEqual({ id: "1", name: "John" });
-    });
+      expect(result).toEqual({ id: '1', name: 'John' })
+    })
 
-    it("should throw error for failed wrapped responses", async () => {
-      client.setResponseWrapper(createApiResponseWrapper);
+    it('should throw error for failed wrapped responses', async () => {
+      client.setResponseWrapper(createApiResponseWrapper)
 
-      (fetch as jest.Mock).mockResolvedValueOnce({
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           success: false,
-          message: "User not found",
+          message: 'User not found',
           code: 404,
-          timestamp: "2024-01-15T10:30:00Z",
-          requestId: "req-123",
+          timestamp: '2024-01-15T10:30:00Z',
+          requestId: 'req-123',
         }),
-      });
+      })
 
-      await expect(client.modules.user.getUser({ id: "999" })).rejects.toThrow(
-        RichError,
-      );
-    });
+      await expect(client.modules.user.getUser({ id: '999' })).rejects.toThrow(
+        RichError
+      )
+    })
 
-    it("should throw validation error for invalid wrapped response format", async () => {
-      client.setResponseWrapper(createApiResponseWrapper);
+    it('should throw validation error for invalid wrapped response format', async () => {
+      client.setResponseWrapper(createApiResponseWrapper)
 
-      (fetch as jest.Mock).mockResolvedValueOnce({
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
-          invalid: "format",
+          invalid: 'format',
         }),
-      });
+      })
 
       try {
-        await client.modules.user.getUser({ id: "1" });
-        fail("Expected error to be thrown");
+        await client.modules.user.getUser({ id: '1' })
+        fail('Expected error to be thrown')
       } catch (error: any) {
-        expect(error.message).toContain("Validation error");
-        expect(error.message).toMatch(/validation|invalid/i);
+        expect(error.message).toContain('Validation error')
+        expect(error.message).toMatch(/validation|invalid/i)
       }
-    });
+    })
 
-    it("should handle response transform with wrapper", async () => {
-      client.setResponseWrapper(createApiResponseWrapper);
-      client.useResponseTransform((data) => ({ ...data, transformed: true }));
+    it('should handle response transform with wrapper', async () => {
+      client.setResponseWrapper(createApiResponseWrapper)
+      client.useResponseTransform((data) => ({ ...data, transformed: true }))
 
-      (fetch as jest.Mock).mockResolvedValueOnce({
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           success: true,
-          data: { id: "1", name: "John" },
-          timestamp: "2024-01-15T10:30:00Z",
-          requestId: "req-123",
+          data: { id: '1', name: 'John' },
+          timestamp: '2024-01-15T10:30:00Z',
+          requestId: 'req-123',
         }),
-      });
+      })
 
-      const result = await client.modules.user.getUser({ id: "1" });
+      const result = await client.modules.user.getUser({ id: '1' })
 
-      expect(result).toEqual({ id: "1", name: "John", transformed: true });
-    });
-  });
+      expect(result).toEqual({ id: '1', name: 'John', transformed: true })
+    })
+  })
 
-  describe("Integration: Mock Data + Response Wrapper", () => {
-    it("should handle both features together", async () => {
+  describe('Integration: Mock Data + Response Wrapper', () => {
+    it('should handle both features together', async () => {
       const wrapper = (successResponse: z.ZodTypeAny) =>
         z.union([
           z.object({
@@ -991,184 +994,185 @@ describe("ApiClient", () => {
             timestamp: z.string(),
             requestId: z.string(),
           }),
-        ]);
+        ])
 
-      client.setResponseWrapper(wrapper);
-      client.setMockMode(true, { min: 0, max: 0 });
+      client.setResponseWrapper(wrapper)
+      client.setMockMode(true, { min: 0, max: 0 })
 
-      const result = await client.modules.user.getUser({ id: "1" });
+      const result = await client.modules.user.getUser({ id: '1' })
 
-      expect(result).toEqual({ id: "mock-1", name: "Mock User" });
-    });
-  });
+      expect(result).toEqual({ id: 'mock-1', name: 'Mock User' })
+    })
+  })
 
-  describe("Structured Request Parts Feature", () => {
-    it("should replace path params and append query params for structured GET requests", async () => {
-      (fetch as jest.Mock).mockResolvedValueOnce({
+  describe('Structured Request Parts Feature', () => {
+    it('should replace path params and append query params for structured GET requests', async () => {
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ id: "123", name: "John" }),
-      });
+        json: async () => ({ id: '123', name: 'John' }),
+      })
 
       const result = await client.modules.user.getUserById({
-        path: { id: "123" },
+        path: { id: '123' },
         query: {
-          include: "roles",
+          include: 'roles',
           active: true,
         },
-      });
+      })
 
       expect(fetch).toHaveBeenCalledWith(
-        "https://api.test.com/users/123?include=roles&active=true",
+        'https://api.test.com/users/123?include=roles&active=true',
         {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
           body: undefined,
-        },
-      );
+        }
+      )
 
-      expect(result).toEqual({ id: "123", name: "John" });
-    });
+      expect(result).toEqual({ id: '123', name: 'John' })
+    })
 
-    it("should URL encode path params", async () => {
-      (fetch as jest.Mock).mockResolvedValueOnce({
+    it('should URL encode path params', async () => {
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ id: "user 123", name: "John" }),
-      });
+        json: async () => ({ id: 'user 123', name: 'John' }),
+      })
 
       await client.modules.user.getUserById({
-        path: { id: "user 123" },
+        path: { id: 'user 123' },
         query: {},
-      });
+      })
 
       expect(fetch).toHaveBeenCalledWith(
-        "https://api.test.com/users/user%20123",
+        'https://api.test.com/users/user%20123',
         {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
           body: undefined,
-        },
-      );
-    });
+        }
+      )
+    })
 
-    it("should send only structured body for non-GET requests", async () => {
-      (fetch as jest.Mock).mockResolvedValueOnce({
+    it('should send only structured body for non-GET requests', async () => {
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ id: "123", name: "Taha", age: 22 }),
-      });
+        json: async () => ({ id: '123', name: 'Taha', age: 22 }),
+      })
 
       const result = await client.modules.user.updateUserStructured({
-        path: { id: "123" },
+        path: { id: '123' },
         body: {
-          name: "Taha",
+          name: 'Taha',
           age: 22,
         },
-      });
+      })
 
-      expect(fetch).toHaveBeenCalledWith("https://api.test.com/users/123", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+      expect(fetch).toHaveBeenCalledWith('https://api.test.com/users/123', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: "Taha",
+          name: 'Taha',
           age: 22,
         }),
-      });
+      })
 
-      expect(result).toEqual({ id: "123", name: "Taha", age: 22 });
-    });
+      expect(result).toEqual({ id: '123', name: 'Taha', age: 22 })
+    })
 
-    it("should merge structured request headers into fetch headers", async () => {
-      (fetch as jest.Mock).mockResolvedValueOnce({
+    it('should merge structured request headers into fetch headers', async () => {
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ id: "123", name: "Taha" }),
-      });
+        json: async () => ({ id: '123', name: 'Taha' }),
+      })
 
       await client.modules.user.updateUserStructured({
-        path: { id: "123" },
+        path: { id: '123' },
         headers: {
-          "X-Tenant": "main",
-          "X-Request-Source": "test-suite",
+          'X-Tenant': 'main',
+          'X-Request-Source': 'test-suite',
         },
         body: {
-          name: "Taha",
+          name: 'Taha',
         },
-      });
+      })
 
-      expect(fetch).toHaveBeenCalledWith("https://api.test.com/users/123", {
-        method: "PATCH",
+      expect(fetch).toHaveBeenCalledWith('https://api.test.com/users/123', {
+        method: 'PATCH',
         headers: {
-          "Content-Type": "application/json",
-          "X-Tenant": "main",
-          "X-Request-Source": "test-suite",
+          'Content-Type': 'application/json',
+          'X-Tenant': 'main',
+          'X-Request-Source': 'test-suite',
         },
         body: JSON.stringify({
-          name: "Taha",
+          name: 'Taha',
         }),
-      });
-    });
+      })
+    })
 
-    it("should append array query params by repeating the same query key", async () => {
-      (fetch as jest.Mock).mockResolvedValueOnce({
+    it('should append array query params by repeating the same query key', async () => {
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
         json: async () => [
-          { id: "1", name: "John" },
-          { id: "2", name: "Alice" },
+          { id: '1', name: 'John' },
+          { id: '2', name: 'Alice' },
         ],
-      });
+      })
 
       const result = await client.modules.user.searchUsersStructured({
         query: {
-          q: "dev",
-          tags: ["react", "node"],
+          q: 'dev',
+          tags: ['react', 'node'],
           page: 2,
         },
-      });
+      })
 
       expect(fetch).toHaveBeenCalledWith(
-        "https://api.test.com/users/search?q=dev&tags=react&tags=node&page=2",
+        'https://api.test.com/users/search?q=dev&tags=react&tags=node&page=2',
         {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
           body: undefined,
-        },
-      );
+        }
+      )
 
       expect(result).toEqual([
-        { id: "1", name: "John" },
-        { id: "2", name: "Alice" },
-      ]);
-    });
+        { id: '1', name: 'John' },
+        { id: '2', name: 'Alice' },
+      ])
+    })
 
-    it("should allow structured POST with only body and no path/query/headers", async () => {
-      (fetch as jest.Mock).mockResolvedValueOnce({
+    it('should allow structured POST with only body and no path/query/headers', async () => {
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ id: "1", name: "Taha" }),
-      });
+        json: async () => ({ id: '1', name: 'Taha' }),
+      })
 
       const result = await client.modules.user.createUserStructured({
         body: {
-          name: "Taha",
+          name: 'Taha',
         },
-      });
+      })
 
-      expect(fetch).toHaveBeenCalledWith("https://api.test.com/users", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      expect(fetch).toHaveBeenCalledWith('https://api.test.com/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: "Taha",
+          name: 'Taha',
         }),
-      });
+      })
 
-      expect(result).toEqual({ id: "1", name: "Taha" });
-    });
+      expect(result).toEqual({ id: '1', name: 'Taha' })
+    })
 
-    it("should not send a body for structured GET even when body exists in schema input", async () => {
+    it('should not send a body for structured GET even when body exists in schema input', async () => {
       const weirdGetContracts = {
         user: {
           getWithBodyIgnored: {
-            method: "GET",
-            path: "/users/:id",
+            method: 'GET',
+            path: '/users/:id',
             request: makeRequestSchema<
               { id: z.ZodString },
+              // eslint-disable-next-line @typescript-eslint/no-empty-object-type
               {},
               z.ZodObject<{ ignored: z.ZodString }>
             >()({
@@ -1184,512 +1188,512 @@ describe("ApiClient", () => {
             }),
           },
         },
-      } satisfies Contracts;
+      } satisfies Contracts
 
       const weirdClient = new ApiClient(
-        { baseUrl: "https://api.test.com" },
-        weirdGetContracts,
-      );
+        { baseUrl: 'https://api.test.com' },
+        weirdGetContracts
+      )
 
-      weirdClient.init();
+      weirdClient.init()
 
-      (fetch as jest.Mock).mockResolvedValueOnce({
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ id: "123" }),
-      });
+        json: async () => ({ id: '123' }),
+      })
 
       await weirdClient.modules.user.getWithBodyIgnored({
-        path: { id: "123" },
-        body: { ignored: "do-not-send" },
-      });
+        path: { id: '123' },
+        body: { ignored: 'do-not-send' },
+      })
 
-      expect(fetch).toHaveBeenCalledWith("https://api.test.com/users/123", {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
+      expect(fetch).toHaveBeenCalledWith('https://api.test.com/users/123', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
         body: undefined,
-      });
-    });
+      })
+    })
 
-    it("should throw validation error when structured path params are invalid", async () => {
+    it('should throw validation error when structured path params are invalid', async () => {
       await expect(
         client.modules.user.getUserById({
           path: {},
           query: {},
-        } as any),
-      ).rejects.toThrow();
+        } as any)
+      ).rejects.toThrow()
 
-      expect(fetch).not.toHaveBeenCalled();
-    });
+      expect(fetch).not.toHaveBeenCalled()
+    })
 
-    it("should preserve legacy GET behavior", async () => {
-      (fetch as jest.Mock).mockResolvedValueOnce({
+    it('should preserve legacy GET behavior', async () => {
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ id: "1", name: "John" }),
-      });
+        json: async () => ({ id: '1', name: 'John' }),
+      })
 
-      await client.modules.user.getUser({ id: "1" });
+      await client.modules.user.getUser({ id: '1' })
 
-      expect(fetch).toHaveBeenCalledWith("https://api.test.com/user", {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
+      expect(fetch).toHaveBeenCalledWith('https://api.test.com/user', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
         body: undefined,
-      });
-    });
+      })
+    })
 
-    it("should preserve legacy POST behavior", async () => {
+    it('should preserve legacy POST behavior', async () => {
       const authedClient = new ApiClient(
         {
-          baseUrl: "https://api.test.com",
-          token: "mytoken",
+          baseUrl: 'https://api.test.com',
+          token: 'mytoken',
         },
-        contracts,
-      );
+        contracts
+      )
 
-      authedClient.init();
+      authedClient.init()
 
-      (fetch as jest.Mock).mockResolvedValueOnce({
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ id: "2", name: "Alice" }),
-      });
+        json: async () => ({ id: '2', name: 'Alice' }),
+      })
 
-      await authedClient.modules.user.createUser({ name: "Alice" });
+      await authedClient.modules.user.createUser({ name: 'Alice' })
 
-      expect(fetch).toHaveBeenCalledWith("https://api.test.com/user", {
-        method: "POST",
+      expect(fetch).toHaveBeenCalledWith('https://api.test.com/user', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer mytoken",
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer mytoken',
         },
-        body: JSON.stringify({ name: "Alice" }),
-      });
-    });
+        body: JSON.stringify({ name: 'Alice' }),
+      })
+    })
 
-    it("should send structured form-data body without Content-Type json header", async () => {
-      (fetch as jest.Mock).mockResolvedValueOnce({
+    it('should send structured form-data body without Content-Type json header', async () => {
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ uploaded: true }),
-      });
+      })
 
       const result = await client.modules.user.uploadAvatar({
-        path: { id: "123" },
+        path: { id: '123' },
         body: {
-          file: "fake-file-content",
-          alt: "Avatar",
+          file: 'fake-file-content',
+          alt: 'Avatar',
         },
-      });
+      })
 
-      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledTimes(1)
 
       const [url, init] = (fetch as jest.Mock).mock.calls[0] as [
         string,
         RequestInit,
-      ];
+      ]
 
-      expect(url).toBe("https://api.test.com/users/123/avatar");
-      expect(init.method).toBe("POST");
-      expect(init.headers).toEqual({});
-      expect(init.body).toBeInstanceOf(FormData);
+      expect(url).toBe('https://api.test.com/users/123/avatar')
+      expect(init.method).toBe('POST')
+      expect(init.headers).toEqual({})
+      expect(init.body).toBeInstanceOf(FormData)
 
-      const form = init.body as FormData;
+      const form = init.body as FormData
 
-      expect(form.get("file")).toBe("fake-file-content");
-      expect(form.get("alt")).toBe("Avatar");
+      expect(form.get('file')).toBe('fake-file-content')
+      expect(form.get('alt')).toBe('Avatar')
 
-      expect(result).toEqual({ uploaded: true });
-    });
-  });
+      expect(result).toEqual({ uploaded: true })
+    })
+  })
 
-  describe("Structured Request Parts Feature", () => {
-    it("should replace path params and append query params for structured GET requests", async () => {
-      (fetch as jest.Mock).mockResolvedValueOnce({
+  describe('Structured Request Parts Feature', () => {
+    it('should replace path params and append query params for structured GET requests', async () => {
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ id: "123", name: "John" }),
-      });
+        json: async () => ({ id: '123', name: 'John' }),
+      })
 
       const result = await client.modules.user.getUserById({
-        path: { id: "123" },
-        query: { include: "roles", active: true },
-      });
+        path: { id: '123' },
+        query: { include: 'roles', active: true },
+      })
 
       expect(fetch).toHaveBeenCalledWith(
-        "https://api.test.com/users/123?include=roles&active=true",
+        'https://api.test.com/users/123?include=roles&active=true',
         {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
           body: undefined,
-        },
-      );
+        }
+      )
 
-      expect(result).toEqual({ id: "123", name: "John" });
-    });
+      expect(result).toEqual({ id: '123', name: 'John' })
+    })
 
-    it("should URL encode path params", async () => {
-      (fetch as jest.Mock).mockResolvedValueOnce({
+    it('should URL encode path params', async () => {
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ id: "user 123", name: "John" }),
-      });
+        json: async () => ({ id: 'user 123', name: 'John' }),
+      })
 
       await client.modules.user.getUserById({
-        path: { id: "user 123" },
+        path: { id: 'user 123' },
         query: {},
-      });
+      })
 
       expect(fetch).toHaveBeenCalledWith(
-        "https://api.test.com/users/user%20123",
+        'https://api.test.com/users/user%20123',
         {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
           body: undefined,
-        },
-      );
-    });
+        }
+      )
+    })
 
-    it("should send only structured body for non-GET requests", async () => {
-      (fetch as jest.Mock).mockResolvedValueOnce({
+    it('should send only structured body for non-GET requests', async () => {
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ id: "123", name: "Taha", age: 22 }),
-      });
+        json: async () => ({ id: '123', name: 'Taha', age: 22 }),
+      })
 
       const result = await client.modules.user.updateUserStructured({
-        path: { id: "123" },
-        body: { name: "Taha", age: 22 },
-      });
+        path: { id: '123' },
+        body: { name: 'Taha', age: 22 },
+      })
 
-      expect(fetch).toHaveBeenCalledWith("https://api.test.com/users/123", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: "Taha", age: 22 }),
-      });
+      expect(fetch).toHaveBeenCalledWith('https://api.test.com/users/123', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'Taha', age: 22 }),
+      })
 
-      expect(result).toEqual({ id: "123", name: "Taha", age: 22 });
-    });
+      expect(result).toEqual({ id: '123', name: 'Taha', age: 22 })
+    })
 
-    it("should merge structured request headers into fetch headers", async () => {
-      (fetch as jest.Mock).mockResolvedValueOnce({
+    it('should merge structured request headers into fetch headers', async () => {
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ id: "123", name: "Taha" }),
-      });
+        json: async () => ({ id: '123', name: 'Taha' }),
+      })
 
       await client.modules.user.updateUserStructured({
-        path: { id: "123" },
+        path: { id: '123' },
         headers: {
-          "X-Tenant": "main",
-          "X-Request-Source": "test-suite",
+          'X-Tenant': 'main',
+          'X-Request-Source': 'test-suite',
         },
-        body: { name: "Taha" },
-      });
+        body: { name: 'Taha' },
+      })
 
-      expect(fetch).toHaveBeenCalledWith("https://api.test.com/users/123", {
-        method: "PATCH",
+      expect(fetch).toHaveBeenCalledWith('https://api.test.com/users/123', {
+        method: 'PATCH',
         headers: {
-          "Content-Type": "application/json",
-          "X-Tenant": "main",
-          "X-Request-Source": "test-suite",
+          'Content-Type': 'application/json',
+          'X-Tenant': 'main',
+          'X-Request-Source': 'test-suite',
         },
-        body: JSON.stringify({ name: "Taha" }),
-      });
-    });
+        body: JSON.stringify({ name: 'Taha' }),
+      })
+    })
 
-    it("should append array query params by repeating the same query key", async () => {
-      (fetch as jest.Mock).mockResolvedValueOnce({
+    it('should append array query params by repeating the same query key', async () => {
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
         json: async () => [
-          { id: "1", name: "John" },
-          { id: "2", name: "Alice" },
+          { id: '1', name: 'John' },
+          { id: '2', name: 'Alice' },
         ],
-      });
+      })
 
       const result = await client.modules.user.searchUsersStructured({
-        query: { q: "dev", tags: ["react", "node"], page: 2 },
-      });
+        query: { q: 'dev', tags: ['react', 'node'], page: 2 },
+      })
 
       expect(fetch).toHaveBeenCalledWith(
-        "https://api.test.com/users/search?q=dev&tags=react&tags=node&page=2",
+        'https://api.test.com/users/search?q=dev&tags=react&tags=node&page=2',
         {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
           body: undefined,
-        },
-      );
+        }
+      )
 
       expect(result).toEqual([
-        { id: "1", name: "John" },
-        { id: "2", name: "Alice" },
-      ]);
-    });
+        { id: '1', name: 'John' },
+        { id: '2', name: 'Alice' },
+      ])
+    })
 
-    it("should allow structured POST with only body", async () => {
-      (fetch as jest.Mock).mockResolvedValueOnce({
+    it('should allow structured POST with only body', async () => {
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ id: "1", name: "Taha" }),
-      });
+        json: async () => ({ id: '1', name: 'Taha' }),
+      })
 
       const result = await client.modules.user.createUserStructured({
-        body: { name: "Taha" },
-      });
+        body: { name: 'Taha' },
+      })
 
-      expect(fetch).toHaveBeenCalledWith("https://api.test.com/users", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: "Taha" }),
-      });
+      expect(fetch).toHaveBeenCalledWith('https://api.test.com/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'Taha' }),
+      })
 
-      expect(result).toEqual({ id: "1", name: "Taha" });
-    });
+      expect(result).toEqual({ id: '1', name: 'Taha' })
+    })
 
-    it("should preserve legacy GET behavior", async () => {
-      (fetch as jest.Mock).mockResolvedValueOnce({
+    it('should preserve legacy GET behavior', async () => {
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ id: "1", name: "John" }),
-      });
+        json: async () => ({ id: '1', name: 'John' }),
+      })
 
-      await client.modules.user.getUser({ id: "1" });
+      await client.modules.user.getUser({ id: '1' })
 
-      expect(fetch).toHaveBeenCalledWith("https://api.test.com/user", {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
+      expect(fetch).toHaveBeenCalledWith('https://api.test.com/user', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
         body: undefined,
-      });
-    });
+      })
+    })
 
-    it("should preserve legacy POST behavior", async () => {
+    it('should preserve legacy POST behavior', async () => {
       const authedClient = new ApiClient(
-        { baseUrl: "https://api.test.com", token: "mytoken" },
-        contracts,
-      );
-      authedClient.init();
+        { baseUrl: 'https://api.test.com', token: 'mytoken' },
+        contracts
+      )
+      authedClient.init()
 
-      (fetch as jest.Mock).mockResolvedValueOnce({
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ id: "2", name: "Alice" }),
-      });
+        json: async () => ({ id: '2', name: 'Alice' }),
+      })
 
-      await authedClient.modules.user.createUser({ name: "Alice" });
+      await authedClient.modules.user.createUser({ name: 'Alice' })
 
-      expect(fetch).toHaveBeenCalledWith("https://api.test.com/user", {
-        method: "POST",
+      expect(fetch).toHaveBeenCalledWith('https://api.test.com/user', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer mytoken",
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer mytoken',
         },
-        body: JSON.stringify({ name: "Alice" }),
-      });
-    });
+        body: JSON.stringify({ name: 'Alice' }),
+      })
+    })
 
-    it("should send structured form-data body without Content-Type json header", async () => {
-      (fetch as jest.Mock).mockResolvedValueOnce({
+    it('should send structured form-data body without Content-Type json header', async () => {
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ uploaded: true }),
-      });
+      })
 
       const result = await client.modules.user.uploadAvatar({
-        path: { id: "123" },
-        body: { file: "fake-file-content", alt: "Avatar" },
-      });
+        path: { id: '123' },
+        body: { file: 'fake-file-content', alt: 'Avatar' },
+      })
 
       const [url, init] = (fetch as jest.Mock).mock.calls[0] as [
         string,
         RequestInit,
-      ];
+      ]
 
-      expect(url).toBe("https://api.test.com/users/123/avatar");
-      expect(init.method).toBe("POST");
-      expect(init.headers).toEqual({});
-      expect(init.body).toBeInstanceOf(FormData);
+      expect(url).toBe('https://api.test.com/users/123/avatar')
+      expect(init.method).toBe('POST')
+      expect(init.headers).toEqual({})
+      expect(init.body).toBeInstanceOf(FormData)
 
-      const form = init.body as FormData;
-      expect(form.get("file")).toBe("fake-file-content");
-      expect(form.get("alt")).toBe("Avatar");
+      const form = init.body as FormData
+      expect(form.get('file')).toBe('fake-file-content')
+      expect(form.get('alt')).toBe('Avatar')
 
-      expect(result).toEqual({ uploaded: true });
-    });
-  });
-});
+      expect(result).toEqual({ uploaded: true })
+    })
+  })
+})
 
-describe("Typed Error Responses (errors map)", () => {
+describe('Typed Error Responses (errors map)', () => {
   const errorContracts = {
     user: {
       createUser: {
-        method: "POST",
-        path: "/users",
+        method: 'POST',
+        path: '/users',
         request: z.object({ email: z.string() }),
         response: z.object({ id: z.string() }),
         errors: {
           409: z.object({
-            code: z.literal("EMAIL_TAKEN"),
+            code: z.literal('EMAIL_TAKEN'),
             conflictField: z.string(),
           }),
           422: z.object({
-            code: z.literal("INVALID"),
+            code: z.literal('INVALID'),
             issues: z.array(z.string()),
           }),
         },
       },
       getUser: {
-        method: "GET",
-        path: "/user",
+        method: 'GET',
+        path: '/user',
         request: z.object({ id: z.string() }),
         response: z.object({ id: z.string(), name: z.string() }),
         // no `errors` declared — legacy behavior
       },
     },
-  } satisfies Contracts;
+  } satisfies Contracts
 
-  let errorClient: ApiClient<typeof errorContracts>;
+  let errorClient: ApiClient<typeof errorContracts>
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.clearAllMocks()
     errorClient = new ApiClient(
-      { baseUrl: "https://api.test.com" },
-      errorContracts,
-    );
-    errorClient.init();
-  });
+      { baseUrl: 'https://api.test.com' },
+      errorContracts
+    )
+    errorClient.init()
+  })
 
-  it("should parse the declared error body into RichError.data", async () => {
-    (fetch as jest.Mock).mockResolvedValueOnce({
+  it('should parse the declared error body into RichError.data', async () => {
+    ;(fetch as jest.Mock).mockResolvedValueOnce({
       ok: false,
       status: 409,
-      statusText: "Conflict",
-      json: async () => ({ code: "EMAIL_TAKEN", conflictField: "email" }),
-    });
+      statusText: 'Conflict',
+      json: async () => ({ code: 'EMAIL_TAKEN', conflictField: 'email' }),
+    })
 
     try {
-      await errorClient.modules.user.createUser({ email: "a@b.com" });
-      fail("Expected error to be thrown");
+      await errorClient.modules.user.createUser({ email: 'a@b.com' })
+      fail('Expected error to be thrown')
     } catch (error) {
-      expect(error).toBeInstanceOf(RichError);
-      expect((error as RichError).status).toBe(409);
+      expect(error).toBeInstanceOf(RichError)
+      expect((error as RichError).status).toBe(409)
       expect((error as RichError).data).toEqual({
-        code: "EMAIL_TAKEN",
-        conflictField: "email",
-      });
+        code: 'EMAIL_TAKEN',
+        conflictField: 'email',
+      })
       // body validated against the declared schema
-      expect((error as RichError).dataParsed).toBe(true);
+      expect((error as RichError).dataParsed).toBe(true)
     }
-  });
+  })
 
-  it("should narrow the error with isContractError at the matching status", async () => {
-    (fetch as jest.Mock).mockResolvedValueOnce({
+  it('should narrow the error with isContractError at the matching status', async () => {
+    ;(fetch as jest.Mock).mockResolvedValueOnce({
       ok: false,
       status: 409,
-      statusText: "Conflict",
-      json: async () => ({ code: "EMAIL_TAKEN", conflictField: "email" }),
-    });
+      statusText: 'Conflict',
+      json: async () => ({ code: 'EMAIL_TAKEN', conflictField: 'email' }),
+    })
 
     try {
-      await errorClient.modules.user.createUser({ email: "a@b.com" });
-      fail("Expected error to be thrown");
+      await errorClient.modules.user.createUser({ email: 'a@b.com' })
+      fail('Expected error to be thrown')
     } catch (error) {
       expect(isContractError(errorContracts.user.createUser, error, 409)).toBe(
-        true,
-      );
+        true
+      )
       expect(isContractError(errorContracts.user.createUser, error, 422)).toBe(
-        false,
-      );
+        false
+      )
 
       if (isContractError(errorContracts.user.createUser, error, 409)) {
         // `error.data` is typed as the 409 body here
-        expect(error.data.conflictField).toBe("email");
+        expect(error.data.conflictField).toBe('email')
       }
     }
-  });
+  })
 
-  it("should fall back to raw json when no schema is declared for the status", async () => {
-    (fetch as jest.Mock).mockResolvedValueOnce({
+  it('should fall back to raw json when no schema is declared for the status', async () => {
+    ;(fetch as jest.Mock).mockResolvedValueOnce({
       ok: false,
       status: 500,
-      statusText: "Server Error",
-      json: async () => ({ message: "boom", detail: "internal" }),
-    });
+      statusText: 'Server Error',
+      json: async () => ({ message: 'boom', detail: 'internal' }),
+    })
 
     try {
-      await errorClient.modules.user.createUser({ email: "a@b.com" });
-      fail("Expected error to be thrown");
+      await errorClient.modules.user.createUser({ email: 'a@b.com' })
+      fail('Expected error to be thrown')
     } catch (error) {
-      expect((error as RichError).status).toBe(500);
+      expect((error as RichError).status).toBe(500)
       expect((error as RichError).data).toEqual({
-        message: "boom",
-        detail: "internal",
-      });
+        message: 'boom',
+        detail: 'internal',
+      })
     }
-  });
+  })
 
-  it("should fall back to raw json when the body fails schema validation", async () => {
-    (fetch as jest.Mock).mockResolvedValueOnce({
+  it('should fall back to raw json when the body fails schema validation', async () => {
+    ;(fetch as jest.Mock).mockResolvedValueOnce({
       ok: false,
       status: 409,
-      statusText: "Conflict",
+      statusText: 'Conflict',
       // does not match the 409 schema (wrong literal, missing field)
-      json: async () => ({ code: "SOMETHING_ELSE" }),
-    });
+      json: async () => ({ code: 'SOMETHING_ELSE' }),
+    })
 
     try {
-      await errorClient.modules.user.createUser({ email: "a@b.com" });
-      fail("Expected error to be thrown");
+      await errorClient.modules.user.createUser({ email: 'a@b.com' })
+      fail('Expected error to be thrown')
     } catch (error) {
-      expect((error as RichError).status).toBe(409);
+      expect((error as RichError).status).toBe(409)
       // typing never throws — raw body is preserved
-      expect((error as RichError).data).toEqual({ code: "SOMETHING_ELSE" });
+      expect((error as RichError).data).toEqual({ code: 'SOMETHING_ELSE' })
       // body did NOT match the schema, so it was not marked as validated
-      expect((error as RichError).dataParsed).toBe(false);
+      expect((error as RichError).dataParsed).toBe(false)
       // and the guard refuses to narrow to a type the body doesn't match
-      expect(
-        isContractError(errorContracts.user.createUser, error, 409),
-      ).toBe(false);
+      expect(isContractError(errorContracts.user.createUser, error, 409)).toBe(
+        false
+      )
     }
-  });
+  })
 
-  it("should attach raw json as data for endpoints without an errors map", async () => {
-    (fetch as jest.Mock).mockResolvedValueOnce({
+  it('should attach raw json as data for endpoints without an errors map', async () => {
+    ;(fetch as jest.Mock).mockResolvedValueOnce({
       ok: false,
       status: 404,
-      statusText: "Not Found",
-      json: async () => ({ message: "user not found", code: "NOT_FOUND" }),
-    });
+      statusText: 'Not Found',
+      json: async () => ({ message: 'user not found', code: 'NOT_FOUND' }),
+    })
 
     try {
-      await errorClient.modules.user.getUser({ id: "missing" });
-      fail("Expected error to be thrown");
+      await errorClient.modules.user.getUser({ id: 'missing' })
+      fail('Expected error to be thrown')
     } catch (error) {
-      expect((error as RichError).status).toBe(404);
+      expect((error as RichError).status).toBe(404)
       expect((error as RichError).data).toEqual({
-        message: "user not found",
-        code: "NOT_FOUND",
-      });
+        message: 'user not found',
+        code: 'NOT_FOUND',
+      })
       // existing normalized fields remain untouched
-      expect((error as RichError).message).toBe("user not found");
-      expect((error as RichError).code).toBe("NOT_FOUND");
+      expect((error as RichError).message).toBe('user not found')
+      expect((error as RichError).code).toBe('NOT_FOUND')
     }
-  });
+  })
 
-  it("should still call the error handler with the typed error", async () => {
-    const handler = jest.fn();
-    errorClient.onError(handler);
+  it('should still call the error handler with the typed error', async () => {
+    const handler = jest.fn()
+    errorClient.onError(handler)
 
-    (fetch as jest.Mock).mockResolvedValueOnce({
+    ;(fetch as jest.Mock).mockResolvedValueOnce({
       ok: false,
       status: 422,
-      statusText: "Unprocessable Entity",
-      json: async () => ({ code: "INVALID", issues: ["email"] }),
-    });
+      statusText: 'Unprocessable Entity',
+      json: async () => ({ code: 'INVALID', issues: ['email'] }),
+    })
 
     await expect(
-      errorClient.modules.user.createUser({ email: "bad" }),
-    ).rejects.toBeInstanceOf(RichError);
+      errorClient.modules.user.createUser({ email: 'bad' })
+    ).rejects.toBeInstanceOf(RichError)
 
-    expect(handler).toHaveBeenCalled();
-    const handled = handler.mock.calls[0][0] as RichError;
-    expect(handled.status).toBe(422);
-    expect(handled.data).toEqual({ code: "INVALID", issues: ["email"] });
-  });
+    expect(handler).toHaveBeenCalled()
+    const handled = handler.mock.calls[0][0] as RichError
+    expect(handled.status).toBe(422)
+    expect(handled.data).toEqual({ code: 'INVALID', issues: ['email'] })
+  })
 
-  it("should return false from isContractError for non-RichError values", () => {
+  it('should return false from isContractError for non-RichError values', () => {
     expect(
-      isContractError(errorContracts.user.createUser, new Error("x"), 409),
-    ).toBe(false);
-    expect(
-      isContractError(errorContracts.user.createUser, "nope", 409),
-    ).toBe(false);
-  });
-});
+      isContractError(errorContracts.user.createUser, new Error('x'), 409)
+    ).toBe(false)
+    expect(isContractError(errorContracts.user.createUser, 'nope', 409)).toBe(
+      false
+    )
+  })
+})

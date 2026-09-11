@@ -16,13 +16,13 @@ prints can drift from the packages it demonstrates without anyone noticing.
 **The call site never names a protocol.** These three lines are the whole point:
 
 ```ts
-const rest    = await user.getUser({ path: { id: "1" } });
-const graphql = await user.profile({ id: "1" });
-const grpc    = await user.syncUser({ id: "1" });
+const rest = await user.getUser({ path: { id: '1' } })
+const graphql = await user.profile({ id: '1' })
+const grpc = await user.syncUser({ id: '1' })
 ```
 
 Each returns the same validated `User`. The transport is a property of the
-*contract*, not of the call — so migrating a route from REST to gRPC is a change
+_contract_, not of the call — so migrating a route from REST to gRPC is a change
 to [`shared/contracts.ts`](./shared/contracts.ts) and nothing else. No second
 client, no second auth setup, no second error shape.
 
@@ -30,7 +30,13 @@ client, no second auth setup, no second error shape.
 query. This is what actually went over the wire:
 
 ```graphql
-query UserProfile($id: String!) { user(id: $id) { id name email } }
+query UserProfile($id: String!) {
+  user(id: $id) {
+    id
+    name
+    email
+  }
+}
 ```
 
 Add a field to the response schema and the query asks for it. Nothing else in
@@ -39,11 +45,11 @@ type that validates its result drift the first time someone edits one of them.
 
 **Errors normalize.** Three completely different failure shapes:
 
-| Wire | What the server sent | `error.kind` |
-| --- | --- | --- |
-| HTTP | `404` + `{ message }` | `not_found` |
-| GraphQL | `200` + `extensions.code: "NOT_FOUND"` | `not_found` |
-| gRPC | `404` + `{ code: "not_found" }` | `not_found` |
+| Wire    | What the server sent                   | `error.kind` |
+| ------- | -------------------------------------- | ------------ |
+| HTTP    | `404` + `{ message }`                  | `not_found`  |
+| GraphQL | `200` + `extensions.code: "NOT_FOUND"` | `not_found`  |
+| gRPC    | `404` + `{ code: "not_found" }`        | `not_found`  |
 
 So an app's "show a not-found page" branch is written once. This is the part
 that earns the abstraction — a client speaking three protocols is only useful
@@ -96,7 +102,7 @@ the CLI treats it as a single implicit project.
 [`shared/server.ts`](./shared/server.ts) speaks all three protocols on one
 `node:http` server, hand-written rather than built on Apollo and a Connect
 runtime: the point here is what goes over the wire, and a framework would hide
-exactly the part worth reading. Each handler is the *whole* server side of its
+exactly the part worth reading. Each handler is the _whole_ server side of its
 protocol for a single unary call.
 
 The GraphQL handler is not a GraphQL engine — it reads `variables` and answers
@@ -105,10 +111,10 @@ else.
 
 ## Files
 
-| File | What it is |
-| --- | --- |
-| [`shared/contracts.ts`](./shared/contracts.ts) | Three endpoints, three transports, one response type |
-| [`shared/client.ts`](./shared/client.ts) | The client factory and adapter list, imported by the app *and* the CLI |
-| [`shared/server.ts`](./shared/server.ts) | REST + GraphQL + Connect on one port |
-| [`main.ts`](./main.ts) | The run, with assertions |
-| [`typewire.config.ts`](./typewire.config.ts) | The CLI reading the same contracts |
+| File                                           | What it is                                                             |
+| ---------------------------------------------- | ---------------------------------------------------------------------- |
+| [`shared/contracts.ts`](./shared/contracts.ts) | Three endpoints, three transports, one response type                   |
+| [`shared/client.ts`](./shared/client.ts)       | The client factory and adapter list, imported by the app _and_ the CLI |
+| [`shared/server.ts`](./shared/server.ts)       | REST + GraphQL + Connect on one port                                   |
+| [`main.ts`](./main.ts)                         | The run, with assertions                                               |
+| [`typewire.config.ts`](./typewire.config.ts)   | The CLI reading the same contracts                                     |

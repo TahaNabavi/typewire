@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { runCli } from "./run-cli";
+import { runCli } from './run-cli'
 
 /**
  * Exit codes are part of the contract (`docs/CLI.md` §4): `0` ok, `1` findings,
@@ -7,12 +7,12 @@ import { runCli } from "./run-cli";
  * tell "your contracts have problems" apart from "your pipeline is broken".
  */
 runCli(process.argv).catch((error: unknown) => {
-  const message = error instanceof Error ? error.message : String(error);
+  const message = error instanceof Error ? error.message : String(error)
   const exitCode =
-    typeof (error as { exitCode?: unknown })?.exitCode === "number"
+    typeof (error as { exitCode?: unknown })?.exitCode === 'number'
       ? (error as { exitCode: number }).exitCode
-      : 1;
+      : 1
 
-  console.error(`TypeWire CLI error:\n${message}`);
-  process.exit(exitCode);
-});
+  console.error(`TypeWire CLI error:\n${message}`)
+  process.exit(exitCode)
+})

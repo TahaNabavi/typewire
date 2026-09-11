@@ -1,5 +1,5 @@
-import { z } from "zod";
-import type { TypeFetchFile } from "./types";
+import { z } from 'zod'
+import type { TypeFetchFile } from './types'
 
 /**
  * Schema helpers for non-JSON response types
@@ -22,8 +22,8 @@ import type { TypeFetchFile } from "./types";
 
 /** True when `name` is a constructor on `globalThis` and `value` is one. */
 function isGlobalInstance(value: unknown, name: string): boolean {
-  const ctor = (globalThis as Record<string, any>)[name];
-  return typeof ctor === "function" && value instanceof ctor;
+  const ctor = (globalThis as Record<string, any>)[name]
+  return typeof ctor === 'function' && value instanceof ctor
 }
 
 /**
@@ -31,9 +31,9 @@ function isGlobalInstance(value: unknown, name: string): boolean {
  * Pair with `responseType: "blob"`.
  */
 export function zBlob() {
-  return z.custom<Blob>((value) => isGlobalInstance(value, "Blob"), {
-    message: "Expected a Blob",
-  });
+  return z.custom<Blob>((value) => isGlobalInstance(value, 'Blob'), {
+    message: 'Expected a Blob',
+  })
 }
 
 /**
@@ -41,18 +41,18 @@ export function zBlob() {
  */
 export function zArrayBuffer() {
   return z.custom<ArrayBuffer>(
-    (value) => isGlobalInstance(value, "ArrayBuffer"),
-    { message: "Expected an ArrayBuffer" },
-  );
+    (value) => isGlobalInstance(value, 'ArrayBuffer'),
+    { message: 'Expected an ArrayBuffer' }
+  )
 }
 
 /**
  * Matches a `FormData`. Pair with `responseType: "formData"`.
  */
 export function zFormData() {
-  return z.custom<FormData>((value) => isGlobalInstance(value, "FormData"), {
-    message: "Expected a FormData",
-  });
+  return z.custom<FormData>((value) => isGlobalInstance(value, 'FormData'), {
+    message: 'Expected a FormData',
+  })
 }
 
 /**
@@ -64,18 +64,18 @@ export function zFormData() {
  */
 export function zStream() {
   return z.custom<ReadableStream<Uint8Array> | null>(
-    (value) => value === null || isGlobalInstance(value, "ReadableStream"),
-    { message: "Expected a ReadableStream or null" },
-  );
+    (value) => value === null || isGlobalInstance(value, 'ReadableStream'),
+    { message: 'Expected a ReadableStream or null' }
+  )
 }
 
 /**
  * Matches a whole `Response`. Pair with `responseType: "response"`.
  */
 export function zResponse() {
-  return z.custom<Response>((value) => isGlobalInstance(value, "Response"), {
-    message: "Expected a Response",
-  });
+  return z.custom<Response>((value) => isGlobalInstance(value, 'Response'), {
+    message: 'Expected a Response',
+  })
 }
 
 /**
@@ -91,5 +91,5 @@ export function zFile() {
     filename: z.string().optional(),
     contentType: z.string().optional(),
     size: z.number(),
-  }) as unknown as z.ZodType<TypeFetchFile>;
+  }) as unknown as z.ZodType<TypeFetchFile>
 }

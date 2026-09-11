@@ -60,8 +60,8 @@ to announce and fix.
 ### Free win available today
 
 `jiti` sits in `dependencies`, but `load-config.ts` already imports it
-dynamically inside a `try/catch` that prints *"Install jiti to use .ts config
-files"*. **The code already treats it as optional.** Moving it to
+dynamically inside a `try/catch` that prints _"Install jiti to use .ts config
+files"_. **The code already treats it as optional.** Moving it to
 `optionalDependencies` costs nothing and removes a third of the core's dependency
 list before any of this work starts.
 
@@ -71,7 +71,7 @@ list before any of this work starts.
 
 ### The name is wrong today, twice over
 
-`typefetch.test.config.ts` is scoped to one command *and* to one package. Once
+`typefetch.test.config.ts` is scoped to one command _and_ to one package. Once
 the CLI lints, diffs, generates and mocks, the config is not about testing — and
 once typesocket and permission contracts are covered, it is not about typefetch
 either.
@@ -93,26 +93,26 @@ only that section.
 
 ```ts
 // typewire.config.ts
-import { defineConfig } from "@tahanabavi/typewire-cli";
-import { contracts } from "./src/contracts";
-import { events } from "./src/events";
+import { defineConfig } from '@tahanabavi/typewire-cli'
+import { contracts } from './src/contracts'
+import { events } from './src/events'
 
 export default defineConfig({
   // shared by every section
-  lint: { rules: { "path-params-declared": "error" } },
-  diff: { baseline: "typewire.lock.json", failOn: "breaking" },
+  lint: { rules: { 'path-params-declared': 'error' } },
+  diff: { baseline: 'typewire.lock.json', failOn: 'breaking' },
 
   typefetch: {
     contracts,
     createClient: ({ baseUrl, token }) => makeClient(baseUrl, token),
-    generate: { openapi: { out: "./openapi.json" } },
+    generate: { openapi: { out: './openapi.json' } },
     mock: { port: 4000, seed: 42 },
-    test: { /* today's options/context/report */ },
+    test: {/* today's options/context/report */},
   },
 
   typesocket: { events },
-  permission: { flags: "./src/permissions.ts" },
-});
+  permission: { flags: './src/permissions.ts' },
+})
 ```
 
 Top-level keys are the cross-cutting ones; a section may override them. The
@@ -124,23 +124,25 @@ and a WebSocket payload shows both in one reviewable diff.
 
 A repo commonly exposes more than one API — `dashboard`, `admin`, `landing` —
 with different base URLs, different middleware and different auth. Sections are
-keyed by *package*, which does not answer that: there is one `typefetch`
+keyed by _package_, which does not answer that: there is one `typefetch`
 section, not three.
 
 So a top-level `projects` block, each entry a full config body:
 
 ```ts
 export default defineConfig({
-  lint: { rules: { "path-params-declared": "error" } },   // shared default
+  lint: { rules: { 'path-params-declared': 'error' } }, // shared default
 
   projects: {
-    dashboard: { typefetch: { contracts, createClient: createDashboardClient } },
+    dashboard: {
+      typefetch: { contracts, createClient: createDashboardClient },
+    },
     admin: {
       typefetch: { contracts: adminContracts, createClient: createAdminClient },
-      diff: { baseline: "admin.lock.json" },
+      diff: { baseline: 'admin.lock.json' },
     },
   },
-});
+})
 ```
 
 The shape is Playwright's `projects` and Vitest's workspace, for the same
@@ -157,7 +159,7 @@ Three rules make it safe rather than merely possible:
 3. **A command needing exactly one project refuses to guess.** With several
    declared and no `--project`, the error names them.
 
-Single-API configs omit the key entirely and resolve to one *implicit* project,
+Single-API configs omit the key entirely and resolve to one _implicit_ project,
 so no command branches on which shape was written — the single case is a
 length-1 instance of the multi case, not a separate path.
 
@@ -173,8 +175,8 @@ need the contracts. Requiring a client to lint a contract file is the difference
 between a check that runs on every commit and one that never gets wired up.
 
 So: `contracts` is the only always-required key of the `typefetch` section.
-`client`/`createClient` become required *by the commands that actually make
-requests* (`test`, `mock --proxy`), validated per command with a message naming
+`client`/`createClient` become required _by the commands that actually make
+requests_ (`test`, `mock --proxy`), validated per command with a message naming
 the command that needs it.
 
 ### Things "big packages" get right that we should copy
@@ -201,21 +203,21 @@ zod v4 ships `z.toJSONSchema()`, and the peer range is already `^4.0.0`. That is
 the enabler for everything below: a contract can be serialised to a stable,
 comparable, printable document without writing a schema walker.
 
-| Command | Status | What it does |
-| --- | --- | --- |
-| `test` | exists | contract test runner + report |
-| `list` | exists | enumerate endpoints — no client required |
-| `init` | **rebuilt** | detect the project, ask what it needs, scaffold it |
-| `release-doc` | **implemented** | release note scaffold — see the note below |
-| **`diff`** | **new — highest value** | breaking-change detection against a baseline |
-| **`snapshot`** | new | write `typewire.lock.json` |
-| **`lint`** | new | static contract validation |
-| **`mock`** | new | local mock server from contracts |
-| **`explain <id>`** | new | fully resolved route, including transport |
-| **`doctor`** | new | environment + install diagnosis |
-| `generate openapi` | new | OpenAPI 3.1 from contracts |
-| `import --from` | later | proto / SDL / OpenAPI → contracts |
-| `codemod <version>` | later | version migration (own package) |
+| Command             | Status                  | What it does                                       |
+| ------------------- | ----------------------- | -------------------------------------------------- |
+| `test`              | exists                  | contract test runner + report                      |
+| `list`              | exists                  | enumerate endpoints — no client required           |
+| `init`              | **rebuilt**             | detect the project, ask what it needs, scaffold it |
+| `release-doc`       | **implemented**         | release note scaffold — see the note below         |
+| **`diff`**          | **new — highest value** | breaking-change detection against a baseline       |
+| **`snapshot`**      | new                     | write `typewire.lock.json`                         |
+| **`lint`**          | new                     | static contract validation                         |
+| **`mock`**          | new                     | local mock server from contracts                   |
+| **`explain <id>`**  | new                     | fully resolved route, including transport          |
+| **`doctor`**        | new                     | environment + install diagnosis                    |
+| `generate openapi`  | new                     | OpenAPI 3.1 from contracts                         |
+| `import --from`     | later                   | proto / SDL / OpenAPI → contracts                  |
+| `codemod <version>` | later                   | version migration (own package)                    |
 
 ### 3.0 `release-doc` was never implemented
 
@@ -225,7 +227,7 @@ prevent. `release-doc` has been in `--help`, in `KNOWN_COMMANDS`, and in the
 fell through to `default:`, so `typewire release-doc v2.0.0` silently ran the
 contract test suite. Nothing failed; it just did the wrong thing.
 
-Two lessons, both cheap: a documented command needs a test that *runs* it, not
+Two lessons, both cheap: a documented command needs a test that _runs_ it, not
 one that parses it (`cli.test.ts` asserted `parseCliArgs(["release-doc", …])`
 and stopped there); and a `default:` case that means "test" will swallow every
 future command the same way. It is now implemented, and the arm is explicit.
@@ -246,18 +248,18 @@ readable diff in code review** — a reviewer sees "this PR removes `user.email`
 from the response" without reading a zod file.
 
 The classification is where the real thinking goes, because a client that
-*validates* responses breaks in ways a server-side differ never reports:
+_validates_ responses breaks in ways a server-side differ never reports:
 
-| Change | Verdict |
-| --- | --- |
-| endpoint removed, `path`/`method`/`transport` changed | breaking |
-| new required field in `request` | breaking |
-| field removed from `response` | breaking for readers |
-| **new variant added to a response enum** | **breaking — the client's zod rejects it** |
-| response field made optional/nullable | breaking for readers |
-| new optional field in `request` | safe |
-| new field added to `response` | safe |
-| `errors` entry added | safe |
+| Change                                                | Verdict                                    |
+| ----------------------------------------------------- | ------------------------------------------ |
+| endpoint removed, `path`/`method`/`transport` changed | breaking                                   |
+| new required field in `request`                       | breaking                                   |
+| field removed from `response`                         | breaking for readers                       |
+| **new variant added to a response enum**              | **breaking — the client's zod rejects it** |
+| response field made optional/nullable                 | breaking for readers                       |
+| new optional field in `request`                       | safe                                       |
+| new field added to `response`                         | safe                                       |
+| `errors` entry added                                  | safe                                       |
 
 That enum row is the sharp one. A server team adding an enum value considers it
 backward-compatible; for a response-validating client it is a production outage.
@@ -294,8 +296,8 @@ gRPC and GraphQL routes are served by their adapters' own shapes.
 
 ### 3.4 `doctor` — the dual-zod detector
 
-`AGENTS.md` already names the hazard: *"Schemas only compare correctly when every
-package resolves one zod instance."* When it goes wrong the symptom is a
+`AGENTS.md` already names the hazard: _"Schemas only compare correctly when every
+package resolves one zod instance."_ When it goes wrong the symptom is a
 validation failure that makes no sense, and the cause is invisible.
 
 `doctor` reports: how many `zod` copies resolve and from where, core/CLI version
@@ -354,8 +356,9 @@ start rather than retrofitted:
    its own realm, so every object literal in `typewire.config.ts` has a
    different `Object.prototype` than the CLI's — the identity check passes for
    hand-built fixtures and fails for every real file, silently turning
-   `extends` into a wholesale replace. It is prototype-*depth* that identifies
+   `extends` into a wholesale replace. It is prototype-_depth_ that identifies
    an object literal, not prototype identity.
+
 3. **`snapshot` + `diff`.** Built on `z.toJSONSchema()`. This is the feature that
    earns the split.
 4. **`lint`**, sharing the diff's serialiser.

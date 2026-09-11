@@ -1,26 +1,29 @@
 import type {
   InspectorEntry,
   InspectorProgress,
-} from "@tahanabavi/type-devtools-core";
-import { type CSSProperties, type ReactNode } from "react";
-import { ANIM, IconButton, useChrome } from "./chrome";
-import { JsonTree } from "./json-tree";
-import { OverrideControls, type OverridesApi } from "./overrides";
-import { copyToClipboard, safeStringify } from "./serialize";
-import type { Palette } from "./theme";
+} from '@tahanabavi/type-devtools-core'
+import { type CSSProperties, type ReactNode } from 'react'
+import { ANIM, IconButton, useChrome } from './chrome'
+import { JsonTree } from './json-tree'
+import { OverrideControls, type OverridesApi } from './overrides'
+import { copyToClipboard, safeStringify } from './serialize'
+import type { Palette } from './theme'
 
-export function statusColor(palette: Palette, status: InspectorEntry["status"]): string {
+export function statusColor(
+  palette: Palette,
+  status: InspectorEntry['status']
+): string {
   switch (status) {
-    case "pending":
-      return palette.pending;
-    case "success":
-      return palette.success;
-    case "error":
-      return palette.error;
-    case "dropped":
-      return palette.dropped;
+    case 'pending':
+      return palette.pending
+    case 'success':
+      return palette.success
+    case 'error':
+      return palette.error
+    case 'dropped':
+      return palette.dropped
     default:
-      return palette.info;
+      return palette.info
   }
 }
 
@@ -32,23 +35,23 @@ export function statusColor(palette: Palette, status: InspectorEntry["status"]):
  * had one either. So the fallback is never a guess.
  */
 export function transportOf(entry: InspectorEntry): string {
-  return entry.transport ?? entry.source;
+  return entry.transport ?? entry.source
 }
 
 export function transportColor(palette: Palette, transport: string): string {
   switch (transport) {
-    case "http":
-      return palette.http;
-    case "ws":
-      return palette.ws;
-    case "graphql":
-      return palette.graphql;
-    case "grpc":
-      return palette.grpc;
+    case 'http':
+      return palette.http
+    case 'ws':
+      return palette.ws
+    case 'graphql':
+      return palette.graphql
+    case 'grpc':
+      return palette.grpc
     default:
       // A third-party adapter. It gets a badge and a neutral colour rather than
       // no badge — the registry is open, so this is a supported case, not a bug.
-      return palette.info;
+      return palette.info
   }
 }
 
@@ -59,13 +62,13 @@ export function Timeline({
   overrides,
   search,
 }: {
-  visible: InspectorEntry[];
-  selected: InspectorEntry | null;
-  onSelect: (key: string | null) => void;
-  overrides: OverridesApi;
-  search: string;
+  visible: InspectorEntry[]
+  selected: InspectorEntry | null
+  onSelect: (key: string | null) => void
+  overrides: OverridesApi
+  search: string
 }) {
-  const { styles, palette, motionOk } = useChrome();
+  const { styles, palette, motionOk } = useChrome()
 
   return (
     <div style={styles.body}>
@@ -74,7 +77,10 @@ export function Timeline({
           <li style={styles.empty}>No traffic yet.</li>
         ) : (
           visible.map((entry) => (
-            <li key={entry.key} style={{ animation: motionOk ? ANIM.rowIn : undefined }}>
+            <li
+              key={entry.key}
+              style={{ animation: motionOk ? ANIM.rowIn : undefined }}
+            >
               <button
                 type="button"
                 onClick={() => onSelect(entry.key)}
@@ -105,13 +111,17 @@ export function Timeline({
                     ...styles.statusText,
                     color: statusColor(palette, entry.status),
                     animation:
-                      motionOk && entry.status === "pending" ? ANIM.pulse : undefined,
+                      motionOk && entry.status === 'pending'
+                        ? ANIM.pulse
+                        : undefined,
                   }}
                 >
                   {entry.status}
                 </span>
                 <span style={styles.duration}>
-                  {entry.durationMs === undefined ? "" : `${entry.durationMs}ms`}
+                  {entry.durationMs === undefined
+                    ? ''
+                    : `${entry.durationMs}ms`}
                 </span>
               </button>
               {entry.progress && (
@@ -130,7 +140,7 @@ export function Timeline({
         )}
       </aside>
     </div>
-  );
+  )
 }
 
 function Detail({
@@ -138,24 +148,26 @@ function Detail({
   overrides,
   search,
 }: {
-  entry: InspectorEntry;
-  overrides: OverridesApi;
-  search: string;
+  entry: InspectorEntry
+  overrides: OverridesApi
+  search: string
 }) {
-  const { styles, palette } = useChrome();
-  const meta = entry.events.find((e) => e.kind === "start" || e.kind === "outbound")?.meta;
+  const { styles, palette } = useChrome()
+  const meta = entry.events.find(
+    (e) => e.kind === 'start' || e.kind === 'outbound'
+  )?.meta
   // The HTTP status lives on the *error* event, not the opening one. Only
   // meaningful for wires that have one — gRPC and GraphQL report none, which is
   // the whole reason `errorKind` exists.
-  const status = entry.events.find((e) => e.kind === "error")?.meta?.status;
+  const status = entry.events.find((e) => e.kind === 'error')?.meta?.status
 
   return (
     <>
       <div style={styles.detailHead}>
-        <strong style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
+        <strong style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {entry.label}
         </strong>
-        <div style={{ display: "flex", gap: 4 }}>
+        <div style={{ display: 'flex', gap: 4 }}>
           {/*
             Offered for REST only. The button reconstructs a command from the
             start event's method and URL, and on GraphQL that is `query` against
@@ -163,7 +175,7 @@ function Detail({
             Reconstructing the real POST would mean rebuilding the document and
             the envelope here, which is the adapter's job, not the panel's.
           */}
-          {transportOf(entry) === "http" && (
+          {transportOf(entry) === 'http' && (
             <IconButton
               title="Copy as cURL"
               testId="typewire-copy-curl"
@@ -175,7 +187,9 @@ function Detail({
           <IconButton
             title="Copy entry as JSON"
             testId="typewire-copy-entry"
-            onClick={() => void copyToClipboard(safeStringify(entryPayload(entry)))}
+            onClick={() =>
+              void copyToClipboard(safeStringify(entryPayload(entry)))
+            }
           >
             ⧉
           </IconButton>
@@ -188,25 +202,33 @@ function Detail({
         </span>
       </Field>
       <Field label="status" palette={palette}>
-        <span style={{ color: statusColor(palette, entry.status) }}>{entry.status}</span>
+        <span style={{ color: statusColor(palette, entry.status) }}>
+          {entry.status}
+        </span>
         {entry.durationMs !== undefined && (
-          <span style={{ color: palette.textFaint }}> · {entry.durationMs}ms</span>
+          <span style={{ color: palette.textFaint }}>
+            {' '}
+            · {entry.durationMs}ms
+          </span>
         )}
       </Field>
       {entry.errorKind && (
         <Field label="kind" palette={palette}>
-          <span data-testid="typewire-detail-kind" style={{ color: palette.error }}>
+          <span
+            data-testid="typewire-detail-kind"
+            style={{ color: palette.error }}
+          >
             {entry.errorKind}
           </span>
-          {typeof status === "number" && (
+          {typeof status === 'number' && (
             <span style={{ color: palette.textFaint }}> · {status}</span>
           )}
         </Field>
       )}
-      {typeof meta?.method === "string" && (
+      {typeof meta?.method === 'string' && (
         <Field label="request" palette={palette}>
           <span style={{ color: palette.textMuted }}>
-            {String(meta.method)} {String(meta.url ?? "")}
+            {String(meta.method)} {String(meta.url ?? '')}
           </span>
         </Field>
       )}
@@ -222,9 +244,13 @@ function Detail({
       <JsonField label="output" value={entry.output} search={search} />
       <JsonField label="error" value={entry.error} search={search} />
 
-      <OverrideControls source={entry.source} label={entry.label} overrides={overrides} />
+      <OverrideControls
+        source={entry.source}
+        label={entry.label}
+        overrides={overrides}
+      />
     </>
-  );
+  )
 }
 
 /**
@@ -238,12 +264,12 @@ function ProgressBar({
   progress,
   motionOk,
 }: {
-  progress: InspectorProgress;
-  motionOk: boolean;
+  progress: InspectorProgress
+  motionOk: boolean
 }) {
-  const { palette } = useChrome();
-  const known = progress.percent !== undefined;
-  const color = progress.phase === "upload" ? palette.accent : palette.success;
+  const { palette } = useChrome()
+  const known = progress.percent !== undefined
+  const color = progress.phase === 'upload' ? palette.accent : palette.success
 
   return (
     <div
@@ -260,40 +286,42 @@ function ProgressBar({
         style={{
           ...progressFill,
           background: color,
-          width: known ? `${clampPercent(progress.percent as number)}%` : "100%",
+          width: known
+            ? `${clampPercent(progress.percent as number)}%`
+            : '100%',
           opacity: known ? 1 : 0.4,
           animation: !known && motionOk ? ANIM.pulse : undefined,
         }}
       />
     </div>
-  );
+  )
 }
 
 /** `↑ 62% · 1.2 MB / 2.0 MB`, degrading to just the byte count when unknown. */
 function describeProgress(progress: InspectorProgress): string {
-  const arrow = progress.phase === "upload" ? "↑" : "↓";
-  const loaded = formatBytes(progress.loaded);
+  const arrow = progress.phase === 'upload' ? '↑' : '↓'
+  const loaded = formatBytes(progress.loaded)
   if (progress.percent === undefined || progress.total === undefined) {
-    return `${arrow} ${loaded}`;
+    return `${arrow} ${loaded}`
   }
-  return `${arrow} ${Math.round(progress.percent)}% · ${loaded} / ${formatBytes(progress.total)}`;
+  return `${arrow} ${Math.round(progress.percent)}% · ${loaded} / ${formatBytes(progress.total)}`
 }
 
 function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  const units = ["KB", "MB", "GB", "TB"];
-  let value = bytes / 1024;
-  let unit = 0;
+  if (bytes < 1024) return `${bytes} B`
+  const units = ['KB', 'MB', 'GB', 'TB']
+  let value = bytes / 1024
+  let unit = 0
   while (value >= 1024 && unit < units.length - 1) {
-    value /= 1024;
-    unit++;
+    value /= 1024
+    unit++
   }
-  return `${value >= 10 ? Math.round(value) : value.toFixed(1)} ${units[unit]}`;
+  return `${value >= 10 ? Math.round(value) : value.toFixed(1)} ${units[unit]}`
 }
 
 /** A server may report `loaded > total`; the bar must not overflow its track. */
 function clampPercent(percent: number): number {
-  return Math.min(100, Math.max(0, percent));
+  return Math.min(100, Math.max(0, percent))
 }
 
 function Field({
@@ -301,9 +329,9 @@ function Field({
   palette,
   children,
 }: {
-  label: string;
-  palette: Palette;
-  children: ReactNode;
+  label: string
+  palette: Palette
+  children: ReactNode
 }) {
   return (
     <p style={fieldStyle}>
@@ -311,7 +339,7 @@ function Field({
         style={{
           color: palette.textFaint,
           fontSize: 10,
-          textTransform: "uppercase",
+          textTransform: 'uppercase',
           marginRight: 8,
           letterSpacing: 0.4,
         }}
@@ -320,7 +348,7 @@ function Field({
       </span>
       {children}
     </p>
-  );
+  )
 }
 
 function JsonField({
@@ -328,12 +356,12 @@ function JsonField({
   value,
   search,
 }: {
-  label: string;
-  value: unknown;
-  search: string;
+  label: string
+  value: unknown
+  search: string
 }) {
-  const { styles, palette } = useChrome();
-  if (value === undefined) return null;
+  const { styles, palette } = useChrome()
+  if (value === undefined) return null
   return (
     <div style={styles.field}>
       <span style={styles.fieldLabel}>{label}</span>
@@ -341,7 +369,7 @@ function JsonField({
         <JsonTree value={value} palette={palette} search={search} />
       </div>
     </div>
-  );
+  )
 }
 
 /** The parts of an entry worth copying as one JSON blob. */
@@ -356,39 +384,39 @@ function entryPayload(entry: InspectorEntry) {
     input: entry.input,
     output: entry.output,
     error: entry.error,
-  };
+  }
 }
 
 /** Reconstruct a cURL command from an HTTP entry's start meta and input. */
 function toCurl(entry: InspectorEntry): string {
-  const start = entry.events.find((e) => e.kind === "start");
-  const method = String(start?.meta?.method ?? "GET");
-  const url = String(start?.meta?.url ?? entry.label);
-  const input = entry.input as { body?: unknown } | undefined;
-  const parts = [`curl -X ${method} '${url}'`];
-  if (input && "body" in input && input.body !== undefined) {
-    parts.push(`-H 'Content-Type: application/json'`);
-    parts.push(`-d '${safeStringify(input.body, 0)}'`);
+  const start = entry.events.find((e) => e.kind === 'start')
+  const method = String(start?.meta?.method ?? 'GET')
+  const url = String(start?.meta?.url ?? entry.label)
+  const input = entry.input as { body?: unknown } | undefined
+  const parts = [`curl -X ${method} '${url}'`]
+  if (input && 'body' in input && input.body !== undefined) {
+    parts.push(`-H 'Content-Type: application/json'`)
+    parts.push(`-d '${safeStringify(input.body, 0)}'`)
   }
-  return parts.join(" \\\n  ");
+  return parts.join(' \\\n  ')
 }
 
 const fieldStyle: CSSProperties = {
-  margin: "0 0 6px",
-  display: "flex",
-  alignItems: "baseline",
-};
+  margin: '0 0 6px',
+  display: 'flex',
+  alignItems: 'baseline',
+}
 
 const progressTrack: CSSProperties = {
   height: 2,
-  width: "100%",
+  width: '100%',
   // Pulled up over the row's bottom border so the bar reads as part of the row
   // rather than as a separator between two of them.
   marginTop: -1,
-  overflow: "hidden",
-};
+  overflow: 'hidden',
+}
 
 const progressFill: CSSProperties = {
-  height: "100%",
-  transition: "width 120ms linear",
-};
+  height: '100%',
+  transition: 'width 120ms linear',
+}

@@ -1,40 +1,61 @@
-import Link from "next/link";
+import Link from 'next/link'
 
-import { Chip } from "@/components/ui/chip";
-import { Panel } from "@/components/ui/panel";
-import { JsonLd } from "@/components/shared/json-ld";
-import { site } from "@/config/site";
-import { DocsShell } from "@/features/docs/shell";
+import { Chip } from '@/components/ui/chip'
+import { Panel } from '@/components/ui/panel'
+import { JsonLd } from '@/components/shared/json-ld'
+import { site } from '@/config/site'
+import { DocsShell } from '@/features/docs/shell'
 import {
   CATEGORY_LABEL,
   docsBehind,
   documentedPackages,
   packages,
   type PackageCategory,
-} from "@/lib/registry";
-import { breadcrumbSchema, collectionSchema, graph } from "@/lib/seo";
-import { PATHS } from "@/routes/paths";
+} from '@/lib/registry'
+import { breadcrumbSchema, collectionSchema, graph } from '@/lib/seo'
 
 export const DOCS_DESCRIPTION =
-  "Reference for every TypeWire package, rendered from the package's own markdown and version-checked in CI \u2014 so no page quietly describes an older release.";
+  "Reference for every TypeWire package, rendered from the package's own markdown and version-checked in CI \u2014 so no page quietly describes an older release."
 
 const REPO_DOCS = [
-  { label: "Architecture", path: "docs/ARCHITECTURE.md", note: "The three design laws." },
-  { label: "CLI", path: "docs/CLI.md", note: "typewire.config.ts and the command surface." },
-  { label: "Roadmap", path: "docs/ROADMAP.md", note: "Sequencing, and the gaps still open." },
-  { label: "Contributing", path: "CONTRIBUTING.md", note: "Setup, flow, changesets." },
-  { label: "Agents", path: "AGENTS.md", note: "The definition of done, for humans and agents." },
-  { label: "Security", path: "SECURITY.md", note: "Private disclosure." },
-];
+  {
+    label: 'Architecture',
+    path: 'docs/ARCHITECTURE.md',
+    note: 'The three design laws.',
+  },
+  {
+    label: 'CLI',
+    path: 'docs/CLI.md',
+    note: 'typewire.config.ts and the command surface.',
+  },
+  {
+    label: 'Roadmap',
+    path: 'docs/ROADMAP.md',
+    note: 'Sequencing, and the gaps still open.',
+  },
+  {
+    label: 'Contributing',
+    path: 'CONTRIBUTING.md',
+    note: 'Setup, flow, changesets.',
+  },
+  {
+    label: 'Agents',
+    path: 'AGENTS.md',
+    note: 'The definition of done, for humans and agents.',
+  },
+  { label: 'Security', path: 'SECURITY.md', note: 'Private disclosure.' },
+]
 
 export function DocsHub() {
-  const undocumented = packages.filter((p) => !p.docs || p.docs.pages.length === 0);
+  const undocumented = packages.filter(
+    (p) => p.docs === null || p.docs === undefined || p.docs.pages.length === 0
+  )
 
-  const byCategory = new Map<PackageCategory, typeof documentedPackages>();
+  const byCategory = new Map<PackageCategory, typeof documentedPackages>()
   for (const pkg of documentedPackages) {
-    const list = byCategory.get(pkg.category) ?? [];
-    list.push(pkg);
-    byCategory.set(pkg.category, list);
+    const list = byCategory.get(pkg.category) ?? []
+    list.push(pkg)
+    byCategory.set(pkg.category, list)
   }
 
   return (
@@ -44,28 +65,33 @@ export function DocsHub() {
       <JsonLd
         data={graph(
           collectionSchema(
-            "TypeWire documentation",
+            'TypeWire documentation',
             DOCS_DESCRIPTION,
-            PATHS.DOCS,
+            '/docs',
             documentedPackages.map((pkg) => ({
               name: pkg.short,
-              path: `/docs/${pkg.slug}/${pkg.docs.pages[0]?.slug ?? ""}`,
-            })),
+              path: `/docs/${pkg.slug}/${pkg.docs.pages[0]?.slug ?? ''}`,
+            }))
           ),
           breadcrumbSchema([
-            { name: "TypeWire", path: "/" },
-            { name: "Docs", path: "/docs" },
-          ]),
+            { name: 'TypeWire', path: '/' },
+            { name: 'Docs', path: '/docs' },
+          ])
         )}
       />
 
       <header className="max-w-3xl">
-        <p className="font-mono text-xs uppercase tracking-[0.18em] text-blue">// DOCS</p>
-        <h1 className="mt-3 text-4xl font-extrabold tracking-tight">Reference</h1>
+        <p className="font-mono text-xs uppercase tracking-[0.18em] text-blue">
+          // DOCS
+        </p>
+        <h1 className="mt-3 text-4xl font-extrabold tracking-tight">
+          Reference
+        </h1>
         <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
-          Every page here is rendered from the package it documents — its own markdown, in its own
-          directory, in this repository. Each package declares which version its docs describe, and
-          CI fails a release whose docs were never reviewed against it.
+          Every page here is rendered from the package it documents — its own
+          markdown, in its own directory, in this repository. Each package
+          declares which version its docs describe, and CI fails a release whose
+          docs were never reviewed against it.
         </p>
       </header>
 
@@ -77,7 +103,10 @@ export function DocsHub() {
             </h2>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {list.map((pkg) => (
-                <Panel key={pkg.slug} className="transition-colors duration-(--motion-ui) hover:border-hair-strong">
+                <Panel
+                  key={pkg.slug}
+                  className="transition-colors duration-(--motion-ui) hover:border-hair-strong"
+                >
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <Link
                       href={`/docs/${pkg.slug}`}
@@ -85,12 +114,14 @@ export function DocsHub() {
                     >
                       {pkg.short}
                     </Link>
-                    {docsBehind(pkg) ? (
+                    {docsBehind(pkg) === true ? (
                       <Chip tone="var(--amber)" dashed>
                         documents v{pkg.docs.documentsVersion}
                       </Chip>
                     ) : (
-                      <Chip tone="var(--green)">v{pkg.docs.documentsVersion}</Chip>
+                      <Chip tone="var(--green)">
+                        v{pkg.docs.documentsVersion}
+                      </Chip>
                     )}
                   </div>
 
@@ -125,14 +156,17 @@ export function DocsHub() {
             Not documented yet
           </p>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-            {undocumented.map((p) => p.short).join(", ")} — these ship no docs manifest, which is a
-            CI failure rather than a state this site is happy with.
+            {undocumented.map((p) => p.short).join(', ')} — these ship no docs
+            manifest, which is a CI failure rather than a state this site is
+            happy with.
           </p>
         </div>
       )}
 
       <section className="mt-14">
-        <h2 className="mb-4 font-mono text-xs uppercase tracking-[0.18em] text-dim">Repository</h2>
+        <h2 className="mb-4 font-mono text-xs uppercase tracking-[0.18em] text-dim">
+          Repository
+        </h2>
         <div className="enter-group grid grid-cols-1 gap-4 md:grid-cols-3">
           {REPO_DOCS.map((doc) => (
             <a
@@ -149,5 +183,5 @@ export function DocsHub() {
         </div>
       </section>
     </DocsShell>
-  );
+  )
 }

@@ -1,11 +1,11 @@
-import type { INestApplication } from "@nestjs/common";
-import type { Contracts } from "@tahanabavi/typefetch";
-import { buildOpenApiDocument } from "./build-openapi";
-import type { BuildOpenApiOptions, OpenApiDocument } from "./types";
+import type { INestApplication } from '@nestjs/common'
+import type { Contracts } from '@tahanabavi/typefetch'
+import { buildOpenApiDocument } from './build-openapi'
+import type { BuildOpenApiOptions, OpenApiDocument } from './types'
 
 export interface SetupContractSwaggerOptions extends BuildOpenApiOptions {
   /** Route the Swagger UI + JSON are served at. Default `"api"`. */
-  path?: string;
+  path?: string
 }
 
 /**
@@ -26,24 +26,24 @@ export interface SetupContractSwaggerOptions extends BuildOpenApiOptions {
 export function setupContractSwagger(
   app: INestApplication,
   contracts: Contracts,
-  options: SetupContractSwaggerOptions = {},
+  options: SetupContractSwaggerOptions = {}
 ): OpenApiDocument {
-  const { path = "api", ...buildOptions } = options;
-  const document = buildOpenApiDocument(contracts, buildOptions);
+  const { path = 'api', ...buildOptions } = options
+  const document = buildOpenApiDocument(contracts, buildOptions)
 
-  let SwaggerModule: { setup: (...args: any[]) => void };
+  let SwaggerModule: { setup: (...args: any[]) => void }
   try {
-    ({ SwaggerModule } = require("@nestjs/swagger"));
+    ;({ SwaggerModule } = require('@nestjs/swagger')) // eslint-disable-line @typescript-eslint/no-require-imports
   } catch {
     throw new Error(
-      "[typefetch-nestjs] setupContractSwagger() requires the optional peer " +
+      '[typefetch-nestjs] setupContractSwagger() requires the optional peer ' +
         "dependency '@nestjs/swagger'. Install it with `npm i @nestjs/swagger`, " +
-        "or call buildOpenApiDocument() and serve the document yourself.",
-    );
+        'or call buildOpenApiDocument() and serve the document yourself.'
+    )
   }
 
   // A prebuilt document is passed directly; Nest serves UI at `path` and the
   // raw JSON at `${path}-json` without scanning controllers.
-  SwaggerModule.setup(path, app, document as any);
-  return document;
+  SwaggerModule.setup(path, app, document as any)
+  return document
 }
