@@ -1,5 +1,11 @@
 # @tahanabavi/typewire-cli
 
+## 0.1.1
+
+### Patch Changes
+
+- e60581b: All 12 packages receiving a patch bump for the next release.
+
 ## 0.1.0
 
 ### Minor Changes

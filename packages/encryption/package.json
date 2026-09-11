@@ -1,6 +1,6 @@
 {
   "name": "@tahanabavi/typefetch-encryption",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": false,
   "description": "Field-level request/response encryption middleware for TypeFetch contracts (AES, DES, RSA, Base64, custom).",
   "author": {

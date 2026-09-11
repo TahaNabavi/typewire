@@ -1,6 +1,6 @@
 {
   "name": "@tahanabavi/typefetch-graphql",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": false,
   "description": "GraphQL transport for TypeFetch contracts — one client, one middleware chain, and selection sets generated from your Zod response schema.",
   "author": {

@@ -1,5 +1,11 @@
 # @tahanabavi/typewire-nestjs
 
+## 4.0.1
+
+### Patch Changes
+
+- e60581b: All 12 packages receiving a patch bump for the next release.
+
 ## 4.0.0
 
 ### Major Changes

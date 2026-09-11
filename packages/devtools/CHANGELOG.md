@@ -1,5 +1,13 @@
 # @tahanabavi/type-devtools
 
+## 1.1.1
+
+### Patch Changes
+
+- e60581b: All 12 packages receiving a patch bump for the next release.
+- Updated dependencies [e60581b]
+  - @tahanabavi/type-devtools-core@1.2.1
+
 ## 1.1.0
 
 ### Minor Changes
