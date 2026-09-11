@@ -1,6 +1,6 @@
-import { defineConfig } from "@tahanabavi/typewire-cli";
-import { createClient, transports } from "./shared/client.js";
-import { contracts } from "./shared/contracts.js";
+import { defineConfig } from '@tahanabavi/typewire-cli'
+import { createClient, transports } from './shared/client.js'
+import { contracts } from './shared/contracts.js'
 
 /**
  * The CLI reads the same contracts — and the same client — the app does.
@@ -39,9 +39,9 @@ export default defineConfig({
 
     test: {
       report: {
-        output: "./typewire-report/report",
-        formats: ["markdown"],
+        output: './typewire-report/report',
+        formats: ['markdown'],
       },
     },
   },
-});
+})

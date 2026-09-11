@@ -1,2 +1,2 @@
-export { encryptionMiddleware } from "./encryption";
-export type { EncryptionOptions } from "./encryption";
+export { encryptionMiddleware } from './encryption'
+export type { EncryptionOptions } from './encryption'

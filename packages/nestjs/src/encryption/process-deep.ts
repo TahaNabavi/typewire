@@ -1,4 +1,4 @@
-import type { DeepEncryptionMap, EncryptionMethod } from "@tahanabavi/typefetch";
+import type { DeepEncryptionMap, EncryptionMethod } from '@tahanabavi/typefetch'
 
 /**
  * The following helpers are ported **verbatim** from the typefetch client's
@@ -9,77 +9,79 @@ import type { DeepEncryptionMap, EncryptionMethod } from "@tahanabavi/typefetch"
 
 export function safeJsonParse(value: string): unknown {
   try {
-    return JSON.parse(value);
+    return JSON.parse(value)
   } catch {
-    return value;
+    return value
   }
 }
 
-export function isPlainObject(value: unknown): value is Record<string, unknown> {
+export function isPlainObject(
+  value: unknown
+): value is Record<string, unknown> {
   return (
-    typeof value === "object" &&
+    typeof value === 'object' &&
     value !== null &&
     !Array.isArray(value) &&
-    Object.prototype.toString.call(value) === "[object Object]"
-  );
+    Object.prototype.toString.call(value) === '[object Object]'
+  )
 }
 
 function hasKey(value: unknown, key: string): value is Record<string, unknown> {
   return (
     isPlainObject(value) && Object.prototype.hasOwnProperty.call(value, key)
-  );
+  )
 }
 
 export async function processDeep<T = unknown>(
   data: unknown,
   map: DeepEncryptionMap | null | undefined,
   defaultMethod: EncryptionMethod,
-  transform: (value: unknown, method: EncryptionMethod) => Promise<unknown>,
+  transform: (value: unknown, method: EncryptionMethod) => Promise<unknown>
 ): Promise<T> {
-  if (data == null || map == null) return data as T;
+  if (data == null || map == null) return data as T
 
-  if (typeof map === "string") return (await transform(data, map)) as T;
+  if (typeof map === 'string') return (await transform(data, map)) as T
 
-  if (typeof map === "boolean") {
-    return (map ? await transform(data, defaultMethod) : data) as T;
+  if (typeof map === 'boolean') {
+    return (map ? await transform(data, defaultMethod) : data) as T
   }
 
   if (Array.isArray(data)) {
     if (!Array.isArray(map)) {
       return Promise.all(
-        data.map((item) => processDeep(item, map, defaultMethod, transform)),
-      ) as Promise<T>;
+        data.map((item) => processDeep(item, map, defaultMethod, transform))
+      ) as Promise<T>
     }
 
     return Promise.all(
       data.map((item, idx) =>
-        processDeep(item, map[idx] ?? map[0], defaultMethod, transform),
-      ),
-    ) as Promise<T>;
+        processDeep(item, map[idx] ?? map[0], defaultMethod, transform)
+      )
+    ) as Promise<T>
   }
 
   if (isPlainObject(data) && isPlainObject(map)) {
-    const result: Record<string, unknown> = { ...data };
+    const result: Record<string, unknown> = { ...data }
 
     for (const key of Object.keys(map)) {
-      const childMap = (map as Record<string, DeepEncryptionMap>)[key];
-      if (childMap == null) continue;
+      const childMap = (map as Record<string, DeepEncryptionMap>)[key]
+      if (childMap == null) continue
 
-      const currentVal = result[key];
+      const currentVal = result[key]
       if (currentVal !== undefined) {
         result[key] = await processDeep(
           currentVal,
           childMap,
           defaultMethod,
-          transform,
-        );
+          transform
+        )
       }
     }
 
-    return result as T;
+    return result as T
   }
 
-  return data as T;
+  return data as T
 }
 
 /**
@@ -89,8 +91,8 @@ export async function processDeep<T = unknown>(
  * whose `req.body` is that same body — unwraps the `body` key identically.
  */
 export function getRequestBodyMap(map: DeepEncryptionMap): DeepEncryptionMap {
-  if (hasKey(map, "body")) {
-    return map.body as DeepEncryptionMap;
+  if (hasKey(map, 'body')) {
+    return map.body as DeepEncryptionMap
   }
-  return map;
+  return map
 }

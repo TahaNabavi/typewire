@@ -1,6 +1,6 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from 'next/server'
 
-import { contracts } from "@/features/playground/contracts";
+import { contracts } from '@/features/playground/contracts'
 
 /**
  * The playground's server — the other half of the same contract.
@@ -32,25 +32,25 @@ import { contracts } from "@/features/playground/contracts";
  */
 
 interface Row {
-  id: string;
-  name: string;
-  email: string;
-  role: "admin" | "member";
+  id: string
+  name: string
+  email: string
+  role: 'admin' | 'member'
 }
 
 const SEED: Row[] = [
-  { id: "1", name: "Taha Nabavi", email: "taha@example.com", role: "admin" },
-  { id: "2", name: "Ada Lovelace", email: "ada@example.com", role: "member" },
-  { id: "3", name: "Grace Hopper", email: "grace@example.com", role: "member" },
-];
+  { id: '1', name: 'Taha Nabavi', email: 'taha@example.com', role: 'admin' },
+  { id: '2', name: 'Ada Lovelace', email: 'ada@example.com', role: 'member' },
+  { id: '3', name: 'Grace Hopper', email: 'grace@example.com', role: 'member' },
+]
 
-let rows: Row[] = [...SEED];
+let rows: Row[] = [...SEED]
 
 /** Drift renames the one field the contract names — nothing else. */
 function shape(row: Row, drift: boolean): unknown {
-  if (!drift) return row;
-  const { name, ...rest } = row;
-  return { ...rest, fullName: name };
+  if (!drift) return row
+  const { name, ...rest } = row
+  return { ...rest, fullName: name }
 }
 
 /**
@@ -61,87 +61,115 @@ function shape(row: Row, drift: boolean): unknown {
  * when the drift switch is on, which is the whole point of the switch, so that
  * path deliberately skips the check and lets the client catch it instead.
  */
-function send(schema: { safeParse: (v: unknown) => { success: boolean } }, body: unknown, drift: boolean) {
+function send(
+  schema: { safeParse: (v: unknown) => { success: boolean } },
+  body: unknown,
+  drift: boolean
+) {
   if (!drift) {
-    const parsed = schema.safeParse(body);
+    const parsed = schema.safeParse(body)
     if (!parsed.success) {
       return NextResponse.json(
-        { code: "bad_implementation", detail: "the route returned a shape its contract forbids" },
-        { status: 500 },
-      );
+        {
+          code: 'bad_implementation',
+          detail: 'the route returned a shape its contract forbids',
+        },
+        { status: 500 }
+      )
     }
   }
-  return NextResponse.json(body);
+  return NextResponse.json(body)
 }
 
-const DRIFT_SEGMENT = "_drift";
+const DRIFT_SEGMENT = '_drift'
 
 /** Splits the mode prefix off the route, so handlers see the contract's path. */
 function route(path: string[]): { route: string; drift: boolean } {
-  const drift = path[0] === DRIFT_SEGMENT;
-  const rest = drift ? path.slice(1) : path;
-  return { route: `/${rest.join("/")}`, drift };
+  const drift = path[0] === DRIFT_SEGMENT
+  const rest = drift ? path.slice(1) : path
+  return { route: `/${rest.join('/')}`, drift }
 }
 
-export async function GET(request: NextRequest, ctx: { params: Promise<{ path: string[] }> }) {
-  const { path } = await ctx.params;
-  const { route: pathname, drift } = route(path);
+export async function GET(
+  request: NextRequest,
+  ctx: { params: Promise<{ path: string[] }> }
+) {
+  const { path } = await ctx.params
+  const { route: pathname, drift } = route(path)
 
   // GET /users/:id
-  const match = /^\/users\/(.+)$/.exec(pathname);
-  if (match) {
-    const row = rows.find((r) => r.id === match[1]);
-    if (!row) {
-      return NextResponse.json({ code: "not_found", id: match[1] }, { status: 404 });
+  const match = /^\/users\/(.+)$/.exec(pathname)
+  if (match !== null) {
+    const row = rows.find((r) => r.id === match[1])
+    if (row === undefined) {
+      return NextResponse.json(
+        { code: 'not_found', id: match[1] },
+        { status: 404 }
+      )
     }
-    return send(contracts.user.getUser.response, shape(row, drift), drift);
+    return send(contracts.user.getUser.response, shape(row, drift), drift)
   }
 
   // GET /users
-  if (pathname === "/users") {
-    const role = request.nextUrl.searchParams.get("role");
-    const limit = Number(request.nextUrl.searchParams.get("limit") ?? 10);
-    const filtered = role ? rows.filter((r) => r.role === role) : rows;
-    const items = filtered.slice(0, Number.isFinite(limit) ? limit : 10);
+  if (pathname === '/users') {
+    const role = request.nextUrl.searchParams.get('role')
+    const limitParam = request.nextUrl.searchParams.get('limit')
+    const limit = Number.isFinite(Number(limitParam ?? '10'))
+      ? Number(limitParam ?? '10')
+      : 10
+    const filtered = role !== null ? rows.filter((r) => r.role === role) : rows
+    const items = filtered.slice(0, limit)
     return send(
       contracts.user.listUsers.response,
       { items: items.map((r) => shape(r, drift)), total: filtered.length },
-      drift,
-    );
+      drift
+    )
   }
 
-  return NextResponse.json({ code: "no_such_route", route: pathname }, { status: 404 });
+  return NextResponse.json(
+    { code: 'no_such_route', route: pathname },
+    { status: 404 }
+  )
 }
 
-export async function POST(request: NextRequest, ctx: { params: Promise<{ path: string[] }> }) {
-  const { path } = await ctx.params;
-  const { route: pathname, drift } = route(path);
+export async function POST(
+  request: NextRequest,
+  ctx: { params: Promise<{ path: string[] }> }
+) {
+  const { path } = await ctx.params
+  const { route: pathname, drift } = route(path)
 
-  if (pathname !== "/users") {
-    return NextResponse.json({ code: "no_such_route", route: pathname }, { status: 404 });
+  if (pathname !== '/users') {
+    return NextResponse.json(
+      { code: 'no_such_route', route: pathname },
+      { status: 404 }
+    )
   }
 
-  const body = (await request.json().catch(() => ({}))) as Partial<Row>;
+  const body = (await request.json().catch(() => ({}))) as Partial<Row>
 
   if (rows.some((r) => r.email === body.email)) {
-    return NextResponse.json({ code: "email_taken", email: body.email }, { status: 409 });
+    return NextResponse.json(
+      { code: 'email_taken', email: body.email },
+      { status: 409 }
+    )
   }
 
   const row: Row = {
     id: String(rows.length + 1),
-    name: String(body.name ?? ""),
-    email: String(body.email ?? ""),
-    role: body.role === "admin" ? "admin" : "member",
-  };
+    name: String(body.name ?? ''),
+    email: String(body.email ?? ''),
+    role: body.role === 'admin' ? 'admin' : 'member',
+  }
 
   // Keep the fixture from growing without bound across a long-lived instance.
-  rows = [...rows, row].slice(-12);
+  rows = [...rows, row].slice(-12)
 
-  return send(contracts.user.createUser.response, shape(row, drift), drift);
+  return send(contracts.user.createUser.response, shape(row, drift), drift)
 }
 
 /** Resets the fixture — the console offers it, because a demo should be resettable. */
 export async function DELETE() {
-  rows = [...SEED];
-  return NextResponse.json({ ok: true, rows: rows.length });
+  rows = [...SEED]
+  return NextResponse.json({ ok: true, rows: rows.length })
 }

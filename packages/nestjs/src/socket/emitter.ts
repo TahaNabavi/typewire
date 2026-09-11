@@ -1,11 +1,11 @@
-import type { ServerToClientDef } from "@tahanabavi/typesocket";
-import { formatZodIssues } from "../exceptions";
-import { SocketContractException } from "./exceptions";
+import type { ServerToClientDef } from '@tahanabavi/typesocket'
+import { formatZodIssues } from '../exceptions'
+import { SocketContractException } from './exceptions'
 import type {
   BoundSocketEvent,
   InferSocketPayload,
   SocketEmitTarget,
-} from "./types";
+} from './types'
 
 /**
  * Push a `server->client` event, validated against its contract.
@@ -32,28 +32,28 @@ import type {
 export function emitSocketEvent<E extends ServerToClientDef>(
   target: SocketEmitTarget,
   event: BoundSocketEvent<E>,
-  payload: InferSocketPayload<E>,
+  payload: InferSocketPayload<E>
 ): void {
-  if (event.def.direction !== "server->client") {
+  if (event.def.direction !== 'server->client') {
     throw new Error(
       `[typewire-nestjs] "${event.eventId}" is a ${JSON.stringify(
-        event.def.direction,
+        event.def.direction
       )} event — a server does not emit it. Handle it with @SocketEvent() ` +
-        `instead.`,
-    );
+        `instead.`
+    )
   }
 
-  const parsed = event.def.payload.safeParse(payload);
+  const parsed = event.def.payload.safeParse(payload)
   if (!parsed.success) {
     throw new SocketContractException(
       event.eventId,
-      "Outbound payload contract violation",
-      "PAYLOAD_CONTRACT_VIOLATION",
-      formatZodIssues(parsed.error),
-    );
+      'Outbound payload contract violation',
+      'PAYLOAD_CONTRACT_VIOLATION',
+      formatZodIssues(parsed.error)
+    )
   }
 
-  target.emit(event.event, parsed.data);
+  target.emit(event.event, parsed.data)
 }
 
 /**
@@ -69,13 +69,13 @@ export function emitSocketEvent<E extends ServerToClientDef>(
  * it in a constructor would capture `undefined`.
  */
 export function createSocketEmitter(
-  target: SocketEmitTarget | (() => SocketEmitTarget),
+  target: SocketEmitTarget | (() => SocketEmitTarget)
 ) {
   return <E extends ServerToClientDef>(
     event: BoundSocketEvent<E>,
-    payload: InferSocketPayload<E>,
+    payload: InferSocketPayload<E>
   ): void => {
-    const resolved = typeof target === "function" ? target() : target;
-    emitSocketEvent(resolved, event, payload);
-  };
+    const resolved = typeof target === 'function' ? target() : target
+    emitSocketEvent(resolved, event, payload)
+  }
 }

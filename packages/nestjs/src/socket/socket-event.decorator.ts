@@ -4,14 +4,14 @@ import {
   applyDecorators,
   createParamDecorator,
   type ExecutionContext,
-} from "@nestjs/common";
-import { SubscribeMessage } from "@nestjs/websockets";
-import type { ClientToServerDef } from "@tahanabavi/typesocket";
-import { formatZodIssues } from "../exceptions";
-import { SOCKET_EVENT_METADATA, SOCKET_OPTIONS_METADATA } from "./constants";
-import { SocketContractException } from "./exceptions";
-import { SocketAckInterceptor } from "./ack.interceptor";
-import type { BoundSocketEvent, SocketEventOptions } from "./types";
+} from '@nestjs/common'
+import { SubscribeMessage } from '@nestjs/websockets'
+import type { ClientToServerDef } from '@tahanabavi/typesocket'
+import { formatZodIssues } from '../exceptions'
+import { SOCKET_EVENT_METADATA, SOCKET_OPTIONS_METADATA } from './constants'
+import { SocketContractException } from './exceptions'
+import { SocketAckInterceptor } from './ack.interceptor'
+import type { BoundSocketEvent, SocketEventOptions } from './types'
 
 /**
  * Bind a gateway handler to a `client->server` contract event.
@@ -36,24 +36,24 @@ import type { BoundSocketEvent, SocketEventOptions } from "./types";
  */
 export function SocketEvent<E extends ClientToServerDef>(
   bound: BoundSocketEvent<E>,
-  options: SocketEventOptions = {},
+  options: SocketEventOptions = {}
 ): MethodDecorator {
-  if (bound.def.direction !== "client->server") {
+  if (bound.def.direction !== 'client->server') {
     throw new Error(
       `[typewire-nestjs] "${bound.eventId}" is a ${JSON.stringify(
-        bound.def.direction,
+        bound.def.direction
       )} event, so a gateway pushes it rather than handling it. Send it with ` +
         `emitSocketEvent(target, event, payload); @SocketEvent() binds ` +
-        `"client->server" events only.`,
-    );
+        `"client->server" events only.`
+    )
   }
 
   return applyDecorators(
     SubscribeMessage(bound.event),
     SetMetadata(SOCKET_EVENT_METADATA, bound),
     SetMetadata(SOCKET_OPTIONS_METADATA, options),
-    UseInterceptors(SocketAckInterceptor),
-  );
+    UseInterceptors(SocketAckInterceptor)
+  )
 }
 
 /**
@@ -70,22 +70,22 @@ export function SocketEvent<E extends ClientToServerDef>(
 export const SocketPayload = createParamDecorator(
   (_data: unknown, ctx: ExecutionContext) => {
     const bound: BoundSocketEvent<ClientToServerDef> | undefined =
-      Reflect.getMetadata(SOCKET_EVENT_METADATA, ctx.getHandler());
+      Reflect.getMetadata(SOCKET_EVENT_METADATA, ctx.getHandler())
 
-    const data = ctx.switchToWs().getData();
-    if (!bound) return data;
+    const data = ctx.switchToWs().getData()
+    if (!bound) return data
 
-    const parsed = bound.def.request.safeParse(data);
-    if (parsed.success) return parsed.data;
+    const parsed = bound.def.request.safeParse(data)
+    if (parsed.success) return parsed.data
 
     throw new SocketContractException(
       bound.eventId,
-      "Frame validation failed",
-      "VALIDATION_ERROR",
-      formatZodIssues(parsed.error),
-    );
-  },
-);
+      'Frame validation failed',
+      'VALIDATION_ERROR',
+      formatZodIssues(parsed.error)
+    )
+  }
+)
 
 /**
  * The contract event this handler is bound to — for a guard, an audit log, or
@@ -93,12 +93,12 @@ export const SocketPayload = createParamDecorator(
  */
 export const SocketEventInfo = createParamDecorator(
   (_data: unknown, ctx: ExecutionContext): BoundSocketEvent | undefined =>
-    Reflect.getMetadata(SOCKET_EVENT_METADATA, ctx.getHandler()),
-);
+    Reflect.getMetadata(SOCKET_EVENT_METADATA, ctx.getHandler())
+)
 
 /** Read the bound contract event off a handler, for guards and interceptors. */
 export function getSocketEvent(
-  context: ExecutionContext,
+  context: ExecutionContext
 ): BoundSocketEvent | undefined {
-  return Reflect.getMetadata(SOCKET_EVENT_METADATA, context.getHandler());
+  return Reflect.getMetadata(SOCKET_EVENT_METADATA, context.getHandler())
 }

@@ -4,10 +4,7 @@
   "title": "TypeWire package docs manifest",
   "description": "packages/<pkg>/docs/docs.json — what the website renders for this package, and which version of it those pages describe. Enforced by scripts/check-docs.mjs.",
   "type": "object",
-  "required": [
-    "documentsVersion",
-    "pages"
-  ],
+  "required": ["documentsVersion", "pages"],
   "additionalProperties": false,
   "properties": {
     "$schema": {
@@ -28,10 +25,7 @@
       "description": "Ordered — this is the sidebar.",
       "items": {
         "type": "object",
-        "required": [
-          "slug",
-          "title"
-        ],
+        "required": ["slug", "title"],
         "additionalProperties": false,
         "properties": {
           "slug": {

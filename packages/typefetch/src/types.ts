@@ -1,8 +1,8 @@
 // Import "zod" for schema-based runtime validation of request and response data
-import { z } from "zod";
+import { z } from 'zod'
 
-export type EncryptionMethod = "AES" | "DES" | "RSA" | "Base64" | "Custom";
-export type Method = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+export type EncryptionMethod = 'AES' | 'DES' | 'RSA' | 'Base64' | 'Custom'
+export type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 
 /**
  * ResponseType
@@ -32,14 +32,14 @@ export type Method = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
  * and parsed as JSON when possible, whatever the declared success type is.
  */
 export type ResponseType =
-  | "json"
-  | "text"
-  | "blob"
-  | "arrayBuffer"
-  | "formData"
-  | "file"
-  | "stream"
-  | "response";
+  | 'json'
+  | 'text'
+  | 'blob'
+  | 'arrayBuffer'
+  | 'formData'
+  | 'file'
+  | 'stream'
+  | 'response'
 
 /**
  * TypeFetchFile
@@ -54,14 +54,14 @@ export type ResponseType =
  * invisible to the client even though it was sent.
  */
 export type TypeFetchFile = {
-  blob: Blob;
+  blob: Blob
   /** From `Content-Disposition`; `undefined` when absent or CORS-hidden. */
-  filename?: string;
+  filename?: string
   /** From `Content-Type`; `undefined` when absent. */
-  contentType?: string;
+  contentType?: string
   /** `blob.size` — the decoded byte length. */
-  size: number;
-};
+  size: number
+}
 
 /**
  * TransferProgress
@@ -80,19 +80,19 @@ export type TypeFetchFile = {
  */
 export type TransferProgress = {
   /** Which half of the exchange this tick describes. */
-  phase: "upload" | "download";
+  phase: 'upload' | 'download'
   /** Bytes transferred so far. */
-  loaded: number;
+  loaded: number
   /** Total bytes, when known. */
-  total?: number;
+  total?: number
   /** `0`–`100`, rounded to two decimals, when known. */
-  percent?: number;
+  percent?: number
   /** Whether `total`/`percent` are present. */
-  lengthComputable: boolean;
-};
+  lengthComputable: boolean
+}
 
 /** Receives each {@link TransferProgress} tick. Never throws into the request. */
-export type ProgressHandler = (progress: TransferProgress) => void;
+export type ProgressHandler = (progress: TransferProgress) => void
 
 /**
  * DeepEncryptionMap<T>
@@ -108,9 +108,9 @@ export type DeepEncryptionMap =
   | boolean
   | EncryptionMethod
   | {
-      [key: string]: DeepEncryptionMap;
+      [key: string]: DeepEncryptionMap
     }
-  | DeepEncryptionMap[];
+  | DeepEncryptionMap[]
 
 /**
  * EncryptionConfig
@@ -123,21 +123,21 @@ export type EncryptionConfig<TReq, TRes> = {
   method:
     | EncryptionMethod
     | {
-        request?: EncryptionMethod;
-        response?: EncryptionMethod;
-      };
+        request?: EncryptionMethod
+        response?: EncryptionMethod
+      }
   /** Map of request fields to encrypt before sending to the server */
-  request?: DeepEncryptionMap;
+  request?: DeepEncryptionMap
   /** Map of response fields to decrypt after receiving from the server */
-  response?: DeepEncryptionMap;
-};
+  response?: DeepEncryptionMap
+}
 
 /**
  * Base types for Zod schemas representing request and response structures.
  * These are abstract—each concrete endpoint will define its own Zod object for these.
  */
-export type RequestSchema = z.ZodTypeAny;
-export type ResponseSchema = z.ZodTypeAny;
+export type RequestSchema = z.ZodTypeAny
+export type ResponseSchema = z.ZodTypeAny
 
 /**
  * A permission requirement a contract endpoint may carry inline (the optional
@@ -151,12 +151,12 @@ export type ResponseSchema = z.ZodTypeAny;
  */
 export type PermissionRequirement = {
   /** All of these flags must be held (`hasAll`). */
-  require?: readonly string[];
+  require?: readonly string[]
   /** At least one of these flags must be held (`hasAny`). */
-  any?: readonly string[];
+  any?: readonly string[]
   /** Human reason, surfaced in the 403 body and the audit log. */
-  reason?: string;
-};
+  reason?: string
+}
 
 /**
  * ErrorResponsesMap
@@ -178,7 +178,7 @@ export type PermissionRequirement = {
  * If a single key can carry multiple distinct bodies, the schema value itself
  * can be a `z.discriminatedUnion(...)`.
  */
-export type ErrorResponsesMap = Record<number | string, z.ZodTypeAny>;
+export type ErrorResponsesMap = Record<number | string, z.ZodTypeAny>
 
 /**
  * ErrorKind
@@ -200,26 +200,26 @@ export type ErrorResponsesMap = Record<number | string, z.ZodTypeAny>;
  * is the coarse classification above it, not a replacement for it.
  */
 export type ErrorKind =
-  | "cancelled"
-  | "invalid_argument"
-  | "deadline_exceeded"
-  | "not_found"
-  | "already_exists"
-  | "permission_denied"
-  | "unauthenticated"
-  | "resource_exhausted"
-  | "failed_precondition"
-  | "aborted"
-  | "out_of_range"
-  | "unimplemented"
-  | "internal"
-  | "unavailable"
-  | "data_loss"
+  | 'cancelled'
+  | 'invalid_argument'
+  | 'deadline_exceeded'
+  | 'not_found'
+  | 'already_exists'
+  | 'permission_denied'
+  | 'unauthenticated'
+  | 'resource_exhausted'
+  | 'failed_precondition'
+  | 'aborted'
+  | 'out_of_range'
+  | 'unimplemented'
+  | 'internal'
+  | 'unavailable'
+  | 'data_loss'
   /** The request never reached a server (DNS, TLS, offline, CORS preflight). */
-  | "network"
+  | 'network'
   /** Input or output failed its own contract schema. */
-  | "validation"
-  | "unknown";
+  | 'validation'
+  | 'unknown'
 
 /**
  * EndpointTestContext
@@ -228,55 +228,55 @@ export type ErrorKind =
  * It allows one endpoint test to store values that later tests can reuse.
  */
 export type EndpointTestContext = {
-  data: Record<string, unknown>;
-  get<T = unknown>(key: string): T | undefined;
-  set<T = unknown>(key: string, value: T): void;
-  has(key: string): boolean;
-};
+  data: Record<string, unknown>
+  get<T = unknown>(key: string): T | undefined
+  set<T = unknown>(key: string, value: T): void
+  has(key: string): boolean
+}
 
 export type EndpointTestInputFactory<TReq> = (
-  ctx: EndpointTestContext,
-) => TReq | Promise<TReq>;
+  ctx: EndpointTestContext
+) => TReq | Promise<TReq>
 
 export type EndpointTestAssertion<TReq, TRes> = (result: {
-  input: TReq;
-  response: TRes;
-  ctx: EndpointTestContext;
-}) => void | Promise<void>;
+  input: TReq
+  response: TRes
+  ctx: EndpointTestContext
+}) => void | Promise<void>
 
 export type EndpointTestCase<TReq, TRes> = {
   /** Human-readable name shown in the generated report. */
-  name?: string;
+  name?: string
   /** Static input or a factory that can read/write shared test context. */
-  input?: TReq | EndpointTestInputFactory<TReq>;
+  input?: TReq | EndpointTestInputFactory<TReq>
   /** Skip this specific case. A string is used as the skip reason. */
-  skip?: boolean | string;
+  skip?: boolean | string
   /** Expected HTTP status. Defaults to any successful client response. */
-  expectStatus?: number | number[];
+  expectStatus?: number | number[]
   /** Optional user-defined assertion after a successful response. */
-  expect?: EndpointTestAssertion<TReq, TRes>;
+  expect?: EndpointTestAssertion<TReq, TRes>
   /** Per-case timeout in milliseconds. */
-  timeout?: number;
+  timeout?: number
   /** Tags used by the runner for include/exclude filtering. */
-  tags?: string[];
-};
+  tags?: string[]
+}
 
 export type EndpointTestConfig<TReq, TRes> = {
   /** Disable all generated/manual tests for this endpoint. */
-  enabled?: boolean;
+  enabled?: boolean
   /** Tags used by the runner for include/exclude filtering. */
-  tags?: string[];
+  tags?: string[]
   /** Mark endpoints such as DELETE/reset/payment as unsafe for default runs. */
-  destructive?: boolean;
+  destructive?: boolean
   /** Default input used when cases are not provided. */
-  input?: TReq | EndpointTestInputFactory<TReq>;
+  input?: TReq | EndpointTestInputFactory<TReq>
   /** One or more test cases for this endpoint. */
-  cases?: Array<EndpointTestCase<TReq, TRes>>;
+  cases?: Array<EndpointTestCase<TReq, TRes>>
   /** Runs before the endpoint cases. */
-  setup?: (ctx: EndpointTestContext) => void | Promise<void>;
+  setup?: (ctx: EndpointTestContext) => void | Promise<void>
   /** Runs after the endpoint cases. */
-  teardown?: (ctx: EndpointTestContext) => void | Promise<void>;
-};
+  teardown?: (ctx: EndpointTestContext) => void | Promise<void>
+}
 
 /**
  * EndpointBase
@@ -292,10 +292,11 @@ export type EndpointTestConfig<TReq, TRes> = {
 export type EndpointBase<
   TReq extends RequestSchema,
   TRes extends ResponseSchema,
+  /* eslint-disable-next-line @typescript-eslint/no-empty-object-type */
   TErr extends ErrorResponsesMap = {},
 > = {
   /** Whether this endpoint requires an Authorization token */
-  auth?: boolean;
+  auth?: boolean
 
   /**
    * Optional permission requirement, written once on the contract. A server
@@ -304,13 +305,13 @@ export type EndpointBase<
    * Purely additive — endpoints without it behave exactly as before. Flag names
    * reference a `@tahanabavi/type-permission` bit map.
    */
-  permission?: PermissionRequirement;
+  permission?: PermissionRequirement
 
   /** Zod schema describing the expected request structure */
-  request: TReq; // Typically { path?, query?, body? }
+  request: TReq // Typically { path?, query?, body? }
 
   /** Zod schema describing the expected (success / 2xx) response structure */
-  response: TRes;
+  response: TRes
 
   /**
    * Optional map of error response schemas, keyed by this endpoint's transport
@@ -324,20 +325,20 @@ export type EndpointBase<
    *
    * @see {@link ErrorResponsesMap}
    */
-  errors?: TErr;
+  errors?: TErr
 
   /**
    * Mock data support — enables quick testing or local dev mode:
    * - Either a function returning a mock response object
    * - Or a static mock response object
    */
-  mockData?: (() => z.infer<TRes>) | z.infer<TRes>;
+  mockData?: (() => z.infer<TRes>) | z.infer<TRes>
 
   /**
    * Field-level encryption configuration.
    * Allows selecting specific fields in request/response to be encrypted/decrypted.
    */
-  encryption?: EncryptionConfig<z.infer<TReq>, z.infer<TRes>>;
+  encryption?: EncryptionConfig<z.infer<TReq>, z.infer<TRes>>
 
   /**
    * Optional custom headers. Can be:
@@ -345,14 +346,13 @@ export type EndpointBase<
    * - A function returning headers derived from the input data
    */
   headers?:
-    | Record<string, string>
-    | ((input: z.infer<TReq>) => Record<string, string>);
+    Record<string, string> | ((input: z.infer<TReq>) => Record<string, string>)
 
   /**
    * Optional contract-driven tests used by the TypeFetch test runner.
    */
-  test?: EndpointTestConfig<z.infer<TReq>, z.infer<TRes>>;
-};
+  test?: EndpointTestConfig<z.infer<TReq>, z.infer<TRes>>
+}
 
 /**
  * TransportRegistry
@@ -382,7 +382,7 @@ export type EndpointBase<
  * field**. Anything that needs to describe a route asks its adapter.
  */
 export interface TransportRegistry {
-  http: HttpEndpointFields;
+  http: HttpEndpointFields
 }
 
 /**
@@ -392,10 +392,10 @@ export interface TransportRegistry {
  */
 export type HttpEndpointFields = {
   /** HTTP method used by this endpoint */
-  method: Method;
+  method: Method
 
   /** URL path for this endpoint, e.g. "/users/:id" */
-  path: string;
+  path: string
 
   /**
    * How the success body is decoded before `response` validates it.
@@ -406,14 +406,14 @@ export type HttpEndpointFields = {
    *
    * @see {@link ResponseType}
    */
-  responseType?: ResponseType;
+  responseType?: ResponseType
 
   /**
    * Defines how the request body should be sent:
    * - `"json"` (default): serialized as JSON
    * - `"form-data"`: multipart form
    */
-  bodyType?: "json" | "form-data";
+  bodyType?: 'json' | 'form-data'
 
   /**
    * Which terminal sender carries this endpoint's requests.
@@ -424,8 +424,8 @@ export type HttpEndpointFields = {
    *
    * @see {@link HttpDriver}
    */
-  driver?: HttpDriver;
-};
+  driver?: HttpDriver
+}
 
 /**
  * HttpDriver
@@ -446,10 +446,10 @@ export type HttpEndpointFields = {
  * `redirect`, `referrerPolicy`, `integrity` or `duplex`, so those `RequestInit`
  * fields are dropped rather than silently misapplied.
  */
-export type HttpDriver = "auto" | "fetch" | "xhr";
+export type HttpDriver = 'auto' | 'fetch' | 'xhr'
 
 /** Every transport currently installed, as a string union. */
-export type TransportKind = keyof TransportRegistry & string;
+export type TransportKind = keyof TransportRegistry & string
 
 /**
  * The discriminant an endpoint carries for transport `K`.
@@ -458,9 +458,9 @@ export type TransportKind = keyof TransportRegistry & string;
  * keeps every contract written before transports existed compiling and behaving
  * byte-for-byte the same.
  */
-export type TransportDiscriminant<K extends TransportKind> = K extends "http"
-  ? { transport?: "http" }
-  : { transport: K };
+export type TransportDiscriminant<K extends TransportKind> = K extends 'http'
+  ? { transport?: 'http' }
+  : { transport: K }
 
 /**
  * EndpointFor
@@ -473,10 +473,11 @@ export type EndpointFor<
   K extends TransportKind,
   TReq extends RequestSchema,
   TRes extends ResponseSchema,
+  /* eslint-disable-next-line @typescript-eslint/no-empty-object-type */
   TErr extends ErrorResponsesMap = {},
 > = EndpointBase<TReq, TRes, TErr> &
   TransportRegistry[K] &
-  TransportDiscriminant<K>;
+  TransportDiscriminant<K>
 
 /**
  * EndpointDef
@@ -491,8 +492,9 @@ export type EndpointFor<
 export type EndpointDef<
   TReq extends RequestSchema,
   TRes extends ResponseSchema,
+  /* eslint-disable-next-line @typescript-eslint/no-empty-object-type */
   TErr extends ErrorResponsesMap = {},
-> = EndpointFor<"http", TReq, TRes, TErr>;
+> = EndpointFor<'http', TReq, TRes, TErr>
 
 /**
  * AnyEndpointDef
@@ -504,10 +506,11 @@ export type EndpointDef<
 export type AnyEndpointDef<
   TReq extends RequestSchema,
   TRes extends ResponseSchema,
+  /* eslint-disable-next-line @typescript-eslint/no-empty-object-type */
   TErr extends ErrorResponsesMap = {},
 > = {
-  [K in TransportKind]: EndpointFor<K, TReq, TRes, TErr>;
-}[TransportKind];
+  [K in TransportKind]: EndpointFor<K, TReq, TRes, TErr>
+}[TransportKind]
 
 /**
  * Contracts
@@ -529,9 +532,9 @@ export type AnyEndpointDef<
  */
 export type Contracts = {
   [ModuleName: string]: {
-    [EndpointName: string]: AnyEndpointDef<RequestSchema, ResponseSchema>;
-  };
-};
+    [EndpointName: string]: AnyEndpointDef<RequestSchema, ResponseSchema>
+  }
+}
 
 /**
  * Convenience alias that pins the generic types
@@ -544,7 +547,7 @@ export type EndpointDefZ = EndpointDef<
   RequestSchema,
   ResponseSchema,
   ErrorResponsesMap
->;
+>
 
 /**
  * The {@link EndpointDefZ} equivalent for an endpoint on any installed
@@ -555,7 +558,7 @@ export type AnyEndpointDefZ = AnyEndpointDef<
   RequestSchema,
   ResponseSchema,
   ErrorResponsesMap
->;
+>
 
 /**
  * InferErrors<E>
@@ -565,10 +568,11 @@ export type AnyEndpointDefZ = AnyEndpointDef<
  * endpoint's transport's — see {@link ErrorResponsesMap}.
  */
 export type InferErrors<E> = E extends {
-  errors: infer M extends ErrorResponsesMap;
+  errors: infer M extends ErrorResponsesMap
 }
   ? { [S in keyof M]: z.infer<M[S]> }
-  : {};
+  : /* eslint-disable-next-line @typescript-eslint/no-empty-object-type */
+    {}
 
 /**
  * InferError<E, S>
@@ -581,12 +585,12 @@ export type InferErrors<E> = E extends {
  * (`"UNAUTHENTICATED"`).
  */
 export type InferError<E, S extends number | string> = E extends {
-  errors: infer M extends ErrorResponsesMap;
+  errors: infer M extends ErrorResponsesMap
 }
   ? S extends keyof M
     ? z.infer<M[S]>
     : never
-  : never;
+  : never
 
 /**
  * Context passed to all middleware functions.
@@ -594,13 +598,13 @@ export type InferError<E, S extends number | string> = E extends {
  * and the specific endpoint definition for metadata access.
  */
 export type RequestParts = {
-  path?: Record<string, unknown>;
-  query?: Record<string, unknown>;
-  body?: unknown;
-  headers: Record<string, string>;
-  isStructured: boolean;
-  rawInput?: unknown;
-};
+  path?: Record<string, unknown>
+  query?: Record<string, unknown>
+  body?: unknown
+  headers: Record<string, string>
+  isStructured: boolean
+  rawInput?: unknown
+}
 
 /**
  * How a route identifies itself, as its transport describes it.
@@ -613,19 +617,19 @@ export type RequestParts = {
  */
 export type TransportDescription = {
   /** Wire family, for display: `"HTTP"`, `"gRPC"`, `"GraphQL"`. */
-  protocol: string;
+  protocol: string
   /** The operation within it: `"GET"`, `"unary"`, `"query"`. */
-  operation: string;
+  operation: string
   /** What it addresses: `"/users/:id"`, `"user.v1.UserService/GetUser"`. */
-  target: string;
-};
+  target: string
+}
 
 export interface MiddlewareContext<
   TReq extends RequestSchema = RequestSchema,
   TRes extends ResponseSchema = ResponseSchema,
 > {
-  url: string;
-  init: RequestInit;
+  url: string
+  init: RequestInit
   /**
    * The route as its transport describes it, plus which transport that was.
    *
@@ -633,7 +637,7 @@ export interface MiddlewareContext<
    * because a middleware that only needs the wire method or URL should read
    * `ctx.init.method` and `ctx.url` — both populated on every transport.
    */
-  route?: TransportDescription & { transport: string };
+  route?: TransportDescription & { transport: string }
   /**
    * The contract definition, on whatever transport it was declared for.
    *
@@ -643,8 +647,8 @@ export interface MiddlewareContext<
    * that only needs the wire method or URL should read `ctx.init.method` and
    * `ctx.url`, which are populated for every transport.
    */
-  endpoint: AnyEndpointDef<TReq, TRes>;
-  request?: RequestParts;
+  endpoint: AnyEndpointDef<TReq, TRes>
+  request?: RequestParts
 }
 
 /**
@@ -652,7 +656,7 @@ export interface MiddlewareContext<
  * When called, it executes the next function in the chain
  * or finally performs the fetch request.
  */
-export type MiddlewareNext = () => Promise<Response>;
+export type MiddlewareNext = () => Promise<Response>
 
 /**
  * Middleware
@@ -675,8 +679,8 @@ export type Middleware<
 > = (
   ctx: MiddlewareContext<TReq, TRes>,
   next: MiddlewareNext,
-  options?: Options,
-) => Promise<Response>;
+  options?: Options
+) => Promise<Response>
 
 /**
  * ErrorLike
@@ -685,9 +689,9 @@ export type Middleware<
  * Provides consistency for error handling modules such as RichError.
  */
 export type ErrorLike = {
-  message: string; // Human-readable error message
-  status?: number; // HTTP status code (optional)
-  code?: string; // Application-level error code (optional)
+  message: string // Human-readable error message
+  status?: number // HTTP status code (optional)
+  code?: string // Application-level error code (optional)
   /**
    * Transport-independent classification of the failure. Always populated by
    * the client, so a global handler can switch on it without knowing which wire
@@ -695,9 +699,9 @@ export type ErrorLike = {
    *
    * @see {@link ErrorKind}
    */
-  kind?: ErrorKind;
-  [key: string]: any; // Any additional arbitrary fields
-};
+  kind?: ErrorKind
+  [key: string]: any // Any additional arbitrary fields
+}
 
 /**
  * RequestOptions
@@ -712,8 +716,8 @@ export type ErrorLike = {
  * one in a background sync.
  */
 export type RequestOptions = {
-  signal?: AbortSignal;
-  timeout?: number;
+  signal?: AbortSignal
+  timeout?: number
 
   /**
    * Called as the request body is uploaded.
@@ -731,7 +735,7 @@ export type RequestOptions = {
    * On retry, progress restarts — each attempt re-sends the whole body and
    * begins with a `loaded: 0` tick.
    */
-  onUploadProgress?: ProgressHandler;
+  onUploadProgress?: ProgressHandler
 
   /**
    * Called as the response body is downloaded. Runs on the normal `fetch` path
@@ -745,8 +749,8 @@ export type RequestOptions = {
    * undrained body to the caller — counting bytes there would mean consuming
    * the stream the caller asked to own.
    */
-  onDownloadProgress?: ProgressHandler;
-};
+  onDownloadProgress?: ProgressHandler
+}
 
 /**
  * EndpointMethod
@@ -766,14 +770,14 @@ export type RequestOptions = {
  */
 export type EndpointMethod<E extends AnyEndpointDefZ> = {
   (
-    input: z.infer<E["request"]>, // Auto‑derived input type from Zod schema
-    options?: RequestOptions, // Optional timeout/cancel options
-  ): Promise<z.infer<E["response"]>>; // Parsed, validated output type
+    input: z.infer<E['request']>, // Auto‑derived input type from Zod schema
+    options?: RequestOptions // Optional timeout/cancel options
+  ): Promise<z.infer<E['response']>> // Parsed, validated output type
   /** Stable `"module.endpoint"` identifier. */
-  readonly endpointId: string;
+  readonly endpointId: string
   /** The original contract definition for this endpoint. */
-  readonly endpoint: E;
-};
+  readonly endpoint: E
+}
 
 /**
  * EndpointMethods
@@ -787,8 +791,8 @@ export type EndpointMethod<E extends AnyEndpointDefZ> = {
  * - Carries `endpointId` / `endpoint` metadata for higher layers
  */
 export type EndpointMethods<M extends Record<string, AnyEndpointDefZ>> = {
-  [K in keyof M]: EndpointMethod<M[K]>;
-};
+  [K in keyof M]: EndpointMethod<M[K]>
+}
 
 /**
  * TokenProvider
@@ -796,7 +800,7 @@ export type EndpointMethods<M extends Record<string, AnyEndpointDefZ>> = {
  * Specifies the contract for a function that supplies authentication tokens.
  * Can be synchronous or async, e.g. fetching from localStorage or refreshing with an API.
  */
-export type TokenProvider = () => string | Promise<string>;
+export type TokenProvider = () => string | Promise<string>
 
 /**
  * RequestEvent
@@ -813,60 +817,60 @@ export type TokenProvider = () => string | Promise<string>;
  */
 export type RequestEvent =
   | {
-      type: "start";
+      type: 'start'
       /** Unique id correlating this request's start/success/error events. */
-      requestId: string;
+      requestId: string
       /** Stable `"module.endpoint"` identifier (may be empty for direct calls). */
-      endpointId: string;
+      endpointId: string
       /**
        * The operation, as the transport names it: an HTTP method, `"unary"` for
        * a gRPC call, `"query"` for GraphQL.
        */
-      method: Method;
+      method: Method
       /** Best-effort URL: `baseUrl + target` template (params not yet resolved). */
-      url: string;
+      url: string
       /**
        * Which transport served this request (`"http"`, `"grpc"`, `"graphql"`).
        * Additive — a consumer that ignores it behaves exactly as before.
        */
-      transport?: string;
+      transport?: string
       /** The validated request input. */
-      input: unknown;
+      input: unknown
       /** High-resolution start timestamp (ms). */
-      timestamp: number;
+      timestamp: number
     }
   | {
-      type: "success";
-      requestId: string;
-      endpointId: string;
+      type: 'success'
+      requestId: string
+      endpointId: string
       /** The parsed, typed response returned to the caller. */
-      data: unknown;
+      data: unknown
       /** Elapsed time from start to success (ms). */
-      durationMs: number;
+      durationMs: number
       /** `true` when the result came from mock data (configured or forced). */
-      fromMock: boolean;
+      fromMock: boolean
     }
   | {
-      type: "error";
-      requestId: string;
-      endpointId: string;
-      status?: number;
-      error: ErrorLike;
-      durationMs: number;
+      type: 'error'
+      requestId: string
+      endpointId: string
+      status?: number
+      error: ErrorLike
+      durationMs: number
     }
   | {
-      type: "progress";
-      requestId: string;
-      endpointId: string;
+      type: 'progress'
+      requestId: string
+      endpointId: string
       /** Which half of the exchange advanced. */
-      phase: "upload" | "download";
-      loaded: number;
-      total?: number;
-      percent?: number;
-      lengthComputable: boolean;
+      phase: 'upload' | 'download'
+      loaded: number
+      total?: number
+      percent?: number
+      lengthComputable: boolean
       /** Elapsed time from the request's start to this tick (ms). */
-      durationMs: number;
-    };
+      durationMs: number
+    }
 
 /**
  * Override
@@ -886,16 +890,16 @@ export type Override = {
    * client's mock mode. A function receives the parsed input. The result is
    * still validated against the (possibly overridden) response schema.
    */
-  mock?: unknown | ((input: unknown) => unknown);
+  mock?: unknown | ((input: unknown) => unknown)
   /** Force an error response (simulate a failing endpoint). */
-  error?: { status?: number; code?: string; message?: string; body?: unknown };
+  error?: { status?: number; code?: string; message?: string; body?: unknown }
   /** Inject artificial latency (ms) before the request resolves. */
-  latencyMs?: number;
+  latencyMs?: number
   /** Swap the request validation schema at runtime (structure testing). */
-  request?: z.ZodTypeAny;
+  request?: z.ZodTypeAny
   /** Swap the response validation schema at runtime (structure testing). */
-  response?: z.ZodTypeAny;
-};
+  response?: z.ZodTypeAny
+}
 
 /**
  * Instrumentation
@@ -911,10 +915,7 @@ export type Override = {
  */
 export type Instrumentation = {
   /** Receives each lifecycle event. */
-  on?: (event: RequestEvent) => void;
+  on?: (event: RequestEvent) => void
   /** Resolve a per-request override for the given endpoint/input, or `undefined`. */
-  resolveOverride?: (
-    endpointId: string,
-    input: unknown,
-  ) => Override | undefined;
-};
+  resolveOverride?: (endpointId: string, input: unknown) => Override | undefined
+}

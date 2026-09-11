@@ -1,7 +1,7 @@
-import { ApiClient } from "@tahanabavi/typefetch";
-import { graphqlTransport } from "@tahanabavi/typefetch-graphql";
-import { grpcTransport } from "@tahanabavi/typefetch-grpc";
-import { contracts } from "./contracts.js";
+import { ApiClient } from '@tahanabavi/typefetch'
+import { graphqlTransport } from '@tahanabavi/typefetch-graphql'
+import { grpcTransport } from '@tahanabavi/typefetch-grpc'
+import { contracts } from './contracts.js'
 
 /**
  * The adapters, registered once and exported.
@@ -15,7 +15,7 @@ import { contracts } from "./contracts.js";
  * `${baseUrl}/graphql`, so the adapter needs nothing that depends on where the
  * client happens to point, and stays a module-level constant.
  */
-export const transports = [graphqlTransport(), grpcTransport()];
+export const transports = [graphqlTransport(), grpcTransport()]
 
 /**
  * One client, three wires — and one definition of it.
@@ -28,10 +28,13 @@ export const transports = [graphqlTransport(), grpcTransport()];
  * The options match what the CLI passes, so it can be handed over as-is:
  * `--base-url` and `--token` arrive here.
  */
-export function createClient(options: { baseUrl?: string; token?: string } = {}) {
+export function createClient(
+  options: { baseUrl?: string; token?: string } = {}
+) {
   const client = new ApiClient(
     {
-      baseUrl: options.baseUrl ?? process.env.API_BASE_URL ?? "http://127.0.0.1:3000",
+      baseUrl:
+        options.baseUrl ?? process.env.API_BASE_URL ?? 'http://127.0.0.1:3000',
 
       // Registered once, here. Everything downstream — auth, retries, timeouts,
       // `onError`, middleware, mock mode, the devtools timeline — is
@@ -44,9 +47,9 @@ export function createClient(options: { baseUrl?: string; token?: string } = {})
 
       ...(options.token ? { token: options.token } : {}),
     },
-    contracts,
-  );
+    contracts
+  )
 
-  client.init();
-  return client;
+  client.init()
+  return client
 }

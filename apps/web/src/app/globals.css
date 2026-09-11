@@ -1,6 +1,6 @@
-@import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
 
 /*
  * One token system, two vocabularies.
@@ -75,13 +75,13 @@
   --color-wire-ws: var(--wire-ws);
 
   --font-main:
-    var(--font-jetbrain), ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    var(--font-jetbrain), ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
     sans-serif;
   --font-sans:
-    var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
     sans-serif;
   --font-mono:
-    var(--font-geist-mono), "JetBrains Mono", "Cascadia Code", Consolas, Menlo,
+    var(--font-geist-mono), 'JetBrains Mono', 'Cascadia Code', Consolas, Menlo,
     monospace;
   --font-heading: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 
@@ -120,7 +120,7 @@
    Dark — the theme the brand was drawn in, and what every code panel wears
    whatever the page around it is doing.
    --------------------------------------------------------------------------- */
-:root[data-theme="dark"],
+:root[data-theme='dark'],
 .code-surface {
   --background: #060a14;
   --foreground: #e8eef8;
@@ -204,7 +204,7 @@
    page rather than an unstyled one.
    --------------------------------------------------------------------------- */
 :root,
-:root[data-theme="light"] {
+:root[data-theme='light'] {
   --background: #f7f9fc;
   --foreground: #0f172a;
 
@@ -288,7 +288,7 @@
 
   /* 44px hairline grid, faded at the edges — atmosphere, never noise. */
   body::before {
-    content: "";
+    content: '';
     position: fixed;
     inset: 0;
     pointer-events: none;

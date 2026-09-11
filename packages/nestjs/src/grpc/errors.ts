@@ -1,6 +1,6 @@
-import { HttpException } from "@nestjs/common";
-import { GrpcCode, codeName, parseCode } from "@tahanabavi/typefetch-grpc";
-import { ContractValidationException } from "../exceptions";
+import { HttpException } from '@nestjs/common'
+import { GrpcCode, codeName, parseCode } from '@tahanabavi/typefetch-grpc'
+import { ContractValidationException } from '../exceptions'
 
 /**
  * Failures, in the gRPC key space
@@ -13,17 +13,17 @@ import { ContractValidationException } from "../exceptions";
 
 /** A Connect error body: `{ code, message, details? }`. */
 export type ConnectErrorPayload = {
-  code: string;
-  message: string;
-  details?: unknown[];
+  code: string
+  message: string
+  details?: unknown[]
   /**
    * Field errors from a contract violation. Not part of the Connect wire
    * format, which reserves `details` for typed protobuf messages — but the
    * typefetch client hands the whole body to `endpoint.errors[code]`, so a
    * contract that declares a schema for `invalid_argument` receives them typed.
    */
-  errors?: Record<string, string[]>;
-};
+  errors?: Record<string, string[]>
+}
 
 /**
  * Throw a specific gRPC status from a handler.
@@ -36,14 +36,14 @@ export type ConnectErrorPayload = {
  * throw new GrpcException(GrpcCode.NotFound, `No user ${id}`);
  */
 export class GrpcException extends Error {
-  readonly code: GrpcCode;
-  readonly details?: unknown[];
+  readonly code: GrpcCode
+  readonly details?: unknown[]
 
   constructor(code: GrpcCode, message?: string, details?: unknown[]) {
-    super(message ?? codeName(code));
-    this.name = "GrpcException";
-    this.code = code;
-    if (details) this.details = details;
+    super(message ?? codeName(code))
+    this.name = 'GrpcException'
+    this.code = code
+    if (details) this.details = details
   }
 }
 
@@ -74,12 +74,12 @@ const CODE_BY_THROWN_STATUS: Record<number, GrpcCode> = {
   502: GrpcCode.Unavailable,
   503: GrpcCode.Unavailable,
   504: GrpcCode.DeadlineExceeded,
-};
+}
 
 export function codeFromThrownStatus(status: number): GrpcCode {
-  const mapped = CODE_BY_THROWN_STATUS[status];
-  if (mapped !== undefined) return mapped;
-  return status >= 500 ? GrpcCode.Internal : GrpcCode.Unknown;
+  const mapped = CODE_BY_THROWN_STATUS[status]
+  if (mapped !== undefined) return mapped
+  return status >= 500 ? GrpcCode.Internal : GrpcCode.Unknown
 }
 
 /**
@@ -95,26 +95,26 @@ export function toConnectError(exception: unknown): ConnectErrorPayload {
       code: codeName(exception.code),
       message: exception.message,
       ...(exception.details ? { details: exception.details } : {}),
-    };
+    }
   }
 
   if (exception instanceof ContractValidationException) {
     return {
       code: codeName(GrpcCode.InvalidArgument),
-      message: "Request validation failed",
+      message: 'Request validation failed',
       errors: exception.errors,
-    };
+    }
   }
 
   if (exception instanceof HttpException) {
-    const status = exception.getStatus();
-    const body = exception.getResponse();
+    const status = exception.getStatus()
+    const body = exception.getResponse()
 
-    if (typeof body === "string") {
-      return { code: codeName(codeFromThrownStatus(status)), message: body };
+    if (typeof body === 'string') {
+      return { code: codeName(codeFromThrownStatus(status)), message: body }
     }
 
-    const record = body as Record<string, unknown>;
+    const record = body as Record<string, unknown>
 
     // An exception may name its own gRPC code — either explicitly, or because
     // an app already uses Connect's spelling for `code`. Honour it over the
@@ -124,21 +124,21 @@ export function toConnectError(exception: unknown): ConnectErrorPayload {
         ? parseCode(record.grpcCode)
         : isConnectCodeName(record.code)
           ? parseCode(record.code)
-          : undefined;
+          : undefined
 
     const message = Array.isArray(record.message)
-      ? record.message.join(", ")
-      : ((record.message as string | undefined) ?? exception.message);
+      ? record.message.join(', ')
+      : ((record.message as string | undefined) ?? exception.message)
 
     return {
       code: codeName(declared ?? codeFromThrownStatus(status)),
       message,
       ...(Array.isArray(record.details) ? { details: record.details } : {}),
       ...(isFieldErrors(record.errors) ? { errors: record.errors } : {}),
-    };
+    }
   }
 
-  return { code: codeName(GrpcCode.Internal), message: "Internal server error" };
+  return { code: codeName(GrpcCode.Internal), message: 'Internal server error' }
 }
 
 /**
@@ -149,10 +149,12 @@ export function toConnectError(exception: unknown): ConnectErrorPayload {
  * `unknown` and lose the far more useful mapping from the HTTP status.
  */
 function isConnectCodeName(value: unknown): value is string {
-  if (typeof value !== "string") return false;
-  return parseCode(value) !== GrpcCode.Unknown || value.toLowerCase() === "unknown";
+  if (typeof value !== 'string') return false
+  return (
+    parseCode(value) !== GrpcCode.Unknown || value.toLowerCase() === 'unknown'
+  )
 }
 
 function isFieldErrors(value: unknown): value is Record<string, string[]> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
 }

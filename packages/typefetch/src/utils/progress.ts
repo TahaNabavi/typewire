@@ -1,4 +1,4 @@
-import type { ProgressHandler, TransferProgress } from "../types";
+import type { ProgressHandler, TransferProgress } from '../types'
 
 /**
  * Build a {@link TransferProgress} tick.
@@ -10,19 +10,19 @@ import type { ProgressHandler, TransferProgress } from "../types";
  * collapse to `lengthComputable: false` and omit `total`/`percent` entirely.
  */
 export function toProgress(
-  phase: "upload" | "download",
+  phase: 'upload' | 'download',
   loaded: number,
   total: number | undefined,
-  lengthComputable = true,
+  lengthComputable = true
 ): TransferProgress {
   const hasTotal =
     lengthComputable &&
-    typeof total === "number" &&
+    typeof total === 'number' &&
     Number.isFinite(total) &&
-    total > 0;
+    total > 0
 
   if (!hasTotal) {
-    return { phase, loaded, lengthComputable: false };
+    return { phase, loaded, lengthComputable: false }
   }
 
   return {
@@ -33,7 +33,7 @@ export function toProgress(
     // emitting a distinct value for every packet.
     percent: Math.round(Math.min(loaded / total!, 1) * 10000) / 100,
     lengthComputable: true,
-  };
+  }
 }
 
 /**
@@ -45,12 +45,12 @@ export function toProgress(
  */
 export function safeProgress(
   handler: ProgressHandler | undefined,
-  progress: TransferProgress,
+  progress: TransferProgress
 ): void {
-  if (!handler) return;
+  if (!handler) return
   try {
-    handler(progress);
+    handler(progress)
   } catch (err) {
-    console.error("[typefetch] progress handler threw:", err);
+    console.error('[typefetch] progress handler threw:', err)
   }
 }

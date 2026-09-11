@@ -5,10 +5,10 @@ import {
   Inject,
   Logger,
   Optional,
-} from "@nestjs/common";
-import { HttpAdapterHost } from "@nestjs/core";
-import { statusFromGrpcCode, parseCode } from "@tahanabavi/typefetch-grpc";
-import { GrpcException, toConnectError } from "./errors";
+} from '@nestjs/common'
+import { HttpAdapterHost } from '@nestjs/core'
+import { statusFromGrpcCode, parseCode } from '@tahanabavi/typefetch-grpc'
+import { GrpcException, toConnectError } from './errors'
 
 /**
  * Answer a failed RPC the way a Connect client expects: a JSON body naming a
@@ -22,21 +22,21 @@ import { GrpcException, toConnectError } from "./errors";
  */
 @Catch()
 export class ConnectExceptionFilter implements ExceptionFilter {
-  private readonly logger = new Logger("TypeWireGrpc");
+  private readonly logger = new Logger('TypeWireGrpc')
 
   // Explicit token: the published build (esbuild) emits no `design:paramtypes`,
   // so by-type injection would resolve to `Object` there.
   constructor(
     @Optional()
     @Inject(HttpAdapterHost)
-    private readonly adapterHost?: HttpAdapterHost,
+    private readonly adapterHost?: HttpAdapterHost
   ) {}
 
   catch(exception: unknown, host: ArgumentsHost): void {
-    if (host.getType() !== "http") throw exception;
+    if (host.getType() !== 'http') throw exception
 
-    const payload = toConnectError(exception);
-    const status = statusFromGrpcCode(parseCode(payload.code));
+    const payload = toConnectError(exception)
+    const status = statusFromGrpcCode(parseCode(payload.code))
 
     // A `GrpcException` is a decision the handler made — a deadline, an
     // `unavailable` — so its message is the whole story. Anything else that
@@ -44,26 +44,26 @@ export class ConnectExceptionFilter implements ExceptionFilter {
     // the cause survives, because the client is told nothing but "internal".
     if (status >= 500) {
       if (exception instanceof GrpcException) {
-        this.logger.warn(`${payload.code}: ${payload.message}`);
+        this.logger.warn(`${payload.code}: ${payload.message}`)
       } else {
         this.logger.error(
           exception instanceof Error
             ? (exception.stack ?? exception.message)
-            : String(exception),
-        );
+            : String(exception)
+        )
       }
     }
 
-    const response = host.switchToHttp().getResponse();
-    const httpAdapter = this.adapterHost?.httpAdapter;
+    const response = host.switchToHttp().getResponse()
+    const httpAdapter = this.adapterHost?.httpAdapter
 
     if (httpAdapter) {
-      httpAdapter.reply(response, payload, status);
-      return;
+      httpAdapter.reply(response, payload, status)
+      return
     }
 
     // No adapter host (a hand-instantiated filter in a unit test): fall back to
     // the platform response, which both Express and Fastify satisfy.
-    response.status(status).json(payload);
+    response.status(status).json(payload)
   }
 }

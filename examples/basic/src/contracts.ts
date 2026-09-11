@@ -1,5 +1,5 @@
-import { z } from "zod";
-import { defineSocketContracts } from "@tahanabavi/typesocket";
+import { z } from 'zod'
+import { defineSocketContracts } from '@tahanabavi/typesocket'
 
 /**
  * The single source of truth.
@@ -13,21 +13,21 @@ export const contracts = defineSocketContracts({
   echo: {
     /** Client asks; the ack carries the answer. */
     say: {
-      direction: "client->server",
+      direction: 'client->server',
       request: z.object({ text: z.string().min(1) }),
       ack: z.object({ echoed: z.string(), at: z.number() }),
     },
 
     /** Client tells; nobody answers. */
     ping: {
-      direction: "client->server",
+      direction: 'client->server',
       request: z.object({ seq: z.number().int() }),
     },
 
     /** Server pushes, unprompted. */
     tick: {
-      direction: "server->client",
+      direction: 'server->client',
       payload: z.object({ seq: z.number().int(), at: z.number() }),
     },
   },
-});
+})

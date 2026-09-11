@@ -1,10 +1,10 @@
-import { DynamicModule, Module } from "@nestjs/common";
-import { DiscoveryModule } from "@nestjs/core";
-import { GRAPHQL_MODULE_OPTIONS } from "./constants";
-import { createGraphQLController } from "./controller";
-import { ContractGraphQLDispatcher } from "./dispatcher";
-import { ContractGraphQLRegistry } from "./registry";
-import type { ContractGraphQLOptions } from "./types";
+import { DynamicModule, Module } from '@nestjs/common'
+import { DiscoveryModule } from '@nestjs/core'
+import { GRAPHQL_MODULE_OPTIONS } from './constants'
+import { createGraphQLController } from './controller'
+import { ContractGraphQLDispatcher } from './dispatcher'
+import { ContractGraphQLRegistry } from './registry'
+import type { ContractGraphQLOptions } from './types'
 
 /**
  * Mount a contract-driven GraphQL endpoint.
@@ -25,8 +25,8 @@ import type { ContractGraphQLOptions } from "./types";
 @Module({})
 export class ContractGraphQLModule {
   static forRoot(options: ContractGraphQLOptions): DynamicModule {
-    const path = options.path ?? "/graphql";
-    const allowGet = options.allowGet ?? true;
+    const path = options.path ?? '/graphql'
+    const allowGet = options.allowGet ?? true
 
     return {
       module: ContractGraphQLModule,
@@ -41,6 +41,6 @@ export class ContractGraphQLModule {
         ContractGraphQLDispatcher,
       ],
       exports: [ContractGraphQLDispatcher, ContractGraphQLRegistry],
-    };
+    }
   }
 }

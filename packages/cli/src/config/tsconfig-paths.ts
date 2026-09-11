@@ -1,9 +1,9 @@
-import { readFile } from "node:fs/promises";
-import { createRequire } from "node:module";
-import { dirname, isAbsolute, resolve } from "node:path";
-import { pathToFileURL } from "node:url";
-import { parseJsonc } from "./jsonc";
-import { exists } from "./fs";
+import { readFile } from 'node:fs/promises'
+import { createRequire } from 'node:module'
+import { dirname, isAbsolute, resolve } from 'node:path'
+import { pathToFileURL } from 'node:url'
+import { parseJsonc } from './jsonc'
+import { exists } from './fs'
 
 /**
  * Turn a project's `tsconfig.json` path aliases into jiti aliases.
@@ -18,21 +18,21 @@ import { exists } from "./fs";
  * error, which is more useful than one about tsconfig.
  */
 export async function readTsconfigAliases(
-  fromDir: string,
+  fromDir: string
 ): Promise<Record<string, string>> {
-  const tsconfigPath = await findTsconfig(fromDir);
-  if (!tsconfigPath) return {};
+  const tsconfigPath = await findTsconfig(fromDir)
+  if (!tsconfigPath) return {}
 
   try {
-    const { baseUrl, paths } = await readTsconfigChain(tsconfigPath);
-    if (!paths) return {};
-    return toJitiAliases(paths, baseUrl ?? dirname(tsconfigPath));
+    const { baseUrl, paths } = await readTsconfigChain(tsconfigPath)
+    if (!paths) return {}
+    return toJitiAliases(paths, baseUrl ?? dirname(tsconfigPath))
   } catch {
-    return {};
+    return {}
   }
 }
 
-type CompilerPaths = Record<string, string[]>;
+type CompilerPaths = Record<string, string[]>
 
 /**
  * Walk the `extends` chain. Monorepos put `paths` in the shared base far more
@@ -41,60 +41,60 @@ type CompilerPaths = Record<string, string[]>;
  */
 async function readTsconfigChain(
   tsconfigPath: string,
-  seen = new Set<string>(),
+  seen = new Set<string>()
 ): Promise<{ baseUrl?: string; paths?: CompilerPaths }> {
-  if (seen.has(tsconfigPath)) return {};
-  seen.add(tsconfigPath);
+  if (seen.has(tsconfigPath)) return {}
+  seen.add(tsconfigPath)
 
-  const raw = parseJsonc(await readFile(tsconfigPath, "utf8")) as {
-    extends?: string | string[];
-    compilerOptions?: { baseUrl?: string; paths?: CompilerPaths };
-  };
+  const raw = parseJsonc(await readFile(tsconfigPath, 'utf8')) as {
+    extends?: string | string[]
+    compilerOptions?: { baseUrl?: string; paths?: CompilerPaths }
+  }
 
-  const dir = dirname(tsconfigPath);
-  let baseUrl: string | undefined;
-  let paths: CompilerPaths | undefined;
+  const dir = dirname(tsconfigPath)
+  let baseUrl: string | undefined
+  let paths: CompilerPaths | undefined
 
   // Bases first, so the leaf's own values win.
   const bases = raw.extends
     ? Array.isArray(raw.extends)
       ? raw.extends
       : [raw.extends]
-    : [];
+    : []
 
   for (const base of bases) {
-    const basePath = resolveTsconfigRef(base, dir);
-    if (!basePath) continue;
+    const basePath = resolveTsconfigRef(base, dir)
+    if (!basePath) continue
 
-    const inherited = await readTsconfigChain(basePath, seen);
-    if (inherited.baseUrl) baseUrl = inherited.baseUrl;
-    if (inherited.paths) paths = { ...paths, ...inherited.paths };
+    const inherited = await readTsconfigChain(basePath, seen)
+    if (inherited.baseUrl) baseUrl = inherited.baseUrl
+    if (inherited.paths) paths = { ...paths, ...inherited.paths }
   }
 
   // `baseUrl` and relative `paths` resolve against the file that declared them.
   if (raw.compilerOptions?.baseUrl) {
-    baseUrl = resolve(dir, raw.compilerOptions.baseUrl);
+    baseUrl = resolve(dir, raw.compilerOptions.baseUrl)
   }
   if (raw.compilerOptions?.paths) {
-    paths = { ...paths, ...raw.compilerOptions.paths };
-    baseUrl ??= dir;
+    paths = { ...paths, ...raw.compilerOptions.paths }
+    baseUrl ??= dir
   }
 
-  return { baseUrl, paths };
+  return { baseUrl, paths }
 }
 
 function resolveTsconfigRef(ref: string, fromDir: string): string | undefined {
-  if (ref.startsWith(".") || isAbsolute(ref)) {
-    const full = resolve(fromDir, ref);
-    return /\.json$/.test(full) ? full : `${full}.json`;
+  if (ref.startsWith('.') || isAbsolute(ref)) {
+    const full = resolve(fromDir, ref)
+    return /\.json$/.test(full) ? full : `${full}.json`
   }
 
   // `extends: "@tsconfig/node20/tsconfig.json"` and friends.
   try {
-    const require = createRequire(pathToFileURL(resolve(fromDir, "noop.js")));
-    return require.resolve(ref);
+    const require = createRequire(pathToFileURL(resolve(fromDir, 'noop.js')))
+    return require.resolve(ref)
   } catch {
-    return undefined;
+    return undefined
   }
 }
 
@@ -105,33 +105,33 @@ function resolveTsconfigRef(ref: string, fromDir: string): string | undefined {
  */
 function toJitiAliases(
   paths: CompilerPaths,
-  baseUrl: string,
+  baseUrl: string
 ): Record<string, string> {
-  const aliases: Record<string, string> = {};
+  const aliases: Record<string, string> = {}
 
   for (const [pattern, targets] of Object.entries(paths)) {
-    const target = targets?.[0];
-    if (!target) continue;
+    const target = targets?.[0]
+    if (!target) continue
 
-    const from = pattern.replace(/\/?\*$/, "");
-    const to = resolve(baseUrl, target.replace(/\/?\*$/, ""));
-    if (!from) continue;
+    const from = pattern.replace(/\/?\*$/, '')
+    const to = resolve(baseUrl, target.replace(/\/?\*$/, ''))
+    if (!from) continue
 
-    aliases[from] = to;
+    aliases[from] = to
   }
 
-  return aliases;
+  return aliases
 }
 
 async function findTsconfig(fromDir: string): Promise<string | undefined> {
-  let dir = resolve(fromDir);
+  let dir = resolve(fromDir)
 
   for (;;) {
-    const candidate = resolve(dir, "tsconfig.json");
-    if (await exists(candidate)) return candidate;
+    const candidate = resolve(dir, 'tsconfig.json')
+    if (await exists(candidate)) return candidate
 
-    const parent = dirname(dir);
-    if (parent === dir) return undefined;
-    dir = parent;
+    const parent = dirname(dir)
+    if (parent === dir) return undefined
+    dir = parent
   }
 }

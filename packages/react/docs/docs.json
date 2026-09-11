@@ -7,34 +7,25 @@
       "title": "Overview",
       "readme": true,
       "intro": true,
-      "sections": [
-        "Setup"
-      ]
+      "sections": ["Setup"]
     },
     {
       "slug": "use-query",
       "title": "useQuery",
       "readme": true,
-      "sections": [
-        "useQuery"
-      ]
+      "sections": ["useQuery"]
     },
     {
       "slug": "use-mutation",
       "title": "useMutation",
       "readme": true,
-      "sections": [
-        "useMutation"
-      ]
+      "sections": ["useMutation"]
     },
     {
       "slug": "api",
       "title": "API",
       "readme": true,
-      "sections": [
-        "API",
-        "License"
-      ]
+      "sections": ["API", "License"]
     }
   ]
 }

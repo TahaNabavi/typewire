@@ -1,12 +1,12 @@
-import { TypeDevtools } from "@tahanabavi/type-devtools";
-import { useMutation, useQuery } from "@tahanabavi/typefetch-react";
-import { useState } from "react";
-import type { createStack } from "../../shared/stack.js";
+import { TypeDevtools } from '@tahanabavi/type-devtools'
+import { useMutation, useQuery } from '@tahanabavi/typefetch-react'
+import { useState } from 'react'
+import type { createStack } from '../../shared/stack.js'
 
-type Stack = ReturnType<typeof createStack>;
+type Stack = ReturnType<typeof createStack>
 
 export function App({ stack }: { stack: Stack }) {
-  const [userId, setUserId] = useState("1");
+  const [userId, setUserId] = useState('1')
 
   return (
     <main>
@@ -19,10 +19,10 @@ export function App({ stack }: { stack: Stack }) {
       </header>
 
       <nav className="tabs">
-        {["1", "2"].map((id) => (
+        {['1', '2'].map((id) => (
           <button
             key={id}
-            className={id === userId ? "tab active" : "tab"}
+            className={id === userId ? 'tab active' : 'tab'}
             onClick={() => setUserId(id)}
           >
             user {id}
@@ -43,28 +43,32 @@ export function App({ stack }: { stack: Stack }) {
         title="TypeWire devtools"
       />
     </main>
-  );
+  )
 }
 
 function UserCard({ userId, stack }: { userId: string; stack: Stack }) {
-  const [draft, setDraft] = useState("");
+  const [draft, setDraft] = useState('')
 
   // The daily call site: the endpoint and its input. No key, no query function.
-  const user = useQuery(stack.getUser, { path: { id: userId } }, {
-    staleTime: 30_000,
-  });
+  const user = useQuery(
+    stack.getUser,
+    { path: { id: userId } },
+    {
+      staleTime: 30_000,
+    }
+  )
 
   // No `onSuccess` refetch and no key here either. The client declares
   // `"user.updateUser" → ["user.getUser"]` once, at setup, and the watching
   // query above refetches itself.
-  const rename = useMutation(stack.updateUser);
+  const rename = useMutation(stack.updateUser)
 
   return (
     <section className="card">
       <div className="card-head">
         <h2>useQuery</h2>
-        <span className={user.isFetching ? "dot fetching" : "dot"}>
-          {user.isFetching ? "fetching" : user.isStale ? "stale" : "fresh"}
+        <span className={user.isFetching ? 'dot fetching' : 'dot'}>
+          {user.isFetching ? 'fetching' : user.isStale ? 'stale' : 'fresh'}
         </span>
       </div>
 
@@ -90,11 +94,11 @@ function UserCard({ userId, stack }: { userId: string; stack: Stack }) {
         <button
           disabled={!draft || rename.isPending}
           onClick={() => {
-            rename.mutate({ path: { id: userId }, body: { name: draft } });
-            setDraft("");
+            rename.mutate({ path: { id: userId }, body: { name: draft } })
+            setDraft('')
           }}
         >
-          {rename.isPending ? "saving…" : "rename"}
+          {rename.isPending ? 'saving…' : 'rename'}
         </button>
         <button className="ghost" onClick={() => void user.refetch()}>
           refetch
@@ -105,16 +109,16 @@ function UserCard({ userId, stack }: { userId: string; stack: Stack }) {
         naming a cache key.
       </p>
     </section>
-  );
+  )
 }
 
 function ChatCard({ stack }: { stack: Stack }) {
-  const [text, setText] = useState("");
+  const [text, setText] = useState('')
 
   // The same hook over WebSocket. typesocket calls its id `eventId` where
   // typefetch calls it `endpointId`; the engine takes either, so an acked
   // client->server event is just another source.
-  const send = useMutation(stack.sendMessage);
+  const send = useMutation(stack.sendMessage)
 
   return (
     <section className="card">
@@ -132,8 +136,8 @@ function ChatCard({ stack }: { stack: Stack }) {
         <button
           disabled={!text || send.isPending}
           onClick={() => {
-            send.mutate({ text });
-            setText("");
+            send.mutate({ text })
+            setText('')
           }}
         >
           send
@@ -151,28 +155,28 @@ function ChatCard({ stack }: { stack: Stack }) {
         timeline below.
       </p>
     </section>
-  );
+  )
 }
 
 function TransferCard({ stack }: { stack: Stack }) {
-  const [file, setFile] = useState<File | null>(null);
-  const [uploadedId, setUploadedId] = useState<string | null>(null);
+  const [file, setFile] = useState<File | null>(null)
+  const [uploadedId, setUploadedId] = useState<string | null>(null)
 
   // `trackProgress` mirrors each tick into the mutation's own state, so the bar
   // below re-renders through the same subscription as `data` and `error`. No
   // `useState` for progress, and no second hook.
   const upload = useMutation(stack.upload, {
-    trackProgress: "upload",
+    trackProgress: 'upload',
     onSuccess: (data) => setUploadedId(data.id),
-  });
+  })
 
   // The download is a plain mutation because it is an action, not cached state.
   // `responseType: "file"` on the contract is what makes `data` a
   // `{ blob, filename, contentType, size }` instead of parsed JSON.
-  const download = useMutation(stack.download, { trackProgress: "download" });
+  const download = useMutation(stack.download, { trackProgress: 'download' })
 
-  const uploadPercent = upload.progress?.upload?.percent;
-  const downloadPercent = download.progress?.download?.percent;
+  const uploadPercent = upload.progress?.upload?.percent
+  const downloadPercent = download.progress?.download?.percent
 
   return (
     <section className="card">
@@ -190,15 +194,13 @@ function TransferCard({ stack }: { stack: Stack }) {
           disabled={!file || upload.isPending}
           onClick={() => file && upload.mutate({ body: { file } })}
         >
-          {upload.isPending ? "uploading…" : "upload"}
+          {upload.isPending ? 'uploading…' : 'upload'}
         </button>
       </div>
 
       {/* `percent` is undefined when the length is unknown — an indeterminate
           bar, not a zero. */}
-      {upload.progress && (
-        <Bar label="upload" percent={uploadPercent} />
-      )}
+      {upload.progress && <Bar label="upload" percent={uploadPercent} />}
 
       {upload.isSuccess && upload.data && (
         <p className="muted">
@@ -215,36 +217,34 @@ function TransferCard({ stack }: { stack: Stack }) {
             uploadedId && download.mutate({ path: { id: uploadedId } })
           }
         >
-          {download.isPending ? "downloading…" : "download it back"}
+          {download.isPending ? 'downloading…' : 'download it back'}
         </button>
         {download.isSuccess && download.data && (
           <button
             onClick={() => {
               // The whole point of `responseType: "file"`: the filename is
               // already parsed out of Content-Disposition.
-              const url = URL.createObjectURL(download.data!.blob);
-              Object.assign(document.createElement("a"), {
+              const url = URL.createObjectURL(download.data!.blob)
+              Object.assign(document.createElement('a'), {
                 href: url,
-                download: download.data!.filename ?? "download.bin",
-              }).click();
-              URL.revokeObjectURL(url);
+                download: download.data!.filename ?? 'download.bin',
+              }).click()
+              URL.revokeObjectURL(url)
             }}
           >
-            save “{download.data.filename ?? "download.bin"}”
+            save “{download.data.filename ?? 'download.bin'}”
           </button>
         )}
       </div>
 
-      {download.progress && (
-        <Bar label="download" percent={downloadPercent} />
-      )}
+      {download.progress && <Bar label="download" percent={downloadPercent} />}
 
       {download.isSuccess && download.data && (
         <dl className="kv">
           <dt>filename</dt>
           <dd>{download.data.filename ?? <em>not exposed</em>}</dd>
           <dt>type</dt>
-          <dd>{download.data.contentType ?? "—"}</dd>
+          <dd>{download.data.contentType ?? '—'}</dd>
           <dt>size</dt>
           <dd>{download.data.size} bytes</dd>
         </dl>
@@ -255,11 +255,11 @@ function TransferCard({ stack }: { stack: Stack }) {
         These two endpoints are the only ones here that touch the network —
         progress needs bytes actually moving, and an override answers before the
         transport runs. Passing <code>onUploadProgress</code> is what moves the
-        request from <code>fetch</code> to <code>XMLHttpRequest</code>, since{" "}
+        request from <code>fetch</code> to <code>XMLHttpRequest</code>, since{' '}
         <code>fetch</code> has no upload-progress API.
       </p>
     </section>
-  );
+  )
 }
 
 /** A determinate bar when the length is known, an indeterminate one when not. */
@@ -267,15 +267,15 @@ function Bar({ label, percent }: { label: string; percent?: number }) {
   return (
     <div className="bar-row">
       <span className="bar-label">{label}</span>
-      <div className={percent === undefined ? "bar indeterminate" : "bar"}>
+      <div className={percent === undefined ? 'bar indeterminate' : 'bar'}>
         <div
           className="bar-fill"
           style={percent === undefined ? undefined : { width: `${percent}%` }}
         />
       </div>
       <span className="bar-value">
-        {percent === undefined ? "…" : `${percent.toFixed(0)}%`}
+        {percent === undefined ? '…' : `${percent.toFixed(0)}%`}
       </span>
     </div>
-  );
+  )
 }

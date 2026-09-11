@@ -1,6 +1,6 @@
-"use client";
+'use client'
 
-import { create } from "zustand";
+import { create } from 'zustand'
 
 /**
  * The package grid's filter.
@@ -11,15 +11,15 @@ import { create } from "zustand";
  */
 
 interface PackageFilterState {
-  category: string;
-  setCategory: (category: string) => void;
-  query: string;
-  setQuery: (query: string) => void;
+  category: string
+  setCategory: (category: string) => void
+  query: string
+  setQuery: (query: string) => void
 }
 
 export const usePackageFilter = create<PackageFilterState>((set) => ({
-  category: "All",
+  category: 'All',
   setCategory: (category) => set({ category }),
-  query: "",
+  query: '',
   setQuery: (query) => set({ query }),
-}));
+}))

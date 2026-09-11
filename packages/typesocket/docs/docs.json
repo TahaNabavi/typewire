@@ -7,88 +7,62 @@
       "title": "Overview",
       "readme": true,
       "intro": true,
-      "sections": [
-        "Why direction belongs in the contract"
-      ],
-      "omit": [
-        "Table of contents"
-      ]
+      "sections": ["Why direction belongs in the contract"],
+      "omit": ["Table of contents"]
     },
     {
       "slug": "quick-start",
       "title": "Quick start",
       "readme": true,
-      "sections": [
-        "Install",
-        "Quick start"
-      ]
+      "sections": ["Install", "Quick start"]
     },
     {
       "slug": "emitting",
       "title": "Emitting",
       "readme": true,
-      "sections": [
-        "Emitting"
-      ]
+      "sections": ["Emitting"]
     },
     {
       "slug": "listening",
       "title": "Listening",
       "readme": true,
-      "sections": [
-        "Listening"
-      ]
+      "sections": ["Listening"]
     },
     {
       "slug": "permissions",
       "title": "Permissions",
       "readme": true,
-      "sections": [
-        "Permissions"
-      ]
+      "sections": ["Permissions"]
     },
     {
       "slug": "errors",
       "title": "Errors",
       "readme": true,
-      "sections": [
-        "Errors"
-      ]
+      "sections": ["Errors"]
     },
     {
       "slug": "middleware",
       "title": "Middleware & devtools",
       "readme": true,
-      "sections": [
-        "Middleware",
-        "Instrumentation & overrides"
-      ]
+      "sections": ["Middleware", "Instrumentation & overrides"]
     },
     {
       "slug": "configuration",
       "title": "Configuration",
       "readme": true,
-      "sections": [
-        "Configuration"
-      ]
+      "sections": ["Configuration"]
     },
     {
       "slug": "api",
       "title": "API reference",
       "readme": true,
-      "sections": [
-        "API reference"
-      ]
+      "sections": ["API reference"]
     },
     {
       "slug": "migrating",
       "title": "Migrating & releases",
       "readme": true,
-      "sections": [
-        "Migrating from v1",
-        "Examples & release notes",
-        "License"
-      ]
+      "sections": ["Migrating from v1", "Examples & release notes", "License"]
     }
   ]
 }

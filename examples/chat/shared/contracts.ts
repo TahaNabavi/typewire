@@ -1,5 +1,5 @@
-import { z } from "zod";
-import { defineSocketContracts } from "@tahanabavi/typesocket";
+import { z } from 'zod'
+import { defineSocketContracts } from '@tahanabavi/typesocket'
 
 export const messageSchema = z.object({
   id: z.string(),
@@ -7,9 +7,9 @@ export const messageSchema = z.object({
   user: z.string(),
   text: z.string(),
   sentAt: z.number(),
-});
+})
 
-export type Message = z.infer<typeof messageSchema>;
+export type Message = z.infer<typeof messageSchema>
 
 /**
  * The single source of truth for the whole app.
@@ -23,8 +23,8 @@ export const chatContracts = defineSocketContracts({
   room: {
     /** Join a room; the ack carries the state needed to render it. */
     join: {
-      direction: "client->server",
-      description: "Join a room and receive its history and member list.",
+      direction: 'client->server',
+      description: 'Join a room and receive its history and member list.',
       request: z.object({
         roomId: z.string().min(1),
         user: z.string().min(1).max(24),
@@ -38,13 +38,13 @@ export const chatContracts = defineSocketContracts({
 
     /** Leave the current room. Nothing to wait for. */
     leave: {
-      direction: "client->server",
+      direction: 'client->server',
       request: z.object({ roomId: z.string() }),
     },
 
     /** Broadcast whenever a room's membership changes. */
     presence: {
-      direction: "server->client",
+      direction: 'server->client',
       payload: z.object({
         roomId: z.string(),
         members: z.array(z.string()),
@@ -55,8 +55,8 @@ export const chatContracts = defineSocketContracts({
   chat: {
     /** Send a message; the ack confirms the id the server assigned. */
     send: {
-      direction: "client->server",
-      description: "Post a message to a room.",
+      direction: 'client->server',
+      description: 'Post a message to a room.',
       request: z.object({
         roomId: z.string(),
         text: z.string().min(1).max(500),
@@ -67,7 +67,7 @@ export const chatContracts = defineSocketContracts({
 
     /** A message arriving from anyone in the room, including yourself. */
     message: {
-      direction: "server->client",
+      direction: 'server->client',
       payload: messageSchema,
     },
 
@@ -77,28 +77,28 @@ export const chatContracts = defineSocketContracts({
      * to reject the frame; the client reads it to hide the button. Written once.
      */
     deleteMessage: {
-      direction: "client->server",
-      description: "Remove a message from the room (moderators only).",
-      permission: { require: ["chat.MANAGE_MESSAGES"] },
+      direction: 'client->server',
+      description: 'Remove a message from the room (moderators only).',
+      permission: { require: ['chat.MANAGE_MESSAGES'] },
       request: z.object({ roomId: z.string(), id: z.string() }),
       ack: z.object({ ok: z.boolean() }),
     },
 
     /** A message was removed; every client drops it from the room. */
     deleted: {
-      direction: "server->client",
+      direction: 'server->client',
       payload: z.object({ roomId: z.string(), id: z.string() }),
     },
 
     /** Typing signal. High-frequency, so deliberately no ack. */
     setTyping: {
-      direction: "client->server",
+      direction: 'client->server',
       request: z.object({ roomId: z.string(), isTyping: z.boolean() }),
     },
 
     /** Someone else's typing state changed. */
     typing: {
-      direction: "server->client",
+      direction: 'server->client',
       payload: z.object({
         roomId: z.string(),
         user: z.string(),
@@ -106,6 +106,6 @@ export const chatContracts = defineSocketContracts({
       }),
     },
   },
-});
+})
 
-export type ChatContracts = typeof chatContracts;
+export type ChatContracts = typeof chatContracts

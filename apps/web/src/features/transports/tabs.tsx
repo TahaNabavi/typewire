@@ -1,10 +1,10 @@
-"use client";
+'use client'
 
-import type { ReactNode } from "react";
+import type { ReactNode } from 'react'
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useTransport, type TransportTab } from "@/features/transports/store";
-import type { Transport } from "@/lib/registry";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useTransport, type TransportTab } from '@/features/transports/store'
+import type { Transport } from '@/lib/registry'
 
 /**
  * The tab strip is the only interactive part of the transports section, so it
@@ -15,27 +15,36 @@ import type { Transport } from "@/lib/registry";
  */
 
 export interface Wire {
-  tab: TransportTab;
-  transport: Transport;
-  via: string;
-  note: string;
+  tab: TransportTab
+  transport: Transport
+  via: string
+  note: string
   /** Pre-highlighted on the server. */
-  html: string;
+  html: string
 }
 
 const TONE: Record<Transport, string> = {
-  http: "var(--wire-http)",
-  graphql: "var(--wire-graphql)",
-  grpc: "var(--wire-grpc)",
-  ws: "var(--wire-ws)",
-};
+  http: 'var(--wire-http)',
+  graphql: 'var(--wire-graphql)',
+  grpc: 'var(--wire-grpc)',
+  ws: 'var(--wire-ws)',
+}
 
-export function TransportTabs({ wires, contract }: { wires: Wire[]; contract: ReactNode }) {
-  const transport = useTransport((s) => s.transport);
-  const setTransport = useTransport((s) => s.setTransport);
+export function TransportTabs({
+  wires,
+  contract,
+}: {
+  wires: Wire[]
+  contract: ReactNode
+}) {
+  const transport = useTransport((s) => s.transport)
+  const setTransport = useTransport((s) => s.setTransport)
 
   return (
-    <Tabs value={transport} onValueChange={(value) => setTransport(value as TransportTab)}>
+    <Tabs
+      value={transport}
+      onValueChange={(value) => setTransport(value as TransportTab)}
+    >
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <TabsList>
           {wires.map((wire) => (
@@ -81,7 +90,9 @@ export function TransportTabs({ wires, contract }: { wires: Wire[]; contract: Re
                 >
                   {wire.tab.toUpperCase()}
                 </span>
-                <span className="font-mono text-[11px] text-dim">via {wire.via}</span>
+                <span className="font-mono text-[11px] text-dim">
+                  via {wire.via}
+                </span>
               </div>
               <pre className="overflow-x-auto p-4 font-mono text-[12.5px] leading-relaxed">
                 <code dangerouslySetInnerHTML={{ __html: wire.html }} />
@@ -94,5 +105,5 @@ export function TransportTabs({ wires, contract }: { wires: Wire[]; contract: Re
         ))}
       </div>
     </Tabs>
-  );
+  )
 }

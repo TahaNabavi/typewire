@@ -10,24 +10,26 @@ export function BudgetGauge({
   label,
   ceiling,
   used,
-  tone = "var(--cyan)",
+  tone = 'var(--cyan)',
 }: {
-  label: string;
+  label: string
   /** Bytes. */
-  ceiling: number;
+  ceiling: number
   /** Bytes, when a measurement exists. */
-  used?: number | null;
-  tone?: string;
+  used?: number | null
+  tone?: string
 }) {
-  const pct = used == null ? null : Math.min(100, (used / ceiling) * 100);
-  const over = pct !== null && pct > 100;
+  const pct = used == null ? null : Math.min(100, (used / ceiling) * 100)
+  const over = pct !== null && pct > 100
 
   return (
     <li>
       <div className="flex items-baseline justify-between gap-3 font-mono text-[11px]">
         <span className="truncate text-muted-foreground">{label}</span>
         <span className="shrink-0 text-dim">
-          {used == null ? `≤ ${(ceiling / 1024).toFixed(0)} kB` : `${(used / 1024).toFixed(1)} / ${(ceiling / 1024).toFixed(0)} kB`}
+          {used == null
+            ? `≤ ${(ceiling / 1024).toFixed(0)} kB`
+            : `${(used / 1024).toFixed(1)} / ${(ceiling / 1024).toFixed(0)} kB`}
         </span>
       </div>
       <div
@@ -50,10 +52,13 @@ export function BudgetGauge({
         ) : (
           <div
             className="h-full rounded-full"
-            style={{ width: `${Math.min(100, pct)}%`, background: over ? "var(--red)" : tone }}
+            style={{
+              width: `${Math.min(100, pct)}%`,
+              background: over ? 'var(--red)' : tone,
+            }}
           />
         )}
       </div>
     </li>
-  );
+  )
 }

@@ -6,27 +6,27 @@
 
 /** Bits in either set. */
 export function union(a: bigint, b: bigint): bigint {
-  return a | b;
+  return a | b
 }
 
 /** Bits in both sets. */
 export function intersect(a: bigint, b: bigint): bigint {
-  return a & b;
+  return a & b
 }
 
 /** Bits in `a` but not `b`. */
 export function subtract(a: bigint, b: bigint): bigint {
-  return a & ~b;
+  return a & ~b
 }
 
 /** Exact equality. */
 export function equals(a: bigint, b: bigint): boolean {
-  return a === b;
+  return a === b
 }
 
 /** Does `actor` hold every bit in `target` (and possibly more)? */
 export function isSuperset(actor: bigint, target: bigint): boolean {
-  return (actor & target) === target;
+  return (actor & target) === target
 }
 
 /**
@@ -36,6 +36,9 @@ export function isSuperset(actor: bigint, target: bigint): boolean {
  * with `ADMINISTRATOR` and assigning it to themselves. It is three lines of bit
  * math, but it belongs in the library because every consumer forgets it.
  */
-export function canGrant(actorPerms: bigint, roleBeingAssigned: bigint): boolean {
-  return isSuperset(actorPerms, roleBeingAssigned);
+export function canGrant(
+  actorPerms: bigint,
+  roleBeingAssigned: bigint
+): boolean {
+  return isSuperset(actorPerms, roleBeingAssigned)
 }

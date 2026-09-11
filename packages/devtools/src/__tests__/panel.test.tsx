@@ -1,409 +1,464 @@
-import { InspectorBridge, type InspectorEvent } from "@tahanabavi/type-devtools-core";
-import { act, fireEvent, render, screen } from "@testing-library/react";
-import { TypeDevtools } from "../panel";
+import {
+  InspectorBridge,
+  type InspectorEvent,
+} from '@tahanabavi/type-devtools-core'
+import { act, fireEvent, render, screen } from '@testing-library/react'
+import { TypeDevtools } from '../panel'
 
 function event(overrides: Partial<InspectorEvent>): InspectorEvent {
   return {
-    source: "http",
-    kind: "start",
-    id: "r1",
-    label: "user.getUser",
+    source: 'http',
+    kind: 'start',
+    id: 'r1',
+    label: 'user.getUser',
     ts: 1,
     payload: undefined,
     ...overrides,
-  };
+  }
 }
 
 /** A finished HTTP request and a finished WS frame, on one bridge. */
 function seeded() {
-  const bridge = new InspectorBridge();
-  bridge.record(event({ kind: "start", payload: { path: { id: "1" } } }));
+  const bridge = new InspectorBridge()
+  bridge.record(event({ kind: 'start', payload: { path: { id: '1' } } }))
   bridge.record(
-    event({ kind: "success", payload: { name: "Taha" }, durationMs: 12 }),
-  );
+    event({ kind: 'success', payload: { name: 'Taha' }, durationMs: 12 })
+  )
   bridge.record(
     event({
-      source: "ws",
-      kind: "outbound",
-      id: "f1",
-      label: "chat.sendMessage",
-      payload: { text: "hi" },
+      source: 'ws',
+      kind: 'outbound',
+      id: 'f1',
+      label: 'chat.sendMessage',
+      payload: { text: 'hi' },
       meta: { expectsAck: true },
-    }),
-  );
+    })
+  )
   bridge.record(
     event({
-      source: "ws",
-      kind: "ack",
-      id: "f1",
-      label: "chat.sendMessage",
-      payload: { id: "m1" },
+      source: 'ws',
+      kind: 'ack',
+      id: 'f1',
+      label: 'chat.sendMessage',
+      payload: { id: 'm1' },
       durationMs: 4,
-    }),
-  );
-  return bridge;
+    })
+  )
+  return bridge
 }
 
 /** One typefetch client, three wires — what the transport registry made normal. */
 function multiWire() {
-  const bridge = new InspectorBridge();
-  bridge.record(event({ kind: "start", transport: "http" }));
+  const bridge = new InspectorBridge()
+  bridge.record(event({ kind: 'start', transport: 'http' }))
   bridge.record(
-    event({ kind: "start", id: "r2", label: "user.profile", transport: "graphql" }),
-  );
+    event({
+      kind: 'start',
+      id: 'r2',
+      label: 'user.profile',
+      transport: 'graphql',
+    })
+  )
   bridge.record(
-    event({ kind: "start", id: "r3", label: "user.syncUser", transport: "grpc" }),
-  );
-  return bridge;
+    event({
+      kind: 'start',
+      id: 'r3',
+      label: 'user.syncUser',
+      transport: 'grpc',
+    })
+  )
+  return bridge
 }
 
-describe("TypeDevtools", () => {
-  it("renders collapsed with a count", () => {
-    render(<TypeDevtools bridge={seeded()} />);
+describe('TypeDevtools', () => {
+  it('renders collapsed with a count', () => {
+    render(<TypeDevtools bridge={seeded()} />)
 
-    expect(screen.getByTestId("typewire-devtools-toggle")).toHaveTextContent("2");
-    expect(screen.queryByTestId("typewire-devtools")).not.toBeInTheDocument();
-  });
+    expect(screen.getByTestId('typewire-devtools-toggle')).toHaveTextContent(
+      '2'
+    )
+    expect(screen.queryByTestId('typewire-devtools')).not.toBeInTheDocument()
+  })
 
-  it("opens and closes", () => {
-    render(<TypeDevtools bridge={seeded()} />);
+  it('opens and closes', () => {
+    render(<TypeDevtools bridge={seeded()} />)
 
-    fireEvent.click(screen.getByTestId("typewire-devtools-toggle"));
-    expect(screen.getByTestId("typewire-devtools")).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId('typewire-devtools-toggle'))
+    expect(screen.getByTestId('typewire-devtools')).toBeInTheDocument()
 
-    fireEvent.click(screen.getByTestId("typewire-devtools-close"));
-    expect(screen.queryByTestId("typewire-devtools")).not.toBeInTheDocument();
-  });
+    fireEvent.click(screen.getByTestId('typewire-devtools-close'))
+    expect(screen.queryByTestId('typewire-devtools')).not.toBeInTheDocument()
+  })
 
-  it("shows one row per call, tagged by source", () => {
-    render(<TypeDevtools bridge={seeded()} defaultOpen />);
+  it('shows one row per call, tagged by source', () => {
+    render(<TypeDevtools bridge={seeded()} defaultOpen />)
 
-    const rows = screen.getByTestId("typewire-rows");
-    expect(rows).toHaveTextContent("user.getUser");
-    expect(rows).toHaveTextContent("chat.sendMessage");
-    expect(rows).toHaveTextContent("http");
-    expect(rows).toHaveTextContent("ws");
-    expect(rows.querySelectorAll("li")).toHaveLength(2);
-  });
+    const rows = screen.getByTestId('typewire-rows')
+    expect(rows).toHaveTextContent('user.getUser')
+    expect(rows).toHaveTextContent('chat.sendMessage')
+    expect(rows).toHaveTextContent('http')
+    expect(rows).toHaveTextContent('ws')
+    expect(rows.querySelectorAll('li')).toHaveLength(2)
+  })
 
-  it("filters by source", () => {
-    render(<TypeDevtools bridge={seeded()} defaultOpen />);
+  it('filters by source', () => {
+    render(<TypeDevtools bridge={seeded()} defaultOpen />)
 
-    fireEvent.click(screen.getByTestId("typewire-filter-ws"));
+    fireEvent.click(screen.getByTestId('typewire-filter-ws'))
 
-    const rows = screen.getByTestId("typewire-rows");
-    expect(rows).toHaveTextContent("chat.sendMessage");
-    expect(rows).not.toHaveTextContent("user.getUser");
+    const rows = screen.getByTestId('typewire-rows')
+    expect(rows).toHaveTextContent('chat.sendMessage')
+    expect(rows).not.toHaveTextContent('user.getUser')
 
-    fireEvent.click(screen.getByTestId("typewire-filter-all"));
-    expect(screen.getByTestId("typewire-rows")).toHaveTextContent("user.getUser");
-  });
+    fireEvent.click(screen.getByTestId('typewire-filter-all'))
+    expect(screen.getByTestId('typewire-rows')).toHaveTextContent(
+      'user.getUser'
+    )
+  })
 
-  it("badges a row with the wire it used, not the client that sent it", () => {
-    render(<TypeDevtools bridge={multiWire()} defaultOpen />);
+  it('badges a row with the wire it used, not the client that sent it', () => {
+    render(<TypeDevtools bridge={multiWire()} defaultOpen />)
 
-    const rows = screen.getByTestId("typewire-rows");
+    const rows = screen.getByTestId('typewire-rows')
     // All three came from one typefetch client — `source` is "http" for every
     // one of them. A timeline that showed that would be useless.
-    expect(rows).toHaveTextContent("graphql");
-    expect(rows).toHaveTextContent("grpc");
-    expect(rows).toHaveTextContent("http");
-  });
+    expect(rows).toHaveTextContent('graphql')
+    expect(rows).toHaveTextContent('grpc')
+    expect(rows).toHaveTextContent('http')
+  })
 
-  it("filters by wire, with chips derived from the traffic", () => {
-    render(<TypeDevtools bridge={multiWire()} defaultOpen />);
+  it('filters by wire, with chips derived from the traffic', () => {
+    render(<TypeDevtools bridge={multiWire()} defaultOpen />)
 
-    fireEvent.click(screen.getByTestId("typewire-filter-graphql"));
+    fireEvent.click(screen.getByTestId('typewire-filter-graphql'))
 
-    const rows = screen.getByTestId("typewire-rows");
-    expect(rows).toHaveTextContent("user.profile");
-    expect(rows).not.toHaveTextContent("user.getUser");
-    expect(rows).not.toHaveTextContent("user.syncUser");
-  });
+    const rows = screen.getByTestId('typewire-rows')
+    expect(rows).toHaveTextContent('user.profile')
+    expect(rows).not.toHaveTextContent('user.getUser')
+    expect(rows).not.toHaveTextContent('user.syncUser')
+  })
 
-  it("hides the wire filter when everything went over one wire", () => {
-    const bridge = new InspectorBridge();
-    bridge.record(event({ kind: "start", transport: "http" }));
-    render(<TypeDevtools bridge={bridge} defaultOpen />);
+  it('hides the wire filter when everything went over one wire', () => {
+    const bridge = new InspectorBridge()
+    bridge.record(event({ kind: 'start', transport: 'http' }))
+    render(<TypeDevtools bridge={bridge} defaultOpen />)
 
     // One option is not a choice. The status filter is still there.
-    expect(screen.queryByTestId("typewire-filter-http")).not.toBeInTheDocument();
-    expect(screen.getByTestId("typewire-status-error")).toBeInTheDocument();
-  });
+    expect(screen.queryByTestId('typewire-filter-http')).not.toBeInTheDocument()
+    expect(screen.getByTestId('typewire-status-error')).toBeInTheDocument()
+  })
 
-  it("keeps the active wire filter selectable after the timeline is cleared", () => {
-    const bridge = multiWire();
-    render(<TypeDevtools bridge={bridge} defaultOpen />);
+  it('keeps the active wire filter selectable after the timeline is cleared', () => {
+    const bridge = multiWire()
+    render(<TypeDevtools bridge={bridge} defaultOpen />)
 
-    fireEvent.click(screen.getByTestId("typewire-filter-grpc"));
-    fireEvent.click(screen.getByTestId("typewire-clear"));
+    fireEvent.click(screen.getByTestId('typewire-filter-grpc'))
+    fireEvent.click(screen.getByTestId('typewire-clear'))
 
     // Without this the only chip that could turn the filter back off would have
     // vanished with the traffic, leaving the panel permanently empty.
-    expect(screen.getByTestId("typewire-filter-all")).toBeInTheDocument();
-    fireEvent.click(screen.getByTestId("typewire-filter-all"));
-    expect(screen.queryByTestId("typewire-filter-grpc")).not.toBeInTheDocument();
-  });
+    expect(screen.getByTestId('typewire-filter-all')).toBeInTheDocument()
+    fireEvent.click(screen.getByTestId('typewire-filter-all'))
+    expect(screen.queryByTestId('typewire-filter-grpc')).not.toBeInTheDocument()
+  })
 
-  it("filters by status", () => {
-    const bridge = new InspectorBridge();
-    bridge.record(event({ kind: "start" })); // user.getUser — pending
-    bridge.record(event({ kind: "start", id: "r2", label: "user.listUsers" }));
-    bridge.record(
-      event({ kind: "success", id: "r2", label: "user.listUsers", durationMs: 5 }),
-    );
-    render(<TypeDevtools bridge={bridge} defaultOpen />);
-
-    fireEvent.click(screen.getByTestId("typewire-status-error"));
-    expect(screen.getByTestId("typewire-rows")).toHaveTextContent("No traffic yet.");
-
-    fireEvent.click(screen.getByTestId("typewire-status-pending"));
-    const rows = screen.getByTestId("typewire-rows");
-    expect(rows).toHaveTextContent("user.getUser");
-    expect(rows).not.toHaveTextContent("user.listUsers");
-  });
-
-  it("searches label and payload text", () => {
-    const bridge = new InspectorBridge();
-    bridge.record(event({ kind: "start", payload: { path: { id: "42" } } }));
-    bridge.record(event({ kind: "start", id: "r2", label: "user.listUsers" }));
-    render(<TypeDevtools bridge={bridge} defaultOpen />);
-
-    fireEvent.change(screen.getByTestId("typewire-search"), {
-      target: { value: "listUsers" },
-    });
-    const rows = screen.getByTestId("typewire-rows");
-    expect(rows).toHaveTextContent("user.listUsers");
-    expect(rows).not.toHaveTextContent("user.getUser");
-
-    // Payload text is searchable too, not just the label.
-    fireEvent.change(screen.getByTestId("typewire-search"), {
-      target: { value: "42" },
-    });
-    expect(screen.getByTestId("typewire-rows")).toHaveTextContent("user.getUser");
-  });
-
-  it("shows the selected row's input and output as a JSON tree", () => {
-    render(<TypeDevtools bridge={seeded()} defaultOpen />);
-
-    fireEvent.click(screen.getByText("user.getUser"));
-
-    const detail = screen.getByTestId("typewire-detail");
-    expect(detail).toHaveTextContent("success");
-    expect(detail).toHaveTextContent("name");
-    expect(detail).toHaveTextContent("Taha");
-  });
-
-  it("pauses and freezes the timeline, then resumes", () => {
-    const bridge = new InspectorBridge();
-    bridge.record(event({ kind: "start" }));
-    render(<TypeDevtools bridge={bridge} defaultOpen />);
-
-    fireEvent.click(screen.getByTestId("typewire-pause"));
-    act(() => {
-      bridge.record(event({ kind: "start", id: "r2", label: "user.listUsers" }));
-    });
-    expect(screen.getByTestId("typewire-rows")).not.toHaveTextContent("user.listUsers");
-
-    fireEvent.click(screen.getByTestId("typewire-pause"));
-    expect(screen.getByTestId("typewire-rows")).toHaveTextContent("user.listUsers");
-  });
-
-  it("clears the timeline", () => {
-    const bridge = seeded();
-    render(<TypeDevtools bridge={bridge} defaultOpen />);
-
-    fireEvent.click(screen.getByTestId("typewire-clear"));
-
-    expect(screen.getByTestId("typewire-rows")).toHaveTextContent("No traffic yet.");
-    expect(bridge.getSnapshot()).toEqual([]);
-  });
-
-  it("live-updates as events arrive", () => {
-    const bridge = new InspectorBridge();
-    render(<TypeDevtools bridge={bridge} defaultOpen />);
-    expect(screen.getByTestId("typewire-rows")).toHaveTextContent("No traffic yet.");
-
-    act(() => {
-      bridge.record(event({ kind: "start", label: "user.listUsers" }));
-    });
-
-    expect(screen.getByTestId("typewire-rows")).toHaveTextContent("user.listUsers");
-    expect(screen.getByTestId("typewire-rows")).toHaveTextContent("pending");
-  });
-
-  it("renders an error payload without throwing", () => {
-    const bridge = new InspectorBridge();
-    bridge.record(event({ kind: "start" }));
-    bridge.record(event({ kind: "error", payload: new Error("boom") }));
-    render(<TypeDevtools bridge={bridge} defaultOpen />);
-
-    fireEvent.click(screen.getByText("user.getUser"));
-
-    // The Error is normalized to its fields in the tree.
-    expect(screen.getByTestId("typewire-detail")).toHaveTextContent("boom");
-  });
-
-  it("renders a circular payload without throwing", () => {
-    const bridge = new InspectorBridge();
-    const circular: Record<string, unknown> = { name: "loop" };
-    circular.self = circular;
-    bridge.record(event({ kind: "start", payload: circular }));
-    render(<TypeDevtools bridge={bridge} defaultOpen />);
-
-    fireEvent.click(screen.getByText("user.getUser"));
-
-    expect(screen.getByTestId("typewire-detail")).toHaveTextContent("[Circular]");
-  });
-
-  it("adds an override from the detail pane and lists it", () => {
-    const bridge = seeded();
-    render(<TypeDevtools bridge={bridge} defaultOpen />);
-
-    fireEvent.click(screen.getByText("user.getUser"));
-    fireEvent.click(screen.getByText("force error"));
-
-    expect(bridge.getOverride("http", "user.getUser")).toMatchObject({
-      error: { status: 500 },
-    });
-    const strip = screen.getByTestId("typewire-active-overrides");
-    expect(strip).toHaveTextContent("user.getUser");
-    expect(strip).toHaveTextContent("error 500");
-
-    // Remove it via the active-overrides strip.
-    fireEvent.click(screen.getByLabelText("Remove override for user.getUser"));
-    expect(bridge.getOverride("http", "user.getUser")).toBeUndefined();
-    expect(screen.queryByTestId("typewire-active-overrides")).not.toBeInTheDocument();
-  });
-
-  it("shows the normalized error kind on the row and in the detail", () => {
-    const bridge = new InspectorBridge();
-    bridge.record(event({ kind: "start", transport: "grpc" }));
+  it('filters by status', () => {
+    const bridge = new InspectorBridge()
+    bridge.record(event({ kind: 'start' })) // user.getUser — pending
+    bridge.record(event({ kind: 'start', id: 'r2', label: 'user.listUsers' }))
     bridge.record(
       event({
-        kind: "error",
-        payload: { message: "no such user", kind: "not_found" },
+        kind: 'success',
+        id: 'r2',
+        label: 'user.listUsers',
+        durationMs: 5,
+      })
+    )
+    render(<TypeDevtools bridge={bridge} defaultOpen />)
+
+    fireEvent.click(screen.getByTestId('typewire-status-error'))
+    expect(screen.getByTestId('typewire-rows')).toHaveTextContent(
+      'No traffic yet.'
+    )
+
+    fireEvent.click(screen.getByTestId('typewire-status-pending'))
+    const rows = screen.getByTestId('typewire-rows')
+    expect(rows).toHaveTextContent('user.getUser')
+    expect(rows).not.toHaveTextContent('user.listUsers')
+  })
+
+  it('searches label and payload text', () => {
+    const bridge = new InspectorBridge()
+    bridge.record(event({ kind: 'start', payload: { path: { id: '42' } } }))
+    bridge.record(event({ kind: 'start', id: 'r2', label: 'user.listUsers' }))
+    render(<TypeDevtools bridge={bridge} defaultOpen />)
+
+    fireEvent.change(screen.getByTestId('typewire-search'), {
+      target: { value: 'listUsers' },
+    })
+    const rows = screen.getByTestId('typewire-rows')
+    expect(rows).toHaveTextContent('user.listUsers')
+    expect(rows).not.toHaveTextContent('user.getUser')
+
+    // Payload text is searchable too, not just the label.
+    fireEvent.change(screen.getByTestId('typewire-search'), {
+      target: { value: '42' },
+    })
+    expect(screen.getByTestId('typewire-rows')).toHaveTextContent(
+      'user.getUser'
+    )
+  })
+
+  it("shows the selected row's input and output as a JSON tree", () => {
+    render(<TypeDevtools bridge={seeded()} defaultOpen />)
+
+    fireEvent.click(screen.getByText('user.getUser'))
+
+    const detail = screen.getByTestId('typewire-detail')
+    expect(detail).toHaveTextContent('success')
+    expect(detail).toHaveTextContent('name')
+    expect(detail).toHaveTextContent('Taha')
+  })
+
+  it('pauses and freezes the timeline, then resumes', () => {
+    const bridge = new InspectorBridge()
+    bridge.record(event({ kind: 'start' }))
+    render(<TypeDevtools bridge={bridge} defaultOpen />)
+
+    fireEvent.click(screen.getByTestId('typewire-pause'))
+    act(() => {
+      bridge.record(event({ kind: 'start', id: 'r2', label: 'user.listUsers' }))
+    })
+    expect(screen.getByTestId('typewire-rows')).not.toHaveTextContent(
+      'user.listUsers'
+    )
+
+    fireEvent.click(screen.getByTestId('typewire-pause'))
+    expect(screen.getByTestId('typewire-rows')).toHaveTextContent(
+      'user.listUsers'
+    )
+  })
+
+  it('clears the timeline', () => {
+    const bridge = seeded()
+    render(<TypeDevtools bridge={bridge} defaultOpen />)
+
+    fireEvent.click(screen.getByTestId('typewire-clear'))
+
+    expect(screen.getByTestId('typewire-rows')).toHaveTextContent(
+      'No traffic yet.'
+    )
+    expect(bridge.getSnapshot()).toEqual([])
+  })
+
+  it('live-updates as events arrive', () => {
+    const bridge = new InspectorBridge()
+    render(<TypeDevtools bridge={bridge} defaultOpen />)
+    expect(screen.getByTestId('typewire-rows')).toHaveTextContent(
+      'No traffic yet.'
+    )
+
+    act(() => {
+      bridge.record(event({ kind: 'start', label: 'user.listUsers' }))
+    })
+
+    expect(screen.getByTestId('typewire-rows')).toHaveTextContent(
+      'user.listUsers'
+    )
+    expect(screen.getByTestId('typewire-rows')).toHaveTextContent('pending')
+  })
+
+  it('renders an error payload without throwing', () => {
+    const bridge = new InspectorBridge()
+    bridge.record(event({ kind: 'start' }))
+    bridge.record(event({ kind: 'error', payload: new Error('boom') }))
+    render(<TypeDevtools bridge={bridge} defaultOpen />)
+
+    fireEvent.click(screen.getByText('user.getUser'))
+
+    // The Error is normalized to its fields in the tree.
+    expect(screen.getByTestId('typewire-detail')).toHaveTextContent('boom')
+  })
+
+  it('renders a circular payload without throwing', () => {
+    const bridge = new InspectorBridge()
+    const circular: Record<string, unknown> = { name: 'loop' }
+    circular.self = circular
+    bridge.record(event({ kind: 'start', payload: circular }))
+    render(<TypeDevtools bridge={bridge} defaultOpen />)
+
+    fireEvent.click(screen.getByText('user.getUser'))
+
+    expect(screen.getByTestId('typewire-detail')).toHaveTextContent(
+      '[Circular]'
+    )
+  })
+
+  it('adds an override from the detail pane and lists it', () => {
+    const bridge = seeded()
+    render(<TypeDevtools bridge={bridge} defaultOpen />)
+
+    fireEvent.click(screen.getByText('user.getUser'))
+    fireEvent.click(screen.getByText('force error'))
+
+    expect(bridge.getOverride('http', 'user.getUser')).toMatchObject({
+      error: { status: 500 },
+    })
+    const strip = screen.getByTestId('typewire-active-overrides')
+    expect(strip).toHaveTextContent('user.getUser')
+    expect(strip).toHaveTextContent('error 500')
+
+    // Remove it via the active-overrides strip.
+    fireEvent.click(screen.getByLabelText('Remove override for user.getUser'))
+    expect(bridge.getOverride('http', 'user.getUser')).toBeUndefined()
+    expect(
+      screen.queryByTestId('typewire-active-overrides')
+    ).not.toBeInTheDocument()
+  })
+
+  it('shows the normalized error kind on the row and in the detail', () => {
+    const bridge = new InspectorBridge()
+    bridge.record(event({ kind: 'start', transport: 'grpc' }))
+    bridge.record(
+      event({
+        kind: 'error',
+        payload: { message: 'no such user', kind: 'not_found' },
         durationMs: 8,
-        meta: { kind: "not_found" },
-      }),
-    );
-    render(<TypeDevtools bridge={bridge} defaultOpen />);
+        meta: { kind: 'not_found' },
+      })
+    )
+    render(<TypeDevtools bridge={bridge} defaultOpen />)
 
     // gRPC carries no HTTP status, so without the kind the row would say only
     // "error" — true, and useless.
-    expect(screen.getByTestId("typewire-row-kind")).toHaveTextContent("not_found");
+    expect(screen.getByTestId('typewire-row-kind')).toHaveTextContent(
+      'not_found'
+    )
 
-    fireEvent.click(screen.getByText("user.getUser"));
-    expect(screen.getByTestId("typewire-detail-kind")).toHaveTextContent("not_found");
-  });
+    fireEvent.click(screen.getByText('user.getUser'))
+    expect(screen.getByTestId('typewire-detail-kind')).toHaveTextContent(
+      'not_found'
+    )
+  })
 
-  it("finds a row by its error kind or its wire", () => {
-    const bridge = new InspectorBridge();
-    bridge.record(event({ kind: "start", transport: "grpc" }));
-    bridge.record(event({ kind: "error", meta: { kind: "not_found" } }));
+  it('finds a row by its error kind or its wire', () => {
+    const bridge = new InspectorBridge()
+    bridge.record(event({ kind: 'start', transport: 'grpc' }))
+    bridge.record(event({ kind: 'error', meta: { kind: 'not_found' } }))
     bridge.record(
-      event({ kind: "start", id: "r2", label: "user.listUsers", transport: "http" }),
-    );
-    render(<TypeDevtools bridge={bridge} defaultOpen />);
+      event({
+        kind: 'start',
+        id: 'r2',
+        label: 'user.listUsers',
+        transport: 'http',
+      })
+    )
+    render(<TypeDevtools bridge={bridge} defaultOpen />)
 
-    fireEvent.change(screen.getByTestId("typewire-search"), {
-      target: { value: "not_found" },
-    });
-    expect(screen.getByTestId("typewire-rows")).not.toHaveTextContent("user.listUsers");
+    fireEvent.change(screen.getByTestId('typewire-search'), {
+      target: { value: 'not_found' },
+    })
+    expect(screen.getByTestId('typewire-rows')).not.toHaveTextContent(
+      'user.listUsers'
+    )
 
-    fireEvent.change(screen.getByTestId("typewire-search"), {
-      target: { value: "grpc" },
-    });
-    const rows = screen.getByTestId("typewire-rows");
-    expect(rows).toHaveTextContent("user.getUser");
-    expect(rows).not.toHaveTextContent("user.listUsers");
-  });
+    fireEvent.change(screen.getByTestId('typewire-search'), {
+      target: { value: 'grpc' },
+    })
+    const rows = screen.getByTestId('typewire-rows')
+    expect(rows).toHaveTextContent('user.getUser')
+    expect(rows).not.toHaveTextContent('user.listUsers')
+  })
 
-  it("draws a progress bar for a transfer in flight", () => {
-    const bridge = new InspectorBridge();
-    bridge.record(event({ kind: "start", label: "user.upload" }));
+  it('draws a progress bar for a transfer in flight', () => {
+    const bridge = new InspectorBridge()
+    bridge.record(event({ kind: 'start', label: 'user.upload' }))
     act(() => {
-      bridge.recordProgress("http", "r1", {
-        phase: "upload",
+      bridge.recordProgress('http', 'r1', {
+        phase: 'upload',
         loaded: 512,
         total: 1024,
         percent: 50,
         lengthComputable: true,
         ts: 2,
-      });
-    });
-    render(<TypeDevtools bridge={bridge} defaultOpen />);
+      })
+    })
+    render(<TypeDevtools bridge={bridge} defaultOpen />)
 
-    const bar = screen.getByTestId("typewire-progress");
-    expect(bar).toHaveAttribute("data-phase", "upload");
-    expect(bar).toHaveAttribute("aria-valuenow", "50");
-    expect(bar.firstElementChild).toHaveStyle({ width: "50%" });
+    const bar = screen.getByTestId('typewire-progress')
+    expect(bar).toHaveAttribute('data-phase', 'upload')
+    expect(bar).toHaveAttribute('aria-valuenow', '50')
+    expect(bar.firstElementChild).toHaveStyle({ width: '50%' })
 
-    fireEvent.click(screen.getByText("user.upload"));
-    expect(screen.getByTestId("typewire-detail")).toHaveTextContent(
-      "↑ 50% · 512 B / 1.0 KB",
-    );
-  });
+    fireEvent.click(screen.getByText('user.upload'))
+    expect(screen.getByTestId('typewire-detail')).toHaveTextContent(
+      '↑ 50% · 512 B / 1.0 KB'
+    )
+  })
 
-  it("drops the progress bar once the call concludes", () => {
-    const bridge = new InspectorBridge();
-    bridge.record(event({ kind: "start", label: "user.upload" }));
-    bridge.recordProgress("http", "r1", {
-      phase: "upload",
+  it('drops the progress bar once the call concludes', () => {
+    const bridge = new InspectorBridge()
+    bridge.record(event({ kind: 'start', label: 'user.upload' }))
+    bridge.recordProgress('http', 'r1', {
+      phase: 'upload',
       loaded: 1024,
       total: 1024,
       percent: 100,
       lengthComputable: true,
       ts: 2,
-    });
-    render(<TypeDevtools bridge={bridge} defaultOpen />);
-    expect(screen.getByTestId("typewire-progress")).toBeInTheDocument();
+    })
+    render(<TypeDevtools bridge={bridge} defaultOpen />)
+    expect(screen.getByTestId('typewire-progress')).toBeInTheDocument()
 
     act(() => {
-      bridge.record(event({ kind: "success", label: "user.upload", durationMs: 30 }));
-    });
+      bridge.record(
+        event({ kind: 'success', label: 'user.upload', durationMs: 30 })
+      )
+    })
 
-    expect(screen.queryByTestId("typewire-progress")).not.toBeInTheDocument();
-  });
+    expect(screen.queryByTestId('typewire-progress')).not.toBeInTheDocument()
+  })
 
-  it("offers cURL for REST only", () => {
-    render(<TypeDevtools bridge={multiWire()} defaultOpen />);
+  it('offers cURL for REST only', () => {
+    render(<TypeDevtools bridge={multiWire()} defaultOpen />)
 
-    fireEvent.click(screen.getByText("user.getUser"));
-    expect(screen.getByTestId("typewire-copy-curl")).toBeInTheDocument();
+    fireEvent.click(screen.getByText('user.getUser'))
+    expect(screen.getByTestId('typewire-copy-curl')).toBeInTheDocument()
 
     // `curl -X query` is not a command. The document and envelope belong to the
     // adapter, so the panel declines rather than guessing.
-    fireEvent.click(screen.getByText("user.profile"));
-    expect(screen.queryByTestId("typewire-copy-curl")).not.toBeInTheDocument();
-  });
+    fireEvent.click(screen.getByText('user.profile'))
+    expect(screen.queryByTestId('typewire-copy-curl')).not.toBeInTheDocument()
+  })
 
-  it("hides the Cache tab when no query client is attached", () => {
-    render(<TypeDevtools bridge={seeded()} defaultOpen />);
+  it('hides the Cache tab when no query client is attached', () => {
+    render(<TypeDevtools bridge={seeded()} defaultOpen />)
 
-    expect(screen.getByTestId("typewire-tab-timeline")).toBeInTheDocument();
-    expect(screen.queryByTestId("typewire-tab-cache")).not.toBeInTheDocument();
-  });
+    expect(screen.getByTestId('typewire-tab-timeline')).toBeInTheDocument()
+    expect(screen.queryByTestId('typewire-tab-cache')).not.toBeInTheDocument()
+  })
 
-  it("opens the settings tab", () => {
-    render(<TypeDevtools bridge={seeded()} defaultOpen />);
+  it('opens the settings tab', () => {
+    render(<TypeDevtools bridge={seeded()} defaultOpen />)
 
-    fireEvent.click(screen.getByTestId("typewire-tab-settings"));
+    fireEvent.click(screen.getByTestId('typewire-tab-settings'))
 
-    expect(screen.getByTestId("typewire-set-theme")).toBeInTheDocument();
+    expect(screen.getByTestId('typewire-set-theme')).toBeInTheDocument()
     // Toggling sound must not throw where AudioContext is unavailable (jsdom).
-    fireEvent.click(screen.getByTestId("typewire-set-sound"));
-    expect(screen.getByTestId("typewire-set-volume")).toBeInTheDocument();
-  });
+    fireEvent.click(screen.getByTestId('typewire-set-sound'))
+    expect(screen.getByTestId('typewire-set-volume')).toBeInTheDocument()
+  })
 
-  it("summarizes traffic in the status bar", () => {
-    const bridge = new InspectorBridge();
-    bridge.record(event({ kind: "start" }));
-    bridge.record(event({ kind: "error", payload: new Error("x"), durationMs: 3 }));
-    render(<TypeDevtools bridge={bridge} defaultOpen />);
+  it('summarizes traffic in the status bar', () => {
+    const bridge = new InspectorBridge()
+    bridge.record(event({ kind: 'start' }))
+    bridge.record(
+      event({ kind: 'error', payload: new Error('x'), durationMs: 3 })
+    )
+    render(<TypeDevtools bridge={bridge} defaultOpen />)
 
-    const panel = screen.getByTestId("typewire-devtools");
-    expect(panel).toHaveTextContent("1 calls");
-    expect(panel).toHaveTextContent("1 errors");
-  });
-});
+    const panel = screen.getByTestId('typewire-devtools')
+    expect(panel).toHaveTextContent('1 calls')
+    expect(panel).toHaveTextContent('1 errors')
+  })
+})

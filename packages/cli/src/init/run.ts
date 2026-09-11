@@ -1,10 +1,10 @@
-import { mkdir, writeFile } from "node:fs/promises";
-import { dirname, relative } from "node:path";
-import { exists } from "../config/fs";
-import { UsageError } from "../errors";
-import { detectProject, type ProjectInfo } from "./detect";
-import { availableFeatures, type FeatureId } from "./features";
-import { buildPlan, type InitPlan } from "./plan";
+import { mkdir, writeFile } from 'node:fs/promises'
+import { dirname, relative } from 'node:path'
+import { exists } from '../config/fs'
+import { UsageError } from '../errors'
+import { detectProject, type ProjectInfo } from './detect'
+import { availableFeatures, type FeatureId } from './features'
+import { buildPlan, type InitPlan } from './plan'
 import {
   bold,
   createPrompter,
@@ -15,26 +15,26 @@ import {
   yellow,
   type Choice,
   type PromptStreams,
-} from "./prompt";
+} from './prompt'
 
 export type InitOptions = {
-  cwd?: string;
-  force?: boolean;
+  cwd?: string
+  force?: boolean
   /** `--yes`: take every default, ask nothing. */
-  yes?: boolean;
+  yes?: boolean
   /** `--features typefetch,query`: skip the question entirely. */
-  features?: string[];
-  contractsPath?: string;
-  output?: string;
-  dryRun?: boolean;
+  features?: string[]
+  contractsPath?: string
+  output?: string
+  dryRun?: boolean
   /** Drive the questions from somewhere other than the terminal — used in tests. */
-  streams?: PromptStreams;
-};
+  streams?: PromptStreams
+}
 
 export type InitFileResult = {
-  path: string;
-  status: "created" | "skipped" | "overwritten" | "planned";
-};
+  path: string
+  status: 'created' | 'skipped' | 'overwritten' | 'planned'
+}
 
 /**
  * `typewire init` — read the project, ask what it needs, wire it up.
@@ -43,39 +43,41 @@ export type InitFileResult = {
  * asked here is something the project genuinely cannot imply, and everything it
  * can imply is a *default*, shown and overridable, never a silent decision.
  */
-export async function runInit(options: InitOptions = {}): Promise<InitFileResult[]> {
-  const cwd = options.cwd ?? process.cwd();
-  const project = await detectProject(cwd);
+export async function runInit(
+  options: InitOptions = {}
+): Promise<InitFileResult[]> {
+  const cwd = options.cwd ?? process.cwd()
+  const project = await detectProject(cwd)
 
   const interactive =
     !options.yes &&
     !options.features &&
-    (Boolean(options.streams) || shouldPromptInteractively());
-  const prompter = createPrompter(interactive, options.streams);
+    (Boolean(options.streams) || shouldPromptInteractively())
+  const prompter = createPrompter(interactive, options.streams)
 
   try {
-    printDetection(project);
+    printDetection(project)
 
     if (project.existingConfig && !options.force) {
       console.log(
-        `\n${yellow("A TypeWire config already exists")} at ${relative(cwd, project.existingConfig) || project.existingConfig}.`,
-      );
+        `\n${yellow('A TypeWire config already exists')} at ${relative(cwd, project.existingConfig) || project.existingConfig}.`
+      )
       const proceed = await prompter.confirm(
-        "  Scaffold anyway? Existing files are skipped unless --force.",
-        false,
-      );
-      if (!proceed) return [];
+        '  Scaffold anyway? Existing files are skipped unless --force.',
+        false
+      )
+      if (!proceed) return []
     }
 
     const features = options.features
       ? parseFeatures(options.features, project)
       : new Set(
           await prompter.multiselect(
-            "What does this project need?",
-            featureChoices(project),
-          ),
-        );
-    features.add("typefetch");
+            'What does this project need?',
+            featureChoices(project)
+          )
+        )
+    features.add('typefetch')
 
     const plan = buildPlan({
       project,
@@ -84,30 +86,30 @@ export async function runInit(options: InitOptions = {}): Promise<InitFileResult
         ? { contractsPath: options.contractsPath }
         : {}),
       ...(options.output !== undefined ? { output: options.output } : {}),
-    });
+    })
 
-    printPlan(plan, cwd);
+    printPlan(plan, cwd)
 
     if (options.dryRun) {
-      console.log(`\n${dim("--dry-run: nothing was written.")}`);
-      return plan.files.map((file) => ({ path: file.path, status: "planned" }));
+      console.log(`\n${dim('--dry-run: nothing was written.')}`)
+      return plan.files.map((file) => ({ path: file.path, status: 'planned' }))
     }
 
     const confirmed = await prompter.confirm(
-      `\nWrite ${plan.files.length} file${plan.files.length === 1 ? "" : "s"}?`,
-      true,
-    );
+      `\nWrite ${plan.files.length} file${plan.files.length === 1 ? '' : 's'}?`,
+      true
+    )
     if (!confirmed) {
-      console.log(dim("Nothing was written."));
-      return [];
+      console.log(dim('Nothing was written.'))
+      return []
     }
 
-    const results = await writePlan(plan, Boolean(options.force));
-    printResults(results, plan, cwd);
+    const results = await writePlan(plan, Boolean(options.force))
+    printResults(results, plan, cwd)
 
-    return results;
+    return results
   } finally {
-    prompter.close();
+    prompter.close()
   }
 }
 
@@ -118,7 +120,7 @@ function featureChoices(project: ProjectInfo): Choice<FeatureId>[] {
     hint: feature.hint,
     ...(feature.locked ? { locked: true } : {}),
     ...(feature.suggested?.(project) ? { selected: true } : {}),
-  }));
+  }))
 }
 
 /**
@@ -128,123 +130,130 @@ function featureChoices(project: ProjectInfo): Choice<FeatureId>[] {
  */
 function parseFeatures(values: string[], project: ProjectInfo): Set<FeatureId> {
   const known = new Map(
-    availableFeatures(project).map((feature) => [feature.id as string, feature.id]),
-  );
-  const chosen = new Set<FeatureId>();
+    availableFeatures(project).map((feature) => [
+      feature.id as string,
+      feature.id,
+    ])
+  )
+  const chosen = new Set<FeatureId>()
 
   for (const value of values) {
-    const id = known.get(value.trim());
+    const id = known.get(value.trim())
     if (!id) {
       throw new UsageError(
         `Unknown --features value "${value.trim()}".\n` +
-          `Available here: ${[...known.keys()].join(", ")}`,
-      );
+          `Available here: ${[...known.keys()].join(', ')}`
+      )
     }
-    chosen.add(id);
+    chosen.add(id)
   }
 
-  return chosen;
+  return chosen
 }
 
 async function writePlan(
   plan: InitPlan,
-  force: boolean,
+  force: boolean
 ): Promise<InitFileResult[]> {
-  const results: InitFileResult[] = [];
+  const results: InitFileResult[] = []
 
   for (const file of plan.files) {
-    const alreadyExists = await exists(file.path);
+    const alreadyExists = await exists(file.path)
 
     if (alreadyExists && !force) {
-      results.push({ path: file.path, status: "skipped" });
-      continue;
+      results.push({ path: file.path, status: 'skipped' })
+      continue
     }
 
-    await mkdir(dirname(file.path), { recursive: true });
-    await writeFile(file.path, file.content, "utf8");
+    await mkdir(dirname(file.path), { recursive: true })
+    await writeFile(file.path, file.content, 'utf8')
     results.push({
       path: file.path,
-      status: alreadyExists ? "overwritten" : "created",
-    });
+      status: alreadyExists ? 'overwritten' : 'created',
+    })
   }
 
-  return results;
+  return results
 }
 
 function printDetection(project: ProjectInfo): void {
-  console.log(`\n${bold("TypeWire")}\n`);
-  console.log(`  project    ${project.name ?? dim("unnamed")}`);
+  console.log(`\n${bold('TypeWire')}\n`)
+  console.log(`  project    ${project.name ?? dim('unnamed')}`)
   console.log(
-    `  framework  ${project.frameworkLabel}${project.vite ? dim(" · vite") : ""}${
-      project.monorepo ? dim(" · monorepo") : ""
-    }`,
-  );
+    `  framework  ${project.frameworkLabel}${project.vite ? dim(' · vite') : ''}${
+      project.monorepo ? dim(' · monorepo') : ''
+    }`
+  )
   console.log(
-    `  language   ${project.typescript ? "TypeScript" : "JavaScript"}${
-      project.typescript ? "" : dim(" — contracts still work, without inference")
-    }`,
-  );
-  console.log(`  installer  ${project.packageManager}`);
+    `  language   ${project.typescript ? 'TypeScript' : 'JavaScript'}${
+      project.typescript
+        ? ''
+        : dim(' — contracts still work, without inference')
+    }`
+  )
+  console.log(`  installer  ${project.packageManager}`)
   console.log(
-    `  source     ${project.sourceDir === "." ? dim("project root") : `${project.sourceDir}/`}`,
-  );
+    `  source     ${project.sourceDir === '.' ? dim('project root') : `${project.sourceDir}/`}`
+  )
 
   if (project.installed.size) {
-    console.log(`  installed  ${[...project.installed].join(", ")}`);
+    console.log(`  installed  ${[...project.installed].join(', ')}`)
   }
 }
 
 function printPlan(plan: InitPlan, cwd: string): void {
-  console.log(`\n${bold("Files")}`);
+  console.log(`\n${bold('Files')}`)
   for (const file of plan.files) {
-    const path = relative(cwd, file.path) || file.path;
-    console.log(`  ${cyan(toPosix(path))}\n    ${dim(file.purpose)}`);
+    const path = relative(cwd, file.path) || file.path
+    console.log(`  ${cyan(toPosix(path))}\n    ${dim(file.purpose)}`)
   }
 
   if (plan.installCommands.length) {
-    console.log(`\n${bold("Packages")}`);
-    for (const command of plan.installCommands) console.log(`  ${command}`);
+    console.log(`\n${bold('Packages')}`)
+    for (const command of plan.installCommands) console.log(`  ${command}`)
   } else {
-    console.log(`\n${bold("Packages")}\n  ${dim("everything needed is already installed")}`);
+    console.log(
+      `\n${bold('Packages')}\n  ${dim('everything needed is already installed')}`
+    )
   }
 }
 
 function printResults(
   results: InitFileResult[],
   plan: InitPlan,
-  cwd: string,
+  cwd: string
 ): void {
-  console.log("");
+  console.log('')
   for (const result of results) {
-    const path = toPosix(relative(cwd, result.path) || result.path);
+    const path = toPosix(relative(cwd, result.path) || result.path)
     const label =
-      result.status === "created"
-        ? green("created")
-        : result.status === "skipped"
-          ? yellow("skipped")
-          : yellow(result.status);
-    console.log(`  ${label} ${path}`);
+      result.status === 'created'
+        ? green('created')
+        : result.status === 'skipped'
+          ? yellow('skipped')
+          : yellow(result.status)
+    console.log(`  ${label} ${path}`)
   }
 
-  const skipped = results.filter((result) => result.status === "skipped");
+  const skipped = results.filter((result) => result.status === 'skipped')
   if (skipped.length) {
     console.log(
-      `\n  ${dim(`${skipped.length} file(s) already existed and were left alone. Re-run with --force to replace them.`)}`,
-    );
+      `\n  ${dim(`${skipped.length} file(s) already existed and were left alone. Re-run with --force to replace them.`)}`
+    )
   }
 
   if (plan.installCommands.length) {
-    console.log(`\n${bold("Install")}`);
-    for (const command of plan.installCommands) console.log(`  ${command}`);
+    console.log(`\n${bold('Install')}`)
+    for (const command of plan.installCommands) console.log(`  ${command}`)
   }
 
-  console.log(`\n${bold("Next")}`);
+  console.log(`\n${bold('Next')}`)
   plan.nextSteps.forEach((step, index) => {
-    console.log(`  ${index + 1}. ${step}`);
-  });
-  console.log("");
+    console.log(`  ${index + 1}. ${step}`)
+  })
+  console.log('')
 }
 
 function toPosix(path: string): string {
-  return path.split(/[\\/]/).join("/");
+  return path.split(/[\\/]/).join('/')
 }

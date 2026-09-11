@@ -2,15 +2,8 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "target": "ES2022",
-    "lib": [
-      "ES2022"
-    ],
-    "types": [
-      "node",
-      "jest"
-    ]
+    "lib": ["ES2022"],
+    "types": ["node", "jest"]
   },
-  "include": [
-    "src"
-  ]
+  "include": ["src"]
 }

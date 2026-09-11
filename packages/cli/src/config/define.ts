@@ -1,6 +1,6 @@
-import type { Contracts } from "@tahanabavi/typefetch";
-import type { TypeFetchCliTestConfig } from "../types";
-import type { ConfigEnv, TypeWireConfig } from "./types";
+import type { Contracts } from '@tahanabavi/typefetch'
+import type { TypeFetchCliTestConfig } from '../types'
+import type { ConfigEnv, TypeWireConfig } from './types'
 
 /**
  * Identity at runtime, inference at author time.
@@ -11,13 +11,13 @@ import type { ConfigEnv, TypeWireConfig } from "./types";
  * `string`.
  */
 export function defineConfig<C extends Contracts>(
-  config: TypeWireConfig<C>,
-): TypeWireConfig<C>;
+  config: TypeWireConfig<C>
+): TypeWireConfig<C>
 export function defineConfig<C extends Contracts>(
-  config: (env: ConfigEnv) => TypeWireConfig<C> | Promise<TypeWireConfig<C>>,
-): (env: ConfigEnv) => TypeWireConfig<C> | Promise<TypeWireConfig<C>>;
+  config: (env: ConfigEnv) => TypeWireConfig<C> | Promise<TypeWireConfig<C>>
+): (env: ConfigEnv) => TypeWireConfig<C> | Promise<TypeWireConfig<C>>
 export function defineConfig(config: unknown): unknown {
-  return config;
+  return config
 }
 
 /**
@@ -30,7 +30,7 @@ export function defineConfig(config: unknown): unknown {
  * @deprecated Use `defineConfig({ typefetch: { … } })`.
  */
 export function defineTypeFetchTestConfig<C extends Contracts>(
-  config: TypeFetchCliTestConfig<C>,
+  config: TypeFetchCliTestConfig<C>
 ): TypeFetchCliTestConfig<C> {
-  return config;
+  return config
 }

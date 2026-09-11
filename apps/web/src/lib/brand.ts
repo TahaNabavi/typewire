@@ -27,7 +27,7 @@ export const MARK_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="512" hei
   <circle cx="150" cy="316" r="30" fill="#fff"/><circle cx="150" cy="316" r="14" fill="#3b82f6"/>
   <circle cx="362" cy="196" r="30" fill="#fff"/><circle cx="362" cy="196" r="14" fill="#8b5cf6"/>
   <circle cx="256" cy="256" r="15" fill="#fff"/><circle cx="256" cy="256" r="6.5" fill="#22d3ee"/>
-</svg>`;
+</svg>`
 
 /**
  * The same drawing with the tile removed and the wire scaled up, for surfaces
@@ -39,10 +39,10 @@ export const MARK_GLYPH_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="51
   <circle cx="150" cy="316" r="30" fill="#fff"/><circle cx="150" cy="316" r="14" fill="#3b82f6"/>
   <circle cx="362" cy="196" r="30" fill="#fff"/><circle cx="362" cy="196" r="14" fill="#8b5cf6"/>
   <circle cx="256" cy="256" r="15" fill="#fff"/><circle cx="256" cy="256" r="6.5" fill="#22d3ee"/>
-</svg>`;
+</svg>`
 
 /** Base64 rather than percent-encoding: satori and resvg both take it, and it
  *  survives being pasted into a CSS `url()` without escaping surprises. */
 export function svgDataUri(svg: string): string {
-  return `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
+  return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`
 }

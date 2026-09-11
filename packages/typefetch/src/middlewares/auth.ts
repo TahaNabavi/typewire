@@ -1,5 +1,5 @@
-import { Middleware } from "@/types";
-import z from "zod";
+import { Middleware } from '@/types'
+import z from 'zod'
 
 /**
  * TokenManagementOptions
@@ -11,8 +11,8 @@ import z from "zod";
  *                        for token fetching from storage or re-issuance upon expiry.
  */
 export type AuthOptions = {
-  refreshToken?: () => Promise<string>;
-};
+  refreshToken?: () => Promise<string>
+}
 
 /**
  * AuthenticationInjectorMiddleware
@@ -57,23 +57,23 @@ export const authMiddleware: Middleware<
   // Step 1 & 2: Check for and execute the token provider
   if (options?.refreshToken) {
     try {
-      const newToken = await options.refreshToken();
+      const newToken = await options.refreshToken()
 
       // Step 3: Mutate the context's request initialization object
       ctx.init.headers = {
         ...ctx.init.headers, // Preserve any headers set by prior middleware
         Authorization: `Bearer ${newToken}`,
-      };
+      }
     } catch (error) {
       // Step 4: Fail silently for header injection purposes
       // The request will proceed unauthenticated if the token failed to load
       console.warn(
-        "Authentication token refresh failed, proceeding without authorization header.",
-        error,
-      );
+        'Authentication token refresh failed, proceeding without authorization header.',
+        error
+      )
     }
   }
 
   // Step 5: Pass control to the next step in the request pipeline
-  return next();
-};
+  return next()
+}

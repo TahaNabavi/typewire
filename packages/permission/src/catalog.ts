@@ -1,5 +1,5 @@
-import type { Compiled } from "./compile";
-import type { CatalogEntry } from "./types";
+import type { Compiled } from './compile'
+import type { CatalogEntry } from './types'
 
 /**
  * The flags as flat rows, in declaration order — the source for a
@@ -9,9 +9,9 @@ import type { CatalogEntry } from "./types";
  * renders the same screen from the same source.
  */
 export function catalog(compiled: Compiled): CatalogEntry[] {
-  const out: CatalogEntry[] = [];
+  const out: CatalogEntry[] = []
   for (const flag of compiled.byName.values()) {
-    if (flag.def.hidden) continue;
+    if (flag.def.hidden) continue
     const entry: CatalogEntry = {
       name: flag.name,
       module: flag.module,
@@ -19,12 +19,13 @@ export function catalog(compiled: Compiled): CatalogEntry[] {
       bit: flag.bit,
       grantsAll: flag.def.grantsAll === true,
       deprecated: flag.def.deprecated === true,
-    };
-    if (flag.def.label !== undefined) entry.label = flag.def.label;
-    if (flag.def.description !== undefined) entry.description = flag.def.description;
-    if (flag.def.implies?.length) entry.implies = [...flag.def.implies];
-    if (flag.def.requires?.length) entry.requires = [...flag.def.requires];
-    out.push(entry);
+    }
+    if (flag.def.label !== undefined) entry.label = flag.def.label
+    if (flag.def.description !== undefined)
+      entry.description = flag.def.description
+    if (flag.def.implies?.length) entry.implies = [...flag.def.implies]
+    if (flag.def.requires?.length) entry.requires = [...flag.def.requires]
+    out.push(entry)
   }
-  return out;
+  return out
 }

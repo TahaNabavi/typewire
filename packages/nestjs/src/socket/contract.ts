@@ -1,5 +1,5 @@
-import type { SocketContracts, SocketEventDef } from "@tahanabavi/typesocket";
-import type { BoundSocketContracts, BoundSocketEvent } from "./types";
+import type { SocketContracts, SocketEventDef } from '@tahanabavi/typesocket'
+import type { BoundSocketContracts, BoundSocketEvent } from './types'
 
 /**
  * Give every event in a contract map its identity.
@@ -20,43 +20,43 @@ import type { BoundSocketContracts, BoundSocketEvent } from "./types";
  * one frame and both would try to acknowledge it.
  */
 export function bindSocketContracts<const C extends SocketContracts>(
-  contracts: C,
+  contracts: C
 ): BoundSocketContracts<C> {
-  const bound = {} as Record<string, Record<string, BoundSocketEvent>>;
-  const claimed = new Map<string, string>();
+  const bound = {} as Record<string, Record<string, BoundSocketEvent>>
+  const claimed = new Map<string, string>()
 
   for (const [module, events] of Object.entries(contracts)) {
-    bound[module] = {};
+    bound[module] = {}
 
     for (const [name, def] of Object.entries(events)) {
-      const eventId = `${module}.${name}`;
+      const eventId = `${module}.${name}`
       // Mirrors typesocket's `resolveEventName`: the explicit `event` override,
       // else the id — defaulting to the id rather than the bare key is what
       // keeps names unique across modules on the wire. Restated rather than
       // imported because importing typesocket at runtime would put
       // `socket.io-client` on the server. @see ./types.ts
-      const event = def.event ?? eventId;
+      const event = def.event ?? eventId
 
-      const owner = claimed.get(event);
+      const owner = claimed.get(event)
       if (owner) {
         throw new Error(
           `[typewire-nestjs] "${eventId}" and "${owner}" both map to the wire ` +
             `event "${event}". One frame would reach both handlers, and both ` +
-            `would try to acknowledge it.`,
-        );
+            `would try to acknowledge it.`
+        )
       }
-      claimed.set(event, eventId);
+      claimed.set(event, eventId)
 
-      bound[module]![name] = { eventId, module, name, event, def };
+      bound[module]![name] = { eventId, module, name, event, def }
     }
   }
 
-  return bound as BoundSocketContracts<C>;
+  return bound as BoundSocketContracts<C>
 }
 
 /** Narrows a bound event to the client→server direction. */
 export function isInboundEvent(
-  bound: BoundSocketEvent<SocketEventDef>,
+  bound: BoundSocketEvent<SocketEventDef>
 ): boolean {
-  return bound.def.direction === "client->server";
+  return bound.def.direction === 'client->server'
 }

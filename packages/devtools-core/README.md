@@ -28,15 +28,18 @@ import {
   connectTypeFetch,
   connectTypeSocket,
   selectEntries,
-} from "@tahanabavi/type-devtools-core";
+} from '@tahanabavi/type-devtools-core'
 
-const bridge = new InspectorBridge();      // { limit } — default 500 events
-connectTypeFetch(apiClient, bridge);       // typefetch: REST, GraphQL, gRPC
-connectTypeSocket(socketClient, bridge);   // typesocket: WebSocket
+const bridge = new InspectorBridge() // { limit } — default 500 events
+connectTypeFetch(apiClient, bridge) // typefetch: REST, GraphQL, gRPC
+connectTypeSocket(socketClient, bridge) // typesocket: WebSocket
 
 // A start+success (or outbound+ack) pair collapses into one entry per call.
 // Pass the progress store too, to join live transfers onto the rows.
-const entries = selectEntries(bridge.getSnapshot(), bridge.getProgressSnapshot());
+const entries = selectEntries(
+  bridge.getSnapshot(),
+  bridge.getProgressSnapshot()
+)
 ```
 
 `bridge.subscribe` / `getSnapshot` implement the `Observable` contract, so a
@@ -47,9 +50,9 @@ panel binds it with `useSyncExternalStore` directly.
 One typefetch client now speaks REST, GraphQL and gRPC, so those two stopped
 being the same thing:
 
-| | means | on an entry |
-| --- | --- | --- |
-| `source` | which **client** produced it — `http` (typefetch) or `ws` (typesocket) | always present |
+|             | means                                                                                  | on an entry                         |
+| ----------- | -------------------------------------------------------------------------------------- | ----------------------------------- |
+| `source`    | which **client** produced it — `http` (typefetch) or `ws` (typesocket)                 | always present                      |
 | `transport` | which **wire** carried it — `http`, `graphql`, `grpc`, or a third-party adapter's name | present when the client reports one |
 
 The distinction is load-bearing rather than pedantic. `source` is the key space
@@ -76,7 +79,7 @@ upload emits continuously, and appending each tick would evict a whole session's
 history from the ring buffer within one request.
 
 ```ts
-bridge.getProgressSnapshot();  // ReadonlyMap<`${source}:${id}`, InspectorProgress>
+bridge.getProgressSnapshot() // ReadonlyMap<`${source}:${id}`, InspectorProgress>
 ```
 
 Both stores publish through the one `subscribe`, so a panel binds either or both.
@@ -91,28 +94,30 @@ generic override into each transport's own shape (a typefetch `mock`/`error`, a
 typesocket `drop`):
 
 ```ts
-bridge.setOverride("http", "user.getUser", { mock: { id: "1", name: "Forced" } });
-bridge.setOverride("http", "user.getUser", { latencyMs: 2000 });
-bridge.setOverride("ws", "chat.sendMessage", { drop: true });
+bridge.setOverride('http', 'user.getUser', {
+  mock: { id: '1', name: 'Forced' },
+})
+bridge.setOverride('http', 'user.getUser', { latencyMs: 2000 })
+bridge.setOverride('ws', 'chat.sendMessage', { drop: true })
 
-bridge.listOverrides();   // render the panel's active-overrides strip
-bridge.removeOverride("http", "user.getUser");
+bridge.listOverrides() // render the panel's active-overrides strip
+bridge.removeOverride('http', 'user.getUser')
 ```
 
 ## Query cache
 
-The timeline is an append-only log; a query cache is a *set of stateful
-entities*, so it gets its own store. `connectQueryClient` subscribes to the
+The timeline is an append-only log; a query cache is a _set of stateful
+entities_, so it gets its own store. `connectQueryClient` subscribes to the
 engine's event bus, re-reads the authoritative query list, and exposes the three
 actions a cache view offers:
 
 ```ts
-import { connectQueryClient } from "@tahanabavi/type-devtools-core";
+import { connectQueryClient } from '@tahanabavi/type-devtools-core'
 
-const queries = connectQueryClient(queryClient); // a QueryInspector
-queries.getSnapshot();          // { queries: [...], mutations: [...] }
-queries.refetch(query);         // refetch / invalidate / remove by { endpointId, input }
-queries.dispose();              // detach (the timeline connectors return a detach fn instead)
+const queries = connectQueryClient(queryClient) // a QueryInspector
+queries.getSnapshot() // { queries: [...], mutations: [...] }
+queries.refetch(query) // refetch / invalidate / remove by { endpointId, input }
+queries.dispose() // detach (the timeline connectors return a detach fn instead)
 ```
 
 The client is typed structurally as `QueryClientLike`, so attaching it adds no

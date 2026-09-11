@@ -11,26 +11,26 @@
  * already.
  */
 
-export { GrpcEndpoint } from "./grpc-endpoint.decorator";
-export { ConnectExceptionFilter } from "./connect-exception.filter";
+export { GrpcEndpoint } from './grpc-endpoint.decorator'
+export { ConnectExceptionFilter } from './connect-exception.filter'
 export {
   ConnectDeadlineInterceptor,
   GrpcDeadline,
   GRPC_DEADLINE_KEY,
   parseDeadline,
-} from "./deadline";
-export {
-  GrpcException,
-  codeFromThrownStatus,
-  toConnectError,
-} from "./errors";
-export type { ConnectErrorPayload } from "./errors";
+} from './deadline'
+export { GrpcException, codeFromThrownStatus, toConnectError } from './errors'
+export type { ConnectErrorPayload } from './errors'
 export type {
   GrpcContractEndpoint,
   GrpcDeadlineInfo,
   GrpcEndpointOptions,
-} from "./types";
+} from './types'
 
 // Re-exported so a handler can name a code without a second import; the source
 // of truth stays the transport package.
-export { GrpcCode, codeName, statusFromGrpcCode } from "@tahanabavi/typefetch-grpc";
+export {
+  GrpcCode,
+  codeName,
+  statusFromGrpcCode,
+} from '@tahanabavi/typefetch-grpc'

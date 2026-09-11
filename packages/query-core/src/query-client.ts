@@ -1,8 +1,8 @@
-import { buildQueryKey } from "./hash-key";
-import { MutationObserver } from "./mutation-observer";
-import { QueryCache } from "./query-cache";
-import { QueryObserver } from "./query-observer";
-import { resolveSourceId } from "./source";
+import { buildQueryKey } from './hash-key'
+import { MutationObserver } from './mutation-observer'
+import { QueryCache } from './query-cache'
+import { QueryObserver } from './query-observer'
+import { resolveSourceId } from './source'
 import type {
   AnyQuerySource,
   FetchGate,
@@ -15,14 +15,14 @@ import type {
   QueryOptions,
   RelationsConfig,
   SourceResolver,
-} from "./types";
+} from './types'
 
 export interface QueryClientOptions {
   /** Defaults merged under every per-call option object. */
   defaultOptions?: {
-    queries?: QueryOptions<any>;
-    mutations?: MutationObserverOptions<any, any, any>;
-  };
+    queries?: QueryOptions<any>
+    mutations?: MutationObserverOptions<any, any, any>
+  }
   /**
    * Which queries each mutation invalidates, declared once here rather than at
    * every call site. This is the whole point of the stable `endpointId`: no
@@ -32,19 +32,19 @@ export interface QueryClientOptions {
    * relations: { "user.updateUser": ["user.getUser", "user.listUsers"] }
    * ```
    */
-  relations?: RelationsConfig;
+  relations?: RelationsConfig
   /**
    * Wraps every fetch and every mutation. The one seam cross-tab sync and
    * offline replay attach to — see {@link FetchGate}. Omitted, the engine runs
    * requests exactly as it did before the option existed.
    */
-  gate?: FetchGate;
+  gate?: FetchGate
   /**
    * Resolve an `endpointId` back to its source — see {@link SourceResolver}.
    * Cross-tab sync uses `resolveSource` to write a mirrored value through the
    * typed `setQueryData`; build the map with `collectSources(client.modules)`.
    */
-  sources?: SourceResolver;
+  sources?: SourceResolver
 }
 
 /**
@@ -55,35 +55,39 @@ export interface QueryClientOptions {
  * typesocket acked events without knowing which is which.
  */
 export class QueryClient {
-  readonly cache: QueryCache;
+  readonly cache: QueryCache
 
-  private readonly defaultQueryOptions: QueryOptions<any>;
-  private readonly defaultMutationOptions: MutationObserverOptions<any, any, any>;
-  private readonly relations: RelationsConfig;
-  private readonly gate?: FetchGate;
-  private readonly sources?: SourceResolver;
+  private readonly defaultQueryOptions: QueryOptions<any>
+  private readonly defaultMutationOptions: MutationObserverOptions<
+    any,
+    any,
+    any
+  >
+  private readonly relations: RelationsConfig
+  private readonly gate?: FetchGate
+  private readonly sources?: SourceResolver
 
   constructor(options: QueryClientOptions = {}) {
-    this.cache = new QueryCache(options.gate);
-    this.defaultQueryOptions = options.defaultOptions?.queries ?? {};
-    this.defaultMutationOptions = options.defaultOptions?.mutations ?? {};
-    this.relations = options.relations ?? {};
-    this.gate = options.gate;
-    this.sources = options.sources;
+    this.cache = new QueryCache(options.gate)
+    this.defaultQueryOptions = options.defaultOptions?.queries ?? {}
+    this.defaultMutationOptions = options.defaultOptions?.mutations ?? {}
+    this.relations = options.relations ?? {}
+    this.gate = options.gate
+    this.sources = options.sources
   }
 
   /** Subscribe to the cache event bus (devtools, persistence, logging). */
   subscribe(listener: (event: QueryCacheEvent) => void): () => void {
-    return this.cache.subscribe(listener);
+    return this.cache.subscribe(listener)
   }
 
   /** Cached data for this endpoint+input, without triggering a fetch. */
   getQueryData<E extends AnyQuerySource>(
     endpoint: E,
-    input: InferInput<E>,
+    input: InferInput<E>
   ): InferOutput<E> | undefined {
-    const key = buildQueryKey(resolveSourceId(endpoint), input);
-    return this.cache.get<InferOutput<E>>(key)?.getState().data;
+    const key = buildQueryKey(resolveSourceId(endpoint), input)
+    return this.cache.get<InferOutput<E>>(key)?.getState().data
   }
 
   /**
@@ -100,14 +104,14 @@ export class QueryClient {
     updater:
       | InferOutput<E>
       | ((previous: InferOutput<E> | undefined) => InferOutput<E>),
-    options?: { updatedAt?: number },
+    options?: { updatedAt?: number }
   ): InferOutput<E> {
     const query = this.cache.build<InferOutput<E>>(
       endpoint,
       input,
-      this.defaultQueryOptions,
-    );
-    return query.setData(updater, options);
+      this.defaultQueryOptions
+    )
+    return query.setData(updater, options)
   }
 
   /**
@@ -117,28 +121,30 @@ export class QueryClient {
   fetchQuery<E extends AnyQuerySource>(
     endpoint: E,
     input: InferInput<E>,
-    options: QueryOptions<any> = {},
+    options: QueryOptions<any> = {}
   ): Promise<InferOutput<E>> {
     const query = this.cache.build<InferOutput<E>>(endpoint, input, {
       ...this.defaultQueryOptions,
       ...options,
-    });
+    })
     // Fresh data short-circuits: prefetching in a loop should not re-request.
-    if (!query.isStale(options.staleTime ?? this.defaultQueryOptions.staleTime)) {
-      const { data } = query.getState();
-      if (data !== undefined) return Promise.resolve(data);
+    if (
+      !query.isStale(options.staleTime ?? this.defaultQueryOptions.staleTime)
+    ) {
+      const { data } = query.getState()
+      if (data !== undefined) return Promise.resolve(data)
     }
-    return query.fetch();
+    return query.fetch()
   }
 
   /** Warm the cache, ignoring failures. Never rejects. */
   async prefetchQuery<E extends AnyQuerySource>(
     endpoint: E,
     input: InferInput<E>,
-    options: QueryOptions<any> = {},
+    options: QueryOptions<any> = {}
   ): Promise<void> {
     try {
-      await this.fetchQuery(endpoint, input, options);
+      await this.fetchQuery(endpoint, input, options)
     } catch {
       // Prefetching is best-effort by definition.
     }
@@ -149,60 +155,60 @@ export class QueryClient {
    * refetch themselves; unwatched entries simply refetch on next mount.
    */
   invalidateQueries(filters: QueryFilters = {}): void {
-    for (const query of this.cache.find(filters)) query.invalidate();
+    for (const query of this.cache.find(filters)) query.invalidate()
   }
 
   /** Force matching queries to refetch now. Resolves when all have settled. */
   async refetchQueries(filters: QueryFilters = {}): Promise<void> {
     await Promise.allSettled(
-      this.cache.find(filters).map((query) => query.fetch()),
-    );
+      this.cache.find(filters).map((query) => query.fetch())
+    )
   }
 
   /** Abort in-flight requests for matching queries, keeping their data. */
   cancelQueries(filters: QueryFilters = {}): void {
-    for (const query of this.cache.find(filters)) query.cancel();
+    for (const query of this.cache.find(filters)) query.cancel()
   }
 
   /** Drop matching queries from the cache entirely. */
   removeQueries(filters: QueryFilters = {}): void {
-    for (const query of this.cache.find(filters)) this.cache.remove(query);
+    for (const query of this.cache.find(filters)) this.cache.remove(query)
   }
 
   /** Drop everything. The usual logout hook. */
   clear(): void {
-    this.cache.clear();
+    this.cache.clear()
   }
 
   /** An observer for one endpoint+input. The React adapter wraps this. */
   watchQuery<E extends AnyQuerySource, TSelected = InferOutput<E>>(
     endpoint: E,
     input: InferInput<E>,
-    options: QueryObserverOptions<InferOutput<E>, any, TSelected> = {},
+    options: QueryObserverOptions<InferOutput<E>, any, TSelected> = {}
   ): QueryObserver<InferOutput<E>, any, TSelected> {
     return new QueryObserver<InferOutput<E>, any, TSelected>(
       this.cache,
       endpoint,
       input,
-      { ...this.defaultQueryOptions, ...options },
-    );
+      { ...this.defaultQueryOptions, ...options }
+    )
   }
 
   /** An observer for one write endpoint, wired to declared invalidation. */
   watchMutation<E extends AnyQuerySource>(
     endpoint: E,
-    options: MutationObserverOptions<InferOutput<E>, any, InferInput<E>> = {},
+    options: MutationObserverOptions<InferOutput<E>, any, InferInput<E>> = {}
   ): MutationObserver<InferInput<E>, InferOutput<E>, any> {
     return new MutationObserver<InferInput<E>, InferOutput<E>, any>(
       endpoint,
       { ...this.defaultMutationOptions, ...options },
       {
         onSuccess: (endpointId, variables, data, extraInvalidates) => {
-          this.runRelations(endpointId, variables, data, extraInvalidates);
+          this.runRelations(endpointId, variables, data, extraInvalidates)
         },
         emit: (status, ctx) =>
           this.cache.emit({
-            type: "mutation",
+            type: 'mutation',
             endpointId: ctx.endpointId,
             status,
             variables: ctx.variables,
@@ -210,8 +216,8 @@ export class QueryClient {
             error: ctx.error,
           }),
         gate: this.gate,
-      },
-    );
+      }
+    )
   }
 
   /**
@@ -221,11 +227,11 @@ export class QueryClient {
    * typed `setQueryData`.
    */
   resolveSource(endpointId: string): AnyQuerySource | undefined {
-    const sources = this.sources;
-    if (!sources) return undefined;
-    return typeof sources === "function"
+    const sources = this.sources
+    if (!sources) return undefined
+    return typeof sources === 'function'
       ? sources(endpointId)
-      : sources[endpointId];
+      : sources[endpointId]
   }
 
   /** Resolve the declared relations for a mutation and invalidate them. */
@@ -233,20 +239,22 @@ export class QueryClient {
     endpointId: string,
     variables: unknown,
     data: unknown,
-    extraInvalidates: string[] | undefined,
+    extraInvalidates: string[] | undefined
   ): void {
-    const declared = this.relations[endpointId];
+    const declared = this.relations[endpointId]
     const fromRelations =
-      typeof declared === "function"
+      typeof declared === 'function'
         ? declared({ variables, data })
-        : (declared ?? []);
-    const ids = [...fromRelations, ...(extraInvalidates ?? [])];
-    if (ids.length === 0) return;
-    this.invalidateQueries({ endpointId: ids });
+        : (declared ?? [])
+    const ids = [...fromRelations, ...(extraInvalidates ?? [])]
+    if (ids.length === 0) return
+    this.invalidateQueries({ endpointId: ids })
   }
 }
 
 /** Convenience factory, for callers who prefer not to write `new`. */
-export function createQueryClient(options: QueryClientOptions = {}): QueryClient {
-  return new QueryClient(options);
+export function createQueryClient(
+  options: QueryClientOptions = {}
+): QueryClient {
+  return new QueryClient(options)
 }

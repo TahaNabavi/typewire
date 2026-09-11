@@ -3,50 +3,50 @@
  * Minimal CLI example.
  * For production, wire this with cac/commander and dynamically import user config.
  */
-import { ApiClient } from "@tahanabavi/typefetch";
-import type { Contracts } from "@tahanabavi/typefetch";
-import { createApiTestRunner } from "@tahanabavi/typefetch";
-import { writeReportFiles } from "./node-reporter";
+import { ApiClient } from '@tahanabavi/typefetch'
+import type { Contracts } from '@tahanabavi/typefetch'
+import { createApiTestRunner } from '@tahanabavi/typefetch'
+import { writeReportFiles } from './node-reporter'
 
 type TypeFetchTestConfig = {
-  contracts: Contracts;
-  baseUrl: string;
-  token?: string;
-  output?: string;
-};
+  contracts: Contracts
+  baseUrl: string
+  token?: string
+  output?: string
+}
 
 async function main() {
-  const configPath = process.argv[2] ?? "./typefetch.test.config.ts";
+  const configPath = process.argv[2] ?? './typefetch.test.config.ts'
   const imported = (await import(configPath)) as {
-    default: TypeFetchTestConfig;
-  };
-  const config = imported.default;
+    default: TypeFetchTestConfig
+  }
+  const config = imported.default
 
   const client = new ApiClient(
     {
       baseUrl: config.baseUrl,
       token: config.token,
     },
-    config.contracts,
-  );
-  client.init();
+    config.contracts
+  )
+  client.init()
 
   const report = await createApiTestRunner({
     client,
     contracts: config.contracts,
     options: {
-      mode: "full",
+      mode: 'full',
     },
-  }).run();
+  }).run()
 
-  await writeReportFiles(report, config.output ?? "./typefetch-report.md");
+  await writeReportFiles(report, config.output ?? './typefetch-report.md')
 
   if (report.summary.failed > 0) {
-    process.exitCode = 1;
+    process.exitCode = 1
   }
 }
 
 void main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+  console.error(error)
+  process.exitCode = 1
+})

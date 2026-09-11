@@ -8,4 +8,4 @@ try {
   if (localStorage.getItem("typewire-theme") === "dark")
     document.documentElement.setAttribute("data-theme", "dark");
 } catch (e) {}
-`;
+`

@@ -1,20 +1,23 @@
 {
   "$schema": "../../../docs/docs.schema.json",
-  "documentsVersion": "1.10.0",
-  "summary": "The typed HTTP client every other package is built around.",
+  "documentsVersion": "2.0.0",
   "pages": [
     {
       "slug": "overview",
       "title": "Overview",
       "readme": true,
-      "intro": true,
       "sections": [
-        "Features"
+        "Features",
+        "What's New in v2.0.0",
+        "What's New in v1.9.0",
+        "What's New in v1.8.0",
+        "What's New in v1.7.0",
+        "What's New in v1.6.0"
       ]
     },
     {
-      "slug": "quick-start",
-      "title": "Quick start",
+      "slug": "getting-started",
+      "title": "Getting Started",
       "readme": true,
       "sections": [
         "Installation",
@@ -22,8 +25,8 @@
       ]
     },
     {
-      "slug": "contracts",
-      "title": "Defining contracts",
+      "slug": "api-contracts",
+      "title": "API Contracts",
       "readme": true,
       "sections": [
         "Defining API Contracts",
@@ -34,23 +37,17 @@
     },
     {
       "slug": "client",
-      "title": "The client",
+      "title": "Client",
       "readme": true,
       "sections": [
         "Creating the Client",
         "Client Configuration",
-        "Transports",
-        "Type Inference"
+        "Transports"
       ]
     },
     {
-      "slug": "transports",
-      "title": "Transports",
-      "file": "TRANSPORTS.md"
-    },
-    {
-      "slug": "auth",
-      "title": "Auth & permissions",
+      "slug": "auth-permissions",
+      "title": "Authentication and Permissions",
       "readme": true,
       "sections": [
         "Authentication",
@@ -64,87 +61,74 @@
       "sections": [
         "Middleware System",
         "Built-in Middlewares",
-        "Custom Middleware",
-        "Endpoint-Level Headers"
-      ]
-    },
-    {
-      "slug": "reliability",
-      "title": "Retries & timeouts",
-      "readme": true,
-      "sections": [
         "Retry Engine",
         "Timeout and Abort Support"
       ]
     },
     {
-      "slug": "errors",
-      "title": "Error handling",
+      "slug": "error-handling",
+      "title": "Error Handling",
       "readme": true,
       "sections": [
         "Error Handling",
-        "Typed Error Responses"
-      ]
-    },
-    {
-      "slug": "payloads",
-      "title": "Payloads & responses",
-      "readme": true,
-      "sections": [
-        "File Uploads",
-        "Response Types",
-        "Response Wrappers",
-        "Upload and Download Progress"
-      ]
-    },
-    {
-      "slug": "encryption",
-      "title": "Encryption",
-      "readme": true,
-      "sections": [
-        "Encryption Middleware",
-        "Encryption Maps"
-      ]
-    },
-    {
-      "slug": "devtools",
-      "title": "Devtools & mocking",
-      "readme": true,
-      "sections": [
-        "Instrumentation & Runtime Overrides",
+        "Typed Error Responses",
         "Mock Mode"
       ]
     },
     {
-      "slug": "testing",
-      "title": "Testing",
+      "slug": "file-operations",
+      "title": "File Operations",
       "readme": true,
       "sections": [
-        "Testing"
+        "File Uploads",
+        "Upload and Download Progress",
+        "Response Types",
+        "Response Wrappers"
       ]
     },
     {
-      "slug": "nestjs",
-      "title": "With NestJS",
+      "slug": "encryption-instrumentation",
+      "title": "Encryption and Instrumentation",
       "readme": true,
       "sections": [
+        "Encryption Middleware",
+        "Encryption Maps",
+        "Endpoint-Level Headers",
+        "Custom Middleware",
+        "Instrumentation & Runtime Overrides"
+      ]
+    },
+    {
+      "slug": "testing-backend",
+      "title": "Testing and Backend",
+      "readme": true,
+      "sections": [
+        "Type Inference",
+        "Testing",
         "Backend (NestJS)"
       ]
     },
     {
-      "slug": "releases",
-      "title": "Releases",
+      "slug": "release-docs",
+      "title": "Release Documentation",
       "readme": true,
       "sections": [
-        "What's New in v2.0.0",
-        "What's New in v1.9.0",
-        "What's New in v1.8.0",
-        "What's New in v1.7.0",
-        "What's New in v1.6.0",
         "Versioned Release Documentation",
-        "Notes",
+        "Notes"
+      ]
+    },
+    {
+      "slug": "license",
+      "title": "License",
+      "readme": true,
+      "sections": [
         "License"
       ]
+    },
+    {
+      "slug": "transports",
+      "title": "Transports",
+      "file": "TRANSPORTS.md"
     }
   ]
 }

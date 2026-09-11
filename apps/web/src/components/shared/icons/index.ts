@@ -8,7 +8,7 @@
  * pasted onto a technical line; monochrome makes them behave as typography and
  * lets them pick up the theme.
  */
-export { default as BunIcon } from "./BunIcon";
-export { default as DenoIcon } from "./DenoIcon";
-export { default as NodeIcon } from "./NodeIcon";
-export { default as NpmIcon } from "./NpmIcon";
+export { default as BunIcon } from './BunIcon'
+export { default as DenoIcon } from './DenoIcon'
+export { default as NodeIcon } from './NodeIcon'
+export { default as NpmIcon } from './NpmIcon'

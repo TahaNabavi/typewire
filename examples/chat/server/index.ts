@@ -1,81 +1,79 @@
-import { createServer } from "node:http";
-import { randomUUID } from "node:crypto";
-import { Server } from "socket.io";
+import { createServer } from 'node:http'
+import { randomUUID } from 'node:crypto'
+import { Server } from 'socket.io'
 
-import { chatContracts, type Message } from "../shared/contracts.js";
-import { P, permsForUser, roleForUser } from "../shared/permissions.js";
-import { handle, push } from "./contract-bridge.js";
+import { chatContracts, type Message } from '../shared/contracts.js'
+import { P, permsForUser } from '../shared/permissions.js'
+import { handle, push } from './contract-bridge.js'
 
-const PORT = Number(process.env.PORT ?? 3102);
-const HISTORY_LIMIT = 50;
+const PORT = Number(process.env.PORT ?? 3102)
+const HISTORY_LIMIT = 50
 
 /** roomId → the last N messages. In-memory on purpose; this is a demo. */
-const history = new Map<string, Message[]>();
+const history = new Map<string, Message[]>()
 /** roomId → the users currently in it. */
-const members = new Map<string, Set<string>>();
+const members = new Map<string, Set<string>>()
 
 function roomMembers(roomId: string): string[] {
-  return [...(members.get(roomId) ?? [])].sort();
+  return [...(members.get(roomId) ?? [])].sort()
 }
 
-const http = createServer();
-const io = new Server(http, { cors: { origin: "*" } });
+const http = createServer()
+const io = new Server(http, { cors: { origin: '*' } })
 
-io.on("connection", (socket) => {
+io.on('connection', (socket) => {
   /** Set on join. A socket belongs to at most one room in this demo. */
-  let user: string | null = null;
-  let room: string | null = null;
+  let user: string | null = null
+  let room: string | null = null
   /** The actor's effective permission bits, derived from their name on join. */
-  let perms = 0n;
+  let perms = 0n
 
   const leaveCurrentRoom = () => {
-    if (!room || !user) return;
-    const set = members.get(room);
-    set?.delete(user);
-    if (set && set.size === 0) members.delete(room);
+    if (!room || !user) return
+    const set = members.get(room)
+    set?.delete(user)
+    if (set && set.size === 0) members.delete(room)
 
-    void socket.leave(room);
-    push(io.to(room), "room.presence", chatContracts.room.presence, {
+    void socket.leave(room)
+    push(io.to(room), 'room.presence', chatContracts.room.presence, {
       roomId: room,
       members: roomMembers(room),
-    });
-    console.log(`[server] ${user} left #${room}`);
-    room = null;
-  };
+    })
+    room = null
+  }
 
-  handle(socket, "room.join", chatContracts.room.join, (input) => {
-    leaveCurrentRoom();
+  handle(socket, 'room.join', chatContracts.room.join, (input) => {
+    leaveCurrentRoom()
 
-    user = input.user;
-    room = input.roomId;
+    user = input.user
+    room = input.roomId
     // Same map the client uses — the server just doesn't trust the client's copy.
-    perms = permsForUser(user);
-    void socket.join(room);
+    perms = permsForUser(user)
+    void socket.join(room)
 
-    const set = members.get(room) ?? new Set<string>();
-    set.add(user);
-    members.set(room, set);
+    const set = members.get(room) ?? new Set<string>()
+    set.add(user)
+    members.set(room, set)
 
-    push(io.to(room), "room.presence", chatContracts.room.presence, {
+    push(io.to(room), 'room.presence', chatContracts.room.presence, {
       roomId: room,
       members: roomMembers(room),
-    });
-    console.log(`[server] ${user} joined #${room} as ${roleForUser(user)}`);
+    })
 
     // The return value is validated against the `ack` schema before it is sent.
     return {
       roomId: room,
       history: history.get(room) ?? [],
       members: roomMembers(room),
-    };
-  });
+    }
+  })
 
-  handle(socket, "room.leave", chatContracts.room.leave, () => {
-    leaveCurrentRoom();
-  });
+  handle(socket, 'room.leave', chatContracts.room.leave, () => {
+    leaveCurrentRoom()
+  })
 
-  handle(socket, "chat.send", chatContracts.chat.send, (input) => {
-    if (!user) throw new Error("send before join");
+  handle(socket, 'chat.send', chatContracts.chat.send, (input) => {
+    if (!user) throw new Error('send before join')
 
     const message: Message = {
       id: randomUUID(),
@@ -83,87 +81,91 @@ io.on("connection", (socket) => {
       user,
       text: input.text,
       sentAt: Date.now(),
-    };
+    }
 
-    const log = history.get(input.roomId) ?? [];
-    log.push(message);
-    history.set(input.roomId, log.slice(-HISTORY_LIMIT));
+    const log = history.get(input.roomId) ?? []
+    log.push(message)
+    history.set(input.roomId, log.slice(-HISTORY_LIMIT))
 
     // Broadcast to everyone including the sender, so one code path renders all
     // messages and the sender's own message is server-stamped like the rest.
-    push(io.to(input.roomId), "chat.message", chatContracts.chat.message, message);
+    push(
+      io.to(input.roomId),
+      'chat.message',
+      chatContracts.chat.message,
+      message
+    )
 
-    return { id: message.id, sentAt: message.sentAt };
-  });
+    return { id: message.id, sentAt: message.sentAt }
+  })
 
-  handle(socket, "chat.deleteMessage", chatContracts.chat.deleteMessage, (input) => {
-    // The gateway guard: read the requirement off the contract and authorize the
-    // actor's bits — the exact `P.authorize` the client used to show the button.
-    // The client's UI check is a courtesy; this is where it's actually enforced.
-    const need = chatContracts.chat.deleteMessage.permission;
-    if (need && !P.authorize(perms, need).granted) {
-      console.warn(`[server] ${user ?? "?"} denied chat.deleteMessage`);
-      return { ok: false };
+  handle(
+    socket,
+    'chat.deleteMessage',
+    chatContracts.chat.deleteMessage,
+    (input) => {
+      // The gateway guard: read the requirement off the contract and authorize the
+      // actor's bits — the exact `P.authorize` the client used to show the button.
+      // The client's UI check is a courtesy; this is where it's actually enforced.
+      const need = chatContracts.chat.deleteMessage.permission
+      if (need && !P.authorize(perms, need).granted) {
+        return { ok: false }
+      }
+
+      const log = history.get(input.roomId)
+      const existed = log?.some((m) => m.id === input.id) ?? false
+      if (existed && log) {
+        history.set(
+          input.roomId,
+          log.filter((m) => m.id !== input.id)
+        )
+        push(io.to(input.roomId), 'chat.deleted', chatContracts.chat.deleted, {
+          roomId: input.roomId,
+          id: input.id,
+        })
+      }
+      return { ok: existed }
     }
+  )
 
-    const log = history.get(input.roomId);
-    const existed = log?.some((m) => m.id === input.id) ?? false;
-    if (existed && log) {
-      history.set(input.roomId, log.filter((m) => m.id !== input.id));
-      push(io.to(input.roomId), "chat.deleted", chatContracts.chat.deleted, {
-        roomId: input.roomId,
-        id: input.id,
-      });
-      console.log(`[server] ${user} deleted ${input.id} in #${input.roomId}`);
-    }
-    return { ok: existed };
-  });
-
-  handle(socket, "chat.setTyping", chatContracts.chat.setTyping, (input) => {
-    if (!user) return;
+  handle(socket, 'chat.setTyping', chatContracts.chat.setTyping, (input) => {
+    if (!user) return
     // `socket.to` excludes the sender — you don't need to be told you're typing.
-    push(socket.to(input.roomId), "chat.typing", chatContracts.chat.typing, {
+    push(socket.to(input.roomId), 'chat.typing', chatContracts.chat.typing, {
       roomId: input.roomId,
       user,
       isTyping: input.isTyping,
-    });
-  });
+    })
+  })
 
-  socket.on("disconnect", () => {
-    leaveCurrentRoom();
-  });
-});
+  socket.on('disconnect', () => {
+    leaveCurrentRoom()
+  })
+})
 
 // A port left occupied by an earlier run is the most likely way this fails.
 // Say so, instead of dumping an unhandled 'error' event and a stack trace.
-http.on("error", (error: NodeJS.ErrnoException) => {
-  if (error.code === "EADDRINUSE") {
-    console.error(
-      `\n[server] Port ${PORT} is already in use — most likely an earlier run of this server.\n` +
-        `         Stop it, or start on another port:  PORT=3103 pnpm dev:server\n` +
-        `         Find the process:  npx kill-port ${PORT}\n`,
-    );
-    process.exit(1);
+http.on('error', (error: NodeJS.ErrnoException) => {
+  if (error.code === 'EADDRINUSE') {
+    process.exit(1)
   }
-  throw error;
-});
+  throw error
+})
 
 http.listen(PORT, () => {
-  console.log(`[server] listening on http://localhost:${PORT}`);
-  console.log(`[server] contract events:`);
   for (const [module, events] of Object.entries(chatContracts)) {
     for (const [name, def] of Object.entries(events)) {
-      const arrow = def.direction === "client->server" ? "→" : "←";
-      console.log(`  ${arrow} ${module}.${name}`);
+      const arrow = def.direction === 'client->server' ? '→' : '←'
+      console.log(`Registered ${module}.${name} ${arrow}`)
     }
   }
-});
+})
 
 // tsx watch restarts on change; releasing the port on the way out keeps a
 // rapid save from racing the next boot into EADDRINUSE.
-for (const signal of ["SIGINT", "SIGTERM"] as const) {
+for (const signal of ['SIGINT', 'SIGTERM'] as const) {
   process.on(signal, () => {
-    io.close();
-    http.close(() => process.exit(0));
-  });
+    io.close()
+    http.close(() => process.exit(0))
+  })
 }

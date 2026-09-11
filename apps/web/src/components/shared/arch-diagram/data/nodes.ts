@@ -1,17 +1,17 @@
-import { NodeSpec } from "../types";
+import { NodeSpec } from '../types'
 
 export const NODES = {
   cli: {
     x: 50,
     y: 1,
 
-    label: "CLI",
-    description: "TypeWire developer tooling",
+    label: 'CLI',
+    description: 'TypeWire developer tooling',
 
-    color: "var(--amber)",
-    section: "tooling",
+    color: 'var(--amber)',
+    section: 'tooling',
 
-    variant: "package",
+    variant: 'package',
 
     width: 118,
     height: 30,
@@ -22,13 +22,13 @@ export const NODES = {
     x: 50,
     y: 7,
 
-    label: "CONTRACTS",
-    description: "Shared source of truth",
+    label: 'CONTRACTS',
+    description: 'Shared source of truth',
 
-    color: "var(--cyan)",
-    section: "core",
+    color: 'var(--cyan)',
+    section: 'core',
 
-    variant: "primary",
+    variant: 'primary',
 
     width: 118,
     height: 30,
@@ -39,13 +39,13 @@ export const NODES = {
     x: 20.5,
     y: 15,
 
-    label: "TRANSPORTS",
-    description: "Transport abstraction layer",
+    label: 'TRANSPORTS',
+    description: 'Transport abstraction layer',
 
-    color: "var(--cyan)",
-    section: "core",
+    color: 'var(--cyan)',
+    section: 'core',
 
-    variant: "group",
+    variant: 'group',
 
     width: 118,
     height: 30,
@@ -56,13 +56,13 @@ export const NODES = {
     x: 50,
     y: 15,
 
-    label: "CLIENT",
-    description: "Client-side runtime",
+    label: 'CLIENT',
+    description: 'Client-side runtime',
 
-    color: "var(--cyan)",
-    section: "core",
+    color: 'var(--cyan)',
+    section: 'core',
 
-    variant: "primary",
+    variant: 'primary',
 
     width: 118,
     height: 30,
@@ -73,13 +73,13 @@ export const NODES = {
     x: 82.5,
     y: 15,
 
-    label: "SERVER",
-    description: "Server-side runtime",
+    label: 'SERVER',
+    description: 'Server-side runtime',
 
-    color: "var(--cyan)",
-    section: "core",
+    color: 'var(--cyan)',
+    section: 'core',
 
-    variant: "primary",
+    variant: 'primary',
 
     width: 118,
     height: 30,
@@ -90,13 +90,13 @@ export const NODES = {
     x: 8,
     y: 25,
 
-    label: "GRAPHQL",
-    description: "GraphQL transport",
+    label: 'GRAPHQL',
+    description: 'GraphQL transport',
 
-    color: "var(--wire-graphql)",
-    section: "transport",
+    color: 'var(--wire-graphql)',
+    section: 'transport',
 
-    variant: "integration",
+    variant: 'integration',
 
     width: 104,
     height: 30,
@@ -107,13 +107,13 @@ export const NODES = {
     x: 20.5,
     y: 25,
 
-    label: "HTTP",
-    description: "HTTP transport",
+    label: 'HTTP',
+    description: 'HTTP transport',
 
-    color: "var(--wire-http)",
-    section: "transport",
+    color: 'var(--wire-http)',
+    section: 'transport',
 
-    variant: "integration",
+    variant: 'integration',
 
     width: 104,
     height: 30,
@@ -124,13 +124,13 @@ export const NODES = {
     x: 33,
     y: 25,
 
-    label: "GRPC",
-    description: "gRPC transport",
+    label: 'GRPC',
+    description: 'gRPC transport',
 
-    color: "var(--wire-grpc)",
-    section: "transport",
+    color: 'var(--wire-grpc)',
+    section: 'transport',
 
-    variant: "integration",
+    variant: 'integration',
 
     width: 104,
     height: 30,
@@ -141,13 +141,13 @@ export const NODES = {
     x: 43,
     y: 30,
 
-    label: "TYPEFETCH",
-    description: "Type-safe HTTP client",
+    label: 'TYPEFETCH',
+    description: 'Type-safe HTTP client',
 
-    color: "var(--wire-http)",
-    section: "transport",
+    color: 'var(--wire-http)',
+    section: 'transport',
 
-    variant: "package",
+    variant: 'package',
 
     width: 104,
     height: 30,
@@ -158,13 +158,13 @@ export const NODES = {
     x: 57,
     y: 30,
 
-    label: "TYPESCOKET",
-    description: "Type-safe WebSocket client",
+    label: 'TYPESCOKET',
+    description: 'Type-safe WebSocket client',
 
-    color: "var(--wire-ws)",
-    section: "transport",
+    color: 'var(--wire-ws)',
+    section: 'transport',
 
-    variant: "package",
+    variant: 'package',
 
     width: 104,
     height: 30,
@@ -175,13 +175,13 @@ export const NODES = {
     x: 82.5,
     y: 25,
 
-    label: "NEST JS",
-    description: "NestJS integration",
+    label: 'NEST JS',
+    description: 'NestJS integration',
 
-    color: "var(--wire-ws)",
-    section: "server",
+    color: 'var(--wire-ws)',
+    section: 'server',
 
-    variant: "integration",
+    variant: 'integration',
 
     width: 118,
     height: 30,
@@ -192,13 +192,13 @@ export const NODES = {
     x: 50,
     y: 46,
 
-    label: "QUERY CORE",
-    description: "Runtime query layer",
+    label: 'QUERY CORE',
+    description: 'Runtime query layer',
 
-    color: "var(--purple)",
-    section: "runtime",
+    color: 'var(--purple)',
+    section: 'runtime',
 
-    variant: "primary",
+    variant: 'primary',
 
     width: 108,
     height: 30,
@@ -209,13 +209,13 @@ export const NODES = {
     x: 50,
     y: 55,
 
-    label: "DEVTOOLS",
-    description: "TypeWire developer tools",
+    label: 'DEVTOOLS',
+    description: 'TypeWire developer tools',
 
-    color: "var(--purple)",
-    section: "runtime",
+    color: 'var(--purple)',
+    section: 'runtime',
 
-    variant: "package",
+    variant: 'package',
 
     width: 104,
     height: 30,
@@ -226,13 +226,13 @@ export const NODES = {
     x: 16,
     y: 46,
 
-    label: "FRAMEWORKS",
-    description: "Framework integration layer",
+    label: 'FRAMEWORKS',
+    description: 'Framework integration layer',
 
-    color: "var(--purple)",
-    section: "framework",
+    color: 'var(--purple)',
+    section: 'framework',
 
-    variant: "group",
+    variant: 'group',
 
     width: 118,
     height: 30,
@@ -243,13 +243,13 @@ export const NODES = {
     x: 20.5,
     y: 55,
 
-    label: "REACT",
-    description: "React integration",
+    label: 'REACT',
+    description: 'React integration',
 
-    color: "var(--purple)",
-    section: "framework",
+    color: 'var(--purple)',
+    section: 'framework',
 
-    variant: "integration",
+    variant: 'integration',
 
     width: 104,
     height: 30,
@@ -260,13 +260,13 @@ export const NODES = {
     x: 74,
     y: 46,
 
-    label: "PERMISSION",
-    description: "Permission and access control",
+    label: 'PERMISSION',
+    description: 'Permission and access control',
 
-    color: "var(--cyan)",
-    section: "security",
+    color: 'var(--cyan)',
+    section: 'security',
 
-    variant: "package",
+    variant: 'package',
 
     width: 118,
     height: 30,
@@ -279,13 +279,13 @@ export const NODES = {
     x: 90,
     y: 46,
 
-    label: "ENCRYPTION",
-    description: "Encryption middleware for TypeFetch contracts",
+    label: 'ENCRYPTION',
+    description: 'Encryption middleware for TypeFetch contracts',
 
-    color: "var(--cyan)",
-    section: "security",
+    color: 'var(--cyan)',
+    section: 'security',
 
-    variant: "package",
+    variant: 'package',
 
     width: 118,
     height: 30,
@@ -293,4 +293,4 @@ export const NODES = {
 
     muted: true,
   },
-} satisfies Record<string, NodeSpec>;
+} satisfies Record<string, NodeSpec>

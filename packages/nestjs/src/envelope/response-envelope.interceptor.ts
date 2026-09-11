@@ -5,20 +5,20 @@ import {
   Injectable,
   NestInterceptor,
   Optional,
-} from "@nestjs/common";
-import { Reflector } from "@nestjs/core";
-import type { AnyEndpointDefZ } from "@tahanabavi/typefetch";
-import { Observable } from "rxjs";
-import { map } from "rxjs/operators";
+} from '@nestjs/common'
+import { Reflector } from '@nestjs/core'
+import type { AnyEndpointDefZ } from '@tahanabavi/typefetch'
+import { Observable } from 'rxjs'
+import { map } from 'rxjs/operators'
 import {
   SKIP_ENVELOPE_KEY,
   TYPEFETCH_ENDPOINT_METADATA,
   TYPEFETCH_MODULE_OPTIONS,
   TYPEFETCH_SKIP_ENVELOPE_METADATA,
-} from "../constants";
-import { isHttpEndpoint } from "../transport";
-import type { TypeFetchModuleOptions } from "../types";
-import { resolveEnvelope } from "./resolve";
+} from '../constants'
+import { isHttpEndpoint } from '../transport'
+import type { TypeFetchModuleOptions } from '../types'
+import { resolveEnvelope } from './resolve'
 
 /**
  * Wraps successful responses in the shared envelope (default
@@ -44,41 +44,41 @@ export class ResponseEnvelopeInterceptor implements NestInterceptor {
     @Optional() @Inject(Reflector) private readonly reflector?: Reflector,
     @Optional()
     @Inject(TYPEFETCH_MODULE_OPTIONS)
-    private readonly options?: TypeFetchModuleOptions,
+    private readonly options?: TypeFetchModuleOptions
   ) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-    const envelope = resolveEnvelope(this.options?.envelope);
-    if (!envelope) return next.handle();
+    const envelope = resolveEnvelope(this.options?.envelope)
+    if (!envelope) return next.handle()
 
     if (this.isExempt(context)) {
-      this.markSkipped(context);
-      return next.handle();
+      this.markSkipped(context)
+      return next.handle()
     }
 
     return next
       .handle()
-      .pipe(map((data) => (data === undefined ? data : envelope.success(data))));
+      .pipe(map((data) => (data === undefined ? data : envelope.success(data))))
   }
 
   private isExempt(context: ExecutionContext): boolean {
-    if (context.getType() !== "http") return true;
+    if (context.getType() !== 'http') return true
 
-    const reflector = this.reflector;
-    if (!reflector) return false;
+    const reflector = this.reflector
+    if (!reflector) return false
 
     const skip = reflector.getAllAndOverride<boolean | undefined>(
       TYPEFETCH_SKIP_ENVELOPE_METADATA,
-      [context.getHandler(), context.getClass()],
-    );
-    if (skip) return true;
+      [context.getHandler(), context.getClass()]
+    )
+    if (skip) return true
 
     const endpoint = reflector.get<AnyEndpointDefZ | undefined>(
       TYPEFETCH_ENDPOINT_METADATA,
-      context.getHandler(),
-    );
+      context.getHandler()
+    )
 
-    return endpoint !== undefined && !isHttpEndpoint(endpoint);
+    return endpoint !== undefined && !isHttpEndpoint(endpoint)
   }
 
   /**
@@ -86,11 +86,11 @@ export class ResponseEnvelopeInterceptor implements NestInterceptor {
    * and so cannot read the handler's metadata for itself.
    */
   private markSkipped(context: ExecutionContext): void {
-    if (context.getType() !== "http") return;
-    const request = context.switchToHttp().getRequest();
-    if (request && typeof request === "object") {
+    if (context.getType() !== 'http') return
+    const request = context.switchToHttp().getRequest()
+    if (request && typeof request === 'object') {
       try {
-        (request as Record<symbol, unknown>)[SKIP_ENVELOPE_KEY] = true;
+        ;(request as Record<symbol, unknown>)[SKIP_ENVELOPE_KEY] = true
       } catch {
         /* frozen request — the filter falls back to wrapping */
       }

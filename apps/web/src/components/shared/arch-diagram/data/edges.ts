@@ -1,135 +1,135 @@
-import { EdgeSpec, SplitEdgeSpec } from "../types";
+import { EdgeSpec, SplitEdgeSpec } from '../types'
 
 export const EDGES: EdgeSpec[] = [
   {
-    from: "contract",
-    to: "transports",
+    from: 'contract',
+    to: 'transports',
 
-    kind: "dependency",
+    kind: 'dependency',
 
-    color: "var(--cyan)",
+    color: 'var(--cyan)',
     width: 1.4,
   },
 
   {
-    from: "contract",
-    to: "client",
+    from: 'contract',
+    to: 'client',
 
-    kind: "dependency",
+    kind: 'dependency',
 
-    color: "var(--cyan)",
+    color: 'var(--cyan)',
     width: 1.4,
   },
 
   {
-    from: "contract",
-    to: "server",
+    from: 'contract',
+    to: 'server',
 
-    kind: "dependency",
+    kind: 'dependency',
 
-    color: "var(--cyan)",
+    color: 'var(--cyan)',
     width: 1.4,
   },
 
   {
-    from: "server",
-    to: "nestjs",
+    from: 'server',
+    to: 'nestjs',
 
-    kind: "integration",
+    kind: 'integration',
 
-    color: "var(--wire-ws)",
+    color: 'var(--wire-ws)',
     width: 1.4,
   },
 
   {
-    from: "querycore",
-    to: "frameworks",
+    from: 'querycore',
+    to: 'frameworks',
 
-    kind: "runtime",
+    kind: 'runtime',
 
-    color: "var(--purple)",
+    color: 'var(--purple)',
     width: 1.4,
   },
 
   {
-    from: "cli",
-    to: "contract",
+    from: 'cli',
+    to: 'contract',
 
-    kind: "optional",
+    kind: 'optional',
 
-    color: "var(--amber)",
+    color: 'var(--amber)',
     width: 1.2,
 
     dashed: true,
   },
 
   {
-    from: "permission",
-    to: "contract",
+    from: 'permission',
+    to: 'contract',
 
-    kind: "optional",
+    kind: 'optional',
 
-    color: "var(--cyan)",
+    color: 'var(--cyan)',
     width: 1.2,
 
     dashed: true,
   },
 
   {
-    from: "permission",
-    to: "nestjs",
+    from: 'permission',
+    to: 'nestjs',
 
-    kind: "optional",
+    kind: 'optional',
 
-    color: "var(--cyan)",
+    color: 'var(--cyan)',
     width: 1.2,
 
     dashed: true,
   },
 
   {
-    from: "encryption",
-    to: "nestjs",
+    from: 'encryption',
+    to: 'nestjs',
 
-    kind: "optional",
+    kind: 'optional',
 
-    color: "var(--cyan)",
+    color: 'var(--cyan)',
     width: 1.2,
 
     dashed: true,
   },
   {
-    from: "encryption",
-    to: "contract",
+    from: 'encryption',
+    to: 'contract',
 
-    kind: "optional",
+    kind: 'optional',
 
-    color: "var(--cyan)",
+    color: 'var(--cyan)',
     width: 1.2,
 
     dashed: true,
   },
   {
-    from: "encryption",
-    to: "typefetch",
+    from: 'encryption',
+    to: 'typefetch',
 
-    kind: "optional",
+    kind: 'optional',
 
-    color: "var(--cyan)",
+    color: 'var(--cyan)',
     width: 1.2,
 
     dashed: true,
   },
-];
+]
 
 export const SPLIT_EDGES: SplitEdgeSpec[] = [
   {
-    from: "transports",
-    to: ["http", "graphql", "grpc"],
+    from: 'transports',
+    to: ['http', 'graphql', 'grpc'],
 
-    kind: "transport",
+    kind: 'transport',
 
-    color: "var(--cyan)",
+    color: 'var(--cyan)',
     width: 1.4,
 
     pulse: true,
@@ -137,12 +137,12 @@ export const SPLIT_EDGES: SplitEdgeSpec[] = [
   },
 
   {
-    from: "client",
-    to: ["typefetch", "typesocket"],
+    from: 'client',
+    to: ['typefetch', 'typesocket'],
 
-    kind: "transport",
+    kind: 'transport',
 
-    color: "var(--cyan)",
+    color: 'var(--cyan)',
     width: 1.4,
 
     pulse: true,
@@ -150,12 +150,12 @@ export const SPLIT_EDGES: SplitEdgeSpec[] = [
   },
 
   {
-    from: "querycore",
-    to: ["typefetch", "typesocket"],
+    from: 'querycore',
+    to: ['typefetch', 'typesocket'],
 
-    kind: "runtime",
+    kind: 'runtime',
 
-    color: "var(--purple)",
+    color: 'var(--purple)',
     width: 1.4,
 
     pulse: true,
@@ -163,12 +163,12 @@ export const SPLIT_EDGES: SplitEdgeSpec[] = [
   },
 
   {
-    from: "querycore",
-    to: ["devtools"],
+    from: 'querycore',
+    to: ['devtools'],
 
-    kind: "runtime",
+    kind: 'runtime',
 
-    color: "var(--purple)",
+    color: 'var(--purple)',
     width: 1.4,
 
     pulse: true,
@@ -176,12 +176,12 @@ export const SPLIT_EDGES: SplitEdgeSpec[] = [
   },
 
   {
-    from: "frameworks",
-    to: ["react"],
+    from: 'frameworks',
+    to: ['react'],
 
-    kind: "integration",
+    kind: 'integration',
 
-    color: "var(--purple)",
+    color: 'var(--purple)',
     width: 1.4,
 
     pulse: true,
@@ -189,14 +189,14 @@ export const SPLIT_EDGES: SplitEdgeSpec[] = [
   },
 
   {
-    from: "permission",
-    to: ["typefetch", "typesocket"],
+    from: 'permission',
+    to: ['typefetch', 'typesocket'],
 
-    kind: "optional",
+    kind: 'optional',
 
-    color: "var(--cyan)",
+    color: 'var(--cyan)',
     width: 1.2,
 
     dashed: true,
   },
-];
+]

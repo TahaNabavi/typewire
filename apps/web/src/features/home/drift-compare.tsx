@@ -15,41 +15,49 @@
  */
 
 interface Line {
-  text: string;
-  tone?: "bad" | "good" | "dim";
+  text: string
+  tone?: 'bad' | 'good' | 'dim'
 }
 
 const WITHOUT: Line[] = [
-  { text: "// server, last Tuesday", tone: "dim" },
-  { text: "res.json({ id, fullName })" },
-  { text: "" },
-  { text: "// client, still says", tone: "dim" },
-  { text: "type User = { id: string; name: string }" },
-  { text: "const { name } = await getUser(id)" },
-  { text: "" },
-  { text: "→ undefined, at 2am, in production", tone: "bad" },
-  { text: "→ typecheck passed. tests passed.", tone: "bad" },
-];
+  { text: '// server, last Tuesday', tone: 'dim' },
+  { text: 'res.json({ id, fullName })' },
+  { text: '' },
+  { text: '// client, still says', tone: 'dim' },
+  { text: 'type User = { id: string; name: string }' },
+  { text: 'const { name } = await getUser(id)' },
+  { text: '' },
+  { text: '→ undefined, at 2am, in production', tone: 'bad' },
+  { text: '→ typecheck passed. tests passed.', tone: 'bad' },
+]
 
 const WITH: Line[] = [
-  { text: "// contracts.ts — the only edit", tone: "dim" },
-  { text: "response: z.object({" },
-  { text: "  id: z.string()," },
-  { text: "  fullName: z.string(),", tone: "good" },
-  { text: "})" },
-  { text: "" },
-  { text: "// client, next typecheck", tone: "dim" },
-  { text: "→ Property 'name' does not exist", tone: "good" },
-  { text: "→ caught before it ran", tone: "good" },
-];
+  { text: '// contracts.ts — the only edit', tone: 'dim' },
+  { text: 'response: z.object({' },
+  { text: '  id: z.string(),' },
+  { text: '  fullName: z.string(),', tone: 'good' },
+  { text: '})' },
+  { text: '' },
+  { text: '// client, next typecheck', tone: 'dim' },
+  { text: "→ Property 'name' does not exist", tone: 'good' },
+  { text: '→ caught before it ran', tone: 'good' },
+]
 
 const TONE: Record<string, string> = {
-  bad: "text-red",
-  good: "text-green",
-  dim: "text-dim",
-};
+  bad: 'text-red',
+  good: 'text-green',
+  dim: 'text-dim',
+}
 
-function Panel({ title, lines, tone }: { title: string; lines: Line[]; tone: "red" | "green" }) {
+function Panel({
+  title,
+  lines,
+  tone,
+}: {
+  title: string
+  lines: Line[]
+  tone: 'red' | 'green'
+}) {
   return (
     <div className="code-surface flex h-full flex-col overflow-hidden rounded-xl border border-hair">
       <div
@@ -59,7 +67,11 @@ function Panel({ title, lines, tone }: { title: string; lines: Line[]; tone: "re
           background: `color-mix(in oklab, var(--${tone}) 8%, transparent)`,
         }}
       >
-        <span aria-hidden className="size-1.5 rounded-full" style={{ background: `var(--${tone})` }} />
+        <span
+          aria-hidden
+          className="size-1.5 rounded-full"
+          style={{ background: `var(--${tone})` }}
+        />
         <span
           className="font-mono text-[10.5px] font-bold tracking-[0.14em]"
           style={{ color: `var(--${tone})` }}
@@ -69,13 +81,13 @@ function Panel({ title, lines, tone }: { title: string; lines: Line[]; tone: "re
       </div>
       <pre className="flex-1 overflow-x-auto p-4 font-mono text-[12px] leading-[1.9]">
         {lines.map((line, i) => (
-          <div key={i} className={line.tone ? TONE[line.tone] : "text-code-fg"}>
-            {line.text || " "}
+          <div key={i} className={line.tone ? TONE[line.tone] : 'text-code-fg'}>
+            {line.text || ' '}
           </div>
         ))}
       </pre>
     </div>
-  );
+  )
 }
 
 export function DriftCompare() {
@@ -84,5 +96,5 @@ export function DriftCompare() {
       <Panel title="WITHOUT TYPEWIRE" lines={WITHOUT} tone="red" />
       <Panel title="WITH TYPEWIRE" lines={WITH} tone="green" />
     </div>
-  );
+  )
 }

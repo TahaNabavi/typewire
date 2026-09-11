@@ -1,12 +1,12 @@
-"use client";
+'use client'
 
-import Link from "next/link";
-import { useEffect, useState } from "react";
-import { Menu, X } from "lucide-react";
+import Link from 'next/link'
+import { useEffect, useState } from 'react'
+import { Menu, X } from 'lucide-react'
 
-import { CopyButton } from "@/components/ui/copy-button";
-import { nav, site } from "@/config/site";
-import { install } from "@/lib/registry";
+import { CopyButton } from '@/components/ui/copy-button'
+import { nav } from '@/config/site'
+import { install } from '@/lib/registry'
 
 /**
  * Below `md` the header nav is hidden, which left phones with no way to reach
@@ -15,18 +15,18 @@ import { install } from "@/lib/registry";
  * theme toggle stay put and the page never loses its place.
  */
 export function MobileNav() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false)
 
   // A route change unmounts nothing here (the header is in the layout), so the
   // panel has to be told to close itself.
   useEffect(() => {
-    if (!open) return;
+    if (!open) return
     const close = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
-    };
-    window.addEventListener("keydown", close);
-    return () => window.removeEventListener("keydown", close);
-  }, [open]);
+      if (event.key === 'Escape') setOpen(false)
+    }
+    window.addEventListener('keydown', close)
+    return () => window.removeEventListener('keydown', close)
+  }, [open])
 
   return (
     <>
@@ -35,10 +35,14 @@ export function MobileNav() {
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
         aria-controls="mobile-nav"
-        aria-label={open ? "Close menu" : "Open menu"}
+        aria-label={open ? 'Close menu' : 'Open menu'}
         className="rounded-lg border border-hair p-2 text-muted-foreground transition-colors hover:border-hair-strong hover:text-fg md:hidden"
       >
-        {open ? <X className="size-4" aria-hidden /> : <Menu className="size-4" aria-hidden />}
+        {open ? (
+          <X className="size-4" aria-hidden />
+        ) : (
+          <Menu className="size-4" aria-hidden />
+        )}
       </button>
 
       {open && (
@@ -67,5 +71,5 @@ export function MobileNav() {
         </div>
       )}
     </>
-  );
+  )
 }

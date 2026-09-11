@@ -4,8 +4,8 @@
  * `shallowRef`, Angular signals). The core never imports a framework.
  */
 export interface Observable<T> {
-  getSnapshot(): T;
-  subscribe(listener: () => void): () => void;
+  getSnapshot(): T
+  subscribe(listener: () => void): () => void
 }
 
 /**
@@ -16,21 +16,21 @@ export interface Observable<T> {
  * mid-iteration would silently skip the following listener.
  */
 export class Notifier {
-  private readonly listeners = new Set<() => void>();
+  private readonly listeners = new Set<() => void>()
 
   subscribe(listener: () => void): () => void {
-    this.listeners.add(listener);
+    this.listeners.add(listener)
     return () => {
-      this.listeners.delete(listener);
-    };
+      this.listeners.delete(listener)
+    }
   }
 
   /** How many listeners are currently attached. Drives garbage collection. */
   get size(): number {
-    return this.listeners.size;
+    return this.listeners.size
   }
 
   notify(): void {
-    for (const listener of [...this.listeners]) listener();
+    for (const listener of [...this.listeners]) listener()
   }
 }

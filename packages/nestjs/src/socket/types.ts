@@ -3,8 +3,8 @@ import type {
   ServerToClientDef,
   SocketContracts,
   SocketEventDef,
-} from "@tahanabavi/typesocket";
-import type { z } from "zod";
+} from '@tahanabavi/typesocket'
+import type { z } from 'zod'
 
 /**
  * typesocket is imported for **types only**, deliberately.
@@ -28,18 +28,18 @@ import type { z } from "zod";
  */
 export type BoundSocketEvent<E extends SocketEventDef = SocketEventDef> = {
   /** Stable `"module.event"` identifier — the cross-package key. */
-  eventId: string;
-  module: string;
-  name: string;
+  eventId: string
+  module: string
+  name: string
   /** The wire event name actually sent: `def.event`, else the id. */
-  event: string;
-  def: E;
-};
+  event: string
+  def: E
+}
 
 /** The shape {@link bindSocketContracts} returns: the contract map, bound. */
 export type BoundSocketContracts<C extends SocketContracts> = {
-  [M in keyof C]: { [E in keyof C[M]]: BoundSocketEvent<C[M][E]> };
-};
+  [M in keyof C]: { [E in keyof C[M]]: BoundSocketEvent<C[M][E]> }
+}
 
 /**
  * Anything socket.io can emit through — a `Server`, a `Namespace`, a `Socket`,
@@ -49,37 +49,38 @@ export type BoundSocketContracts<C extends SocketContracts> = {
  * the permission guard uses for `authorize`.
  */
 export type SocketEmitTarget = {
-  emit(event: string, ...args: unknown[]): unknown;
-};
+  emit(event: string, ...args: unknown[]): unknown
+}
 
 /** The payload type of a `server->client` event. */
 export type InferSocketPayload<E> = E extends ServerToClientDef
-  ? z.infer<E["payload"]>
+  ? z.infer<E['payload']>
   : E extends BoundSocketEvent<infer D>
     ? D extends ServerToClientDef
-      ? z.infer<D["payload"]>
+      ? z.infer<D['payload']>
       : never
-    : never;
+    : never
 
 /** The request (inbound payload) type of a `client->server` event. */
 export type InferSocketRequest<E> = E extends ClientToServerDef
-  ? z.infer<E["request"]>
+  ? z.infer<E['request']>
   : E extends BoundSocketEvent<infer D>
     ? D extends ClientToServerDef
-      ? z.infer<D["request"]>
+      ? z.infer<D['request']>
       : never
-    : never;
+    : never
 
 /** The acknowledgement type of a `client->server` event, or `void`. */
-export type InferSocketAck<E> = E extends BoundSocketEvent<infer D>
-  ? D extends { ack: infer A extends z.ZodTypeAny }
-    ? z.infer<A>
-    : void
-  : E extends { ack: infer A extends z.ZodTypeAny }
-    ? z.infer<A>
-    : void;
+export type InferSocketAck<E> =
+  E extends BoundSocketEvent<infer D>
+    ? D extends { ack: infer A extends z.ZodTypeAny }
+      ? z.infer<A>
+      : void
+    : E extends { ack: infer A extends z.ZodTypeAny }
+      ? z.infer<A>
+      : void
 
 export interface SocketEventOptions {
   /** Validate the handler's acknowledgement against `def.ack`. Default `true`. */
-  validateAck?: boolean;
+  validateAck?: boolean
 }

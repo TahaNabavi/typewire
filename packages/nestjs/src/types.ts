@@ -1,6 +1,6 @@
-import type { AnyEndpointDefZ } from "@tahanabavi/typefetch";
-import type { z } from "zod";
-import type { BackendEncryptionOptions } from "./encryption/types";
+import type { AnyEndpointDefZ } from '@tahanabavi/typefetch'
+import type { z } from 'zod'
+import type { BackendEncryptionOptions } from './encryption/types'
 
 /**
  * Infer the full request input type of a contract endpoint — the same type the
@@ -15,13 +15,13 @@ import type { BackendEncryptionOptions } from "./encryption/types";
  * type Input = InferRequest<typeof contracts.user.getUser>;
  * // { path?: { id: string }, query?: ..., body: ..., headers?: ... }
  */
-export type InferRequest<E extends AnyEndpointDefZ> = z.infer<E["request"]>;
+export type InferRequest<E extends AnyEndpointDefZ> = z.infer<E['request']>
 
 /**
  * Infer the response type of a contract endpoint — the exact type the
  * handler must return so the frontend receives what the contract promises.
  */
-export type InferResponse<E extends AnyEndpointDefZ> = z.infer<E["response"]>;
+export type InferResponse<E extends AnyEndpointDefZ> = z.infer<E['response']>
 
 /**
  * Signature a controller handler must satisfy for a given endpoint.
@@ -32,8 +32,8 @@ export type InferResponse<E extends AnyEndpointDefZ> = z.infer<E["response"]>;
  *   satisfies ContractHandler<typeof contracts.user.getUser>;
  */
 export type ContractHandler<E extends AnyEndpointDefZ> = (
-  input: InferRequest<E>,
-) => InferResponse<E> | Promise<InferResponse<E>>;
+  input: InferRequest<E>
+) => InferResponse<E> | Promise<InferResponse<E>>
 
 /**
  * The parsed & validated request stored on the platform request object
@@ -42,39 +42,39 @@ export type ContractHandler<E extends AnyEndpointDefZ> = (
  */
 export type ParsedContractRequest = {
   /** Validated path params (structured contracts only). */
-  path?: Record<string, unknown>;
+  path?: Record<string, unknown>
   /** Validated query params (structured contracts only). */
-  query?: Record<string, unknown>;
+  query?: Record<string, unknown>
   /** Validated body. For flat contracts this is the whole input. */
-  body?: unknown;
+  body?: unknown
   /** Validated headers part (structured contracts only). */
-  headers?: Record<string, string>;
+  headers?: Record<string, string>
   /** Whether the contract uses the structured `{ path, query, body, headers }` shape. */
-  isStructured: boolean;
+  isStructured: boolean
   /**
    * The value shaped like the contract's `request` schema — what the
    * typefetch client would have passed as `input`. This is what
    * `@ContractInput()` returns.
    */
-  input: unknown;
-};
+  input: unknown
+}
 
 /** Validation switches shared by module-level and endpoint-level options. */
 export interface ContractValidationOptions {
   /** Validate incoming path/query/body/headers against `endpoint.request`. Default `true`. */
-  validateRequest?: boolean;
+  validateRequest?: boolean
   /**
    * Validate (and strip) the handler's return value against
    * `endpoint.response`. Default `true`.
    */
-  validateResponse?: boolean;
+  validateResponse?: boolean
   /**
    * Coerce incoming path/query strings toward the types the contract
    * declares (`"25"` → 25, `"true"` → true, ISO strings → Date, repeated
    * keys → arrays, JSON strings → objects) before validating — mirroring how
    * the typefetch client serializes them. Default `true`.
    */
-  coerce?: boolean;
+  coerce?: boolean
 }
 
 /** Per-endpoint options accepted by `@TypeFetchEndpoint()` / `@UseContract()`. */
@@ -83,7 +83,7 @@ export interface ContractEndpointOptions extends ContractValidationOptions {
    * Override the HTTP status code for successful responses
    * (e.g. `200` instead of Nest's default `201` for POST).
    */
-  httpCode?: number;
+  httpCode?: number
 }
 
 /**
@@ -92,13 +92,13 @@ export interface ContractEndpointOptions extends ContractValidationOptions {
  */
 export interface EnvelopeError {
   /** Human-readable message. */
-  message: string;
+  message: string
   /** HTTP status the exception carried (or 500 for unknown errors). */
-  status: number;
+  status: number
   /** Application error code, when the exception provided one. */
-  code?: string;
+  code?: string
   /** Field errors, when present (e.g. from `ContractValidationException`). */
-  errors?: Record<string, string[]>;
+  errors?: Record<string, string[]>
 }
 
 /**
@@ -111,18 +111,18 @@ export interface EnvelopeError {
  */
 export interface ResponseEnvelopeOptions {
   /** Build the success envelope. Default: `(data) => ({ success: true, data })`. */
-  success?: (data: unknown) => unknown;
+  success?: (data: unknown) => unknown
   /**
    * Build the error envelope. Default:
    * `(e) => ({ success: false, message: e.message, code?, errors? })`.
    */
-  error?: (error: EnvelopeError) => unknown;
+  error?: (error: EnvelopeError) => unknown
   /**
    * Whether error responses keep their real HTTP status or always return
    * `200` (some APIs signal failure only via `success: false`).
    * Default `"preserve"`.
    */
-  errorStatus?: "preserve" | 200;
+  errorStatus?: 'preserve' | 200
 }
 
 /** Global options provided via `TypeFetchModule.forRoot()`. */
@@ -132,14 +132,14 @@ export interface TypeFetchModuleOptions extends ContractValidationOptions {
    * response body. Useful in development; keep `false` in production so
    * schema internals are not leaked. Default `false`.
    */
-  exposeResponseErrors?: boolean;
+  exposeResponseErrors?: boolean
   /**
    * Wrap every response (and error) in a shared envelope mirroring the
    * client's `setResponseWrapper`. `true` uses the default `{ success, data }`
    * shape; pass an object to customize. Registers a global interceptor +
    * exception filter. Default `false` (disabled).
    */
-  envelope?: boolean | ResponseEnvelopeOptions;
+  envelope?: boolean | ResponseEnvelopeOptions
   /**
    * Field-level encryption mirroring the client's `encryptionMiddleware`.
    * When set, endpoints with an `encryption` contract config have their
@@ -147,9 +147,9 @@ export interface TypeFetchModuleOptions extends ContractValidationOptions {
    * fields **encrypted after validation**, using the same key material the
    * client's `keyProvider` supplies.
    */
-  encryption?: BackendEncryptionOptions;
+  encryption?: BackendEncryptionOptions
 }
 
 /** Fully resolved options after merging defaults ← module ← endpoint. */
 export type ResolvedContractOptions = Required<ContractValidationOptions> &
-  Pick<TypeFetchModuleOptions, "exposeResponseErrors">;
+  Pick<TypeFetchModuleOptions, 'exposeResponseErrors'>

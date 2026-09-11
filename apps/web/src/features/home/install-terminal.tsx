@@ -1,8 +1,8 @@
-"use client";
+'use client'
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from 'react'
 
-import { cn } from "@/utils";
+import { cn } from '@/utils'
 
 /**
  * The install command, typed out, then its output.
@@ -18,8 +18,8 @@ import { cn } from "@/utils";
  */
 
 export interface TerminalLine {
-  text: string;
-  tone?: string;
+  text: string
+  tone?: string
 }
 
 export function InstallTerminal({
@@ -27,51 +27,53 @@ export function InstallTerminal({
   output,
   className,
 }: {
-  command: string;
-  output: TerminalLine[];
-  className?: string;
+  command: string
+  output: TerminalLine[]
+  className?: string
 }) {
-  const [typed, setTyped] = useState(0);
-  const [lines, setLines] = useState(0);
-  const done = typed >= command.length && lines >= output.length;
-  const timer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [typed, setTyped] = useState(0)
+  const [lines, setLines] = useState(0)
+  const done = typed >= command.length && lines >= output.length
+  const timer = useRef<ReturnType<typeof setInterval> | null>(null)
 
   function skip() {
-    if (timer.current) clearInterval(timer.current);
-    setTyped(command.length);
-    setLines(output.length);
+    if (timer.current) clearInterval(timer.current)
+    setTyped(command.length)
+    setLines(output.length)
   }
 
   useEffect(() => {
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reduced = window.matchMedia(
+      '(prefers-reduced-motion: reduce)'
+    ).matches
     if (reduced) {
-      setTyped(command.length);
-      setLines(output.length);
-      return;
+      setTyped(command.length)
+      setLines(output.length)
+      return
     }
 
-    let tick = 0;
+    let tick = 0
     timer.current = setInterval(() => {
-      tick += 1;
+      tick += 1
       if (tick <= command.length) {
-        setTyped(tick);
-        return;
+        setTyped(tick)
+        return
       }
-      const line = Math.floor((tick - command.length - 8) / 5);
-      if (line >= 0) setLines(Math.min(line, output.length));
-      if (line > output.length && timer.current) clearInterval(timer.current);
-    }, 38);
+      const line = Math.floor((tick - command.length - 8) / 5)
+      if (line >= 0) setLines(Math.min(line, output.length))
+      if (line > output.length && timer.current) clearInterval(timer.current)
+    }, 38)
 
     return () => {
-      if (timer.current) clearInterval(timer.current);
-    };
-  }, [command, output.length]);
+      if (timer.current) clearInterval(timer.current)
+    }
+  }, [command, output.length])
 
   return (
     <div
       className={cn(
-        "code-surface overflow-hidden rounded-xl border border-hair shadow-[0_30px_70px_-34px_rgba(0,0,0,0.7)]",
-        className,
+        'code-surface overflow-hidden rounded-xl border border-hair shadow-[0_30px_70px_-34px_rgba(0,0,0,0.7)]',
+        className
       )}
     >
       <div className="flex items-center gap-2 border-b border-hair px-3 py-2.5">
@@ -80,7 +82,9 @@ export function InstallTerminal({
         <span aria-hidden className="size-2 rounded-full bg-green/70" />
         <span className="ml-1 font-mono text-[11px] text-dim">zsh · ~/app</span>
         {done ? (
-          <span className="ml-auto font-mono text-[10px] tracking-[0.08em] text-dim">DONE</span>
+          <span className="ml-auto font-mono text-[10px] tracking-[0.08em] text-dim">
+            DONE
+          </span>
         ) : (
           <button
             type="button"
@@ -100,16 +104,19 @@ export function InstallTerminal({
             <span
               aria-hidden
               className="ml-0.5 inline-block h-3.5 w-[7px] translate-y-0.5 bg-cyan"
-              style={{ animation: "caret 1s step-end infinite" }}
+              style={{ animation: 'caret 1s step-end infinite' }}
             />
           )}
         </div>
         {output.slice(0, lines).map((line) => (
-          <div key={line.text} className={cn("text-xs", line.tone ?? "text-fg")}>
+          <div
+            key={line.text}
+            className={cn('text-xs', line.tone ?? 'text-fg')}
+          >
             {line.text}
           </div>
         ))}
       </div>
     </div>
-  );
+  )
 }

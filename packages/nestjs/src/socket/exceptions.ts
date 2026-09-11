@@ -1,4 +1,4 @@
-import { WsException } from "@nestjs/websockets";
+import { WsException } from '@nestjs/websockets'
 
 /**
  * A contract failure on a socket frame.
@@ -20,13 +20,13 @@ export class SocketContractException extends WsException {
     readonly eventId: string,
     message: string,
     readonly code: string,
-    readonly errors?: Record<string, string[]>,
+    readonly errors?: Record<string, string[]>
   ) {
     super({
       event: eventId,
       message,
       code,
       ...(errors ? { errors } : {}),
-    });
+    })
   }
 }

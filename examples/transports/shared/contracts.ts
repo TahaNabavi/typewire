@@ -1,11 +1,11 @@
-import { z } from "zod";
+import { z } from 'zod'
 
 // Imported for their side effect on the *type* level: each transport package
 // augments `TransportRegistry`, which is what makes `transport: "graphql"` and
 // its `root`/`service`/`rpc` fields exist on the endpoint type at all. Without
 // these two imports the contract below does not compile.
-import "@tahanabavi/typefetch-graphql";
-import "@tahanabavi/typefetch-grpc";
+import '@tahanabavi/typefetch-graphql'
+import '@tahanabavi/typefetch-grpc'
 
 /**
  * One module, three wires.
@@ -19,16 +19,16 @@ const User = z.object({
   id: z.string(),
   name: z.string(),
   email: z.string(),
-});
+})
 
-const NotFound = z.object({ message: z.string() });
+const NotFound = z.object({ message: z.string() })
 
 export const contracts = {
   user: {
     /** REST. The default — no `transport` key means http. */
     getUser: {
-      method: "GET",
-      path: "/users/:id",
+      method: 'GET',
+      path: '/users/:id',
       request: z.object({ path: z.object({ id: z.string() }) }),
       response: User,
       errors: {
@@ -45,9 +45,9 @@ export const contracts = {
      * attach to, producing `user(id: $id) { id name email }`.
      */
     profile: {
-      transport: "graphql",
-      operation: "query",
-      root: "user",
+      transport: 'graphql',
+      operation: 'query',
+      root: 'user',
       request: z.object({ id: z.string() }),
       response: User,
     },
@@ -58,9 +58,9 @@ export const contracts = {
      * runtime anywhere in the dependency tree.
      */
     syncUser: {
-      transport: "grpc",
-      service: "user.v1.UserService",
-      rpc: "GetUser",
+      transport: 'grpc',
+      service: 'user.v1.UserService',
+      rpc: 'GetUser',
       request: z.object({ id: z.string() }),
       response: User,
       errors: {
@@ -69,4 +69,4 @@ export const contracts = {
       },
     },
   },
-} as const;
+} as const

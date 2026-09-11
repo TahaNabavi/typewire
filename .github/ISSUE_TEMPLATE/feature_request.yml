@@ -1,7 +1,7 @@
 name: 💡 Feature request
 description: Suggest a new capability or improvement.
-title: "feat: "
-labels: ["enhancement", "needs triage"]
+title: 'feat: '
+labels: ['enhancement', 'needs triage']
 body:
   - type: markdown
     attributes:
@@ -14,14 +14,14 @@ body:
       label: Target package
       description: Which package (or a new one) does this relate to?
       options:
-        - "@tahanabavi/typefetch"
-        - "@tahanabavi/typesocket"
-        - "@tahanabavi/typewire-nestjs"
-        - "@tahanabavi/typefetch-query-core"
-        - "@tahanabavi/typefetch-react"
-        - "@tahanabavi/type-devtools-core"
-        - "@tahanabavi/type-devtools"
-        - "A new package / the ecosystem overall"
+        - '@tahanabavi/typefetch'
+        - '@tahanabavi/typesocket'
+        - '@tahanabavi/typewire-nestjs'
+        - '@tahanabavi/typefetch-query-core'
+        - '@tahanabavi/typefetch-react'
+        - '@tahanabavi/type-devtools-core'
+        - '@tahanabavi/type-devtools'
+        - 'A new package / the ecosystem overall'
     validations:
       required: true
 

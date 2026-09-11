@@ -1,19 +1,10 @@
 {
   "$schema": "../../../docs/docs.schema.json",
-  "documentsVersion": "0.0.0",
+  "documentsVersion": "0.1.0",
   "pages": [
     {
       "slug": "overview",
       "title": "Overview",
-      "readme": true,
-      "intro": true,
-      "sections": [
-        "The wire"
-      ]
-    },
-    {
-      "slug": "quick-start",
-      "title": "Quick start",
       "readme": true,
       "sections": [
         "Setup"
@@ -28,25 +19,33 @@
       ]
     },
     {
+      "slug": "the-wire",
+      "title": "The Wire",
+      "readme": true,
+      "sections": [
+        "The wire"
+      ]
+    },
+    {
       "slug": "errors",
       "title": "Errors",
       "readme": true,
       "sections": [
-        "Errors"
+        "Errors",
+        "Binary grpc-web"
       ]
     },
     {
-      "slug": "advanced",
-      "title": "Binary & capabilities",
+      "slug": "capabilities",
+      "title": "Capabilities",
       "readme": true,
       "sections": [
-        "Binary grpc-web",
         "Capabilities"
       ]
     },
     {
-      "slug": "api",
-      "title": "API",
+      "slug": "exports-license",
+      "title": "Exports and License",
       "readme": true,
       "sections": [
         "Exports",

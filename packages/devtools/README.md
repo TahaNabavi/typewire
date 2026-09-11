@@ -26,14 +26,14 @@ import {
   connectTypeSocket,
   connectQueryClient,
   TypeDevtools,
-} from "@tahanabavi/type-devtools";
+} from '@tahanabavi/type-devtools'
 
-const bridge = new InspectorBridge();
-connectTypeFetch(apiClient, bridge);   // HTTP
-connectTypeSocket(socketClient, bridge); // WebSocket
+const bridge = new InspectorBridge()
+connectTypeFetch(apiClient, bridge) // HTTP
+connectTypeSocket(socketClient, bridge) // WebSocket
 
 // Optional: attach a query client to unlock the Cache tab.
-const queries = connectQueryClient(queryClient);
+const queries = connectQueryClient(queryClient)
 
 function Root() {
   return (
@@ -41,7 +41,7 @@ function Root() {
       <App />
       <TypeDevtools bridge={bridge} queries={queries} />
     </>
-  );
+  )
 }
 ```
 
@@ -49,18 +49,18 @@ function Root() {
 
 ### Props
 
-| Prop | Type | Default | |
-| --- | --- | --- | --- |
-| `bridge` | `InspectorBridge` | — | The transport timeline (required). |
-| `queries` | `QueryInspector` | — | Attach a query cache to show the Cache tab. |
-| `defaultOpen` | `boolean` | `false` | Render expanded on first mount. |
-| `title` | `string` | `"TypeWire devtools"` | Header label. |
+| Prop          | Type              | Default               |                                             |
+| ------------- | ----------------- | --------------------- | ------------------------------------------- |
+| `bridge`      | `InspectorBridge` | —                     | The transport timeline (required).          |
+| `queries`     | `QueryInspector`  | —                     | Attach a query cache to show the Cache tab. |
+| `defaultOpen` | `boolean`         | `false`               | Render expanded on first mount.             |
+| `title`       | `string`          | `"TypeWire devtools"` | Header label.                               |
 
 ## What's in it
 
 **Timeline.** One row per call, tagged by the **wire it travelled on**, newest
 first. Filter by wire and status (`pending` / `success` / `error`), search across
-labels, payloads, error kinds *and* transports, and **pause** to freeze the
+labels, payloads, error kinds _and_ transports, and **pause** to freeze the
 stream while you read. Select a row for the full input / output / error.
 
 Since typefetch grew a transport registry, one client speaks REST, GraphQL and
@@ -122,14 +122,14 @@ tree and the row colors are exported for a custom inspector:
 
 ```tsx
 import {
-  useInspectorEntries,   // rows, with live progress already joined on
-  useInspectorProgress,  // the progress store on its own
+  useInspectorEntries, // rows, with live progress already joined on
+  useInspectorProgress, // the progress store on its own
   useQueryInspector,
   JsonTree,
-  transportOf,           // the wire a row used, falling back to its source
+  transportOf, // the wire a row used, falling back to its source
   transportColor,
   statusColor,
-} from "@tahanabavi/type-devtools";
+} from '@tahanabavi/type-devtools'
 ```
 
 ## License

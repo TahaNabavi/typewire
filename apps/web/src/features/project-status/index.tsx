@@ -1,12 +1,12 @@
-import { Chip } from "@/components/ui/chip";
-import { Panel } from "@/components/ui/panel";
-import { Section } from "@/components/ui/section";
-import { site } from "@/config/site";
-import { BudgetGauge } from "@/features/project-status/budget-gauge";
-import { CommitHeatmap } from "@/features/project-status/commit-heatmap";
-import { RunDots } from "@/features/project-status/run-dots";
-import { Sparkline } from "@/features/project-status/sparkline";
-import { compactNumber, relativeTime } from "@/utils/format";
+import { Chip } from '@/components/ui/chip'
+import { Panel } from '@/components/ui/panel'
+import { Section } from '@/components/ui/section'
+import { site } from '@/config/site'
+import { BudgetGauge } from '@/features/project-status/budget-gauge'
+import { CommitHeatmap } from '@/features/project-status/commit-heatmap'
+import { RunDots } from '@/features/project-status/run-dots'
+import { Sparkline } from '@/features/project-status/sparkline'
+import { compactNumber, relativeTime } from '@/utils/format'
 import {
   getCommitActivity,
   getContributors,
@@ -14,18 +14,18 @@ import {
   getLatestRelease,
   getRecentCiRuns,
   getRepoStats,
-} from "@/features/project-status/github";
-import { getWeeklyDownloadsFor } from "@/features/project-status/npm";
-import { packages, publishedPackages } from "@/lib/registry";
+} from '@/features/project-status/github'
+import { getWeeklyDownloadsFor } from '@/features/project-status/npm'
+import { packages, publishedPackages } from '@/lib/registry'
 
 /** Renders `cached` rather than a broken grid when an API declines to answer. */
 function StaleChip({ stale }: { stale: boolean }) {
-  if (!stale) return null;
+  if (!stale) return null
   return (
     <Chip tone="var(--dim)" dashed>
       cached
     </Chip>
-  );
+  )
 }
 
 /**
@@ -33,28 +33,37 @@ function StaleChip({ stale }: { stale: boolean }) {
  * card below either shows live data, or says in words why it cannot.
  */
 function Unavailable({ children }: { children: string }) {
-  return <p className="mt-3 font-mono text-xs leading-relaxed text-dim">{children}</p>;
+  return (
+    <p className="mt-3 font-mono text-xs leading-relaxed text-dim">
+      {children}
+    </p>
+  )
 }
 
 export async function GithubStatus() {
-  const [stats, release, contributors, ci, runs, activity, downloads] = await Promise.all([
-    getRepoStats(),
-    getLatestRelease(),
-    getContributors(),
-    getLatestCiRun(),
-    getRecentCiRuns(),
-    getCommitActivity(),
-    getWeeklyDownloadsFor(publishedPackages.map((p) => p.npm)),
-  ]);
+  const [stats, release, contributors, ci, runs, activity, downloads] =
+    await Promise.all([
+      getRepoStats(),
+      getLatestRelease(),
+      getContributors(),
+      getLatestCiRun(),
+      getRecentCiRuns(),
+      getCommitActivity(),
+      getWeeklyDownloadsFor(publishedPackages.map((p) => p.npm)),
+    ])
 
-  const budgets = packages.filter((p) => p.sizeCeilingGzip !== null);
-  const totalDownloads = downloads.reduce((sum, d) => sum + (d.downloads ?? 0), 0);
-  const green = ci.data?.conclusion === "success";
+  const budgets = packages.filter((p) => p.sizeCeilingGzip !== null)
+  const totalDownloads = downloads.reduce(
+    (sum, d) => sum + (d.downloads ?? 0),
+    0
+  )
+  const green = ci.data?.conclusion === 'success'
 
-  const weekly = activity.data.map((w) => w.total);
-  const commitsThisYear = weekly.reduce((sum, n) => sum + n, 0);
-  const passed = runs.data.filter((r) => r.conclusion === "success").length;
-  const rate = runs.data.length > 0 ? Math.round((passed / runs.data.length) * 100) : null;
+  const weekly = activity.data.map((w) => w.total)
+  const commitsThisYear = weekly.reduce((sum, n) => sum + n, 0)
+  const passed = runs.data.filter((r) => r.conclusion === 'success').length
+  const rate =
+    runs.data.length > 0 ? Math.round((passed / runs.data.length) * 100) : null
 
   return (
     <Section
@@ -67,7 +76,9 @@ export async function GithubStatus() {
         {/* CI — the headline card, and the only one that gets the run history. */}
         <Panel className="md:col-span-2">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h3 className="text-sm font-bold text-fg">Cross-package integrity gate</h3>
+            <h3 className="text-sm font-bold text-fg">
+              Cross-package integrity gate
+            </h3>
             <div className="flex items-center gap-2">
               {rate !== null && (
                 <span className="font-mono text-[11px] text-dim">
@@ -84,19 +95,24 @@ export async function GithubStatus() {
                 aria-hidden
                 className="size-2.5 rounded-full"
                 style={{
-                  background: green ? "var(--green)" : "var(--red)",
-                  animation: green ? "wire-pulse var(--motion-wire) ease-in-out infinite" : undefined,
+                  background: green ? 'var(--green)' : 'var(--red)',
+                  animation: green
+                    ? 'wire-pulse var(--motion-wire) ease-in-out infinite'
+                    : undefined,
                 }}
               />
               <span className="font-mono text-sm text-fg">
                 {ci.data.conclusion ?? ci.data.status}
               </span>
               <Chip>{ci.data.branch}</Chip>
-              <span className="font-mono text-xs text-dim">{relativeTime(ci.data.updatedAt)}</span>
+              <span className="font-mono text-xs text-dim">
+                {relativeTime(ci.data.updatedAt)}
+              </span>
             </p>
           ) : (
             <Unavailable>
-              No run data — the workflow has not reported, or the API is rate-limited.
+              No run data — the workflow has not reported, or the API is
+              rate-limited.
             </Unavailable>
           )}
 
@@ -110,8 +126,8 @@ export async function GithubStatus() {
           )}
 
           <p className="mt-5 text-xs leading-relaxed text-muted-foreground">
-            build → typecheck → test, in topological order. A breaking change in query-core fails the
-            react build — the check goes red.
+            build → typecheck → test, in topological order. A breaking change in
+            query-core fails the react build — the check goes red.
           </p>
         </Panel>
 
@@ -122,14 +138,18 @@ export async function GithubStatus() {
           </div>
           <dl className="mt-4 grid grid-cols-2 gap-4">
             {[
-              ["stars", stats.data.stars],
-              ["forks", stats.data.forks],
-              ["watchers", stats.data.watchers],
-              ["open issues", stats.data.openIssues],
+              ['stars', stats.data.stars],
+              ['forks', stats.data.forks],
+              ['watchers', stats.data.watchers],
+              ['open issues', stats.data.openIssues],
             ].map(([label, value]) => (
               <div key={String(label)}>
-                <dt className="font-mono text-[11px] uppercase tracking-wider text-dim">{label}</dt>
-                <dd className="font-mono text-xl text-fg">{compactNumber(Number(value))}</dd>
+                <dt className="font-mono text-[11px] uppercase tracking-wider text-dim">
+                  {label}
+                </dt>
+                <dd className="font-mono text-xl text-fg">
+                  {compactNumber(Number(value))}
+                </dd>
               </div>
             ))}
           </dl>
@@ -143,7 +163,9 @@ export async function GithubStatus() {
         {/* Commit activity — sparkline and heatmap read the same 52 weeks. */}
         <Panel className="lg:col-span-2">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h3 className="text-sm font-bold text-fg">Commit activity · 52 weeks</h3>
+            <h3 className="text-sm font-bold text-fg">
+              Commit activity · 52 weeks
+            </h3>
             {activity.data.length > 0 && (
               <span className="font-mono text-[11px] text-dim">
                 {compactNumber(commitsThisYear)} commits
@@ -165,7 +187,7 @@ export async function GithubStatus() {
                     style={{
                       background:
                         level === 0
-                          ? "var(--hair)"
+                          ? 'var(--hair)'
                           : `color-mix(in oklab, var(--green) ${level * 22 + 12}%, transparent)`,
                     }}
                   />
@@ -175,8 +197,8 @@ export async function GithubStatus() {
             </>
           ) : (
             <Unavailable>
-              GitHub computes this series asynchronously and answered 202 — it fills in on the next
-              revalidation.
+              GitHub computes this series asynchronously and answered 202 — it
+              fills in on the next revalidation.
             </Unavailable>
           )}
         </Panel>
@@ -188,7 +210,9 @@ export async function GithubStatus() {
           </div>
           {release.data ? (
             <>
-              <p className="mt-3 font-mono text-lg text-fg">{release.data.tag}</p>
+              <p className="mt-3 font-mono text-lg text-fg">
+                {release.data.tag}
+              </p>
               <p className="mt-1 font-mono text-xs text-dim">
                 {relativeTime(release.data.publishedAt)}
               </p>
@@ -203,15 +227,19 @@ export async function GithubStatus() {
             </>
           ) : (
             <Unavailable>
-              No GitHub release yet — versions are published from Changesets, so npm is ahead of the
-              releases tab.
+              No GitHub release yet — versions are published from Changesets, so
+              npm is ahead of the releases tab.
             </Unavailable>
           )}
         </Panel>
 
         <Panel>
-          <h3 className="text-sm font-bold text-fg">npm downloads · last week</h3>
-          <p className="mt-3 font-mono text-3xl text-fg">{compactNumber(totalDownloads)}</p>
+          <h3 className="text-sm font-bold text-fg">
+            npm downloads · last week
+          </h3>
+          <p className="mt-3 font-mono text-3xl text-fg">
+            {compactNumber(totalDownloads)}
+          </p>
           <ul className="mt-4 space-y-1.5">
             {downloads
               .filter((d) => d.downloads !== null)
@@ -223,9 +251,11 @@ export async function GithubStatus() {
                   className="flex items-baseline justify-between gap-3 font-mono text-xs"
                 >
                   <span className="truncate text-muted-foreground">
-                    {d.pkg.replace("@tahanabavi/", "")}
+                    {d.pkg.replace('@tahanabavi/', '')}
                   </span>
-                  <span className="shrink-0 text-dim">{compactNumber(d.downloads ?? 0)}</span>
+                  <span className="shrink-0 text-dim">
+                    {compactNumber(d.downloads ?? 0)}
+                  </span>
                 </li>
               ))}
           </ul>
@@ -238,8 +268,13 @@ export async function GithubStatus() {
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
             {contributors.data.slice(0, 12).map((c) => (
-              <a key={c.login} href={c.url} target="_blank" rel="noreferrer" title={c.login}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
+              <a
+                key={c.login}
+                href={c.url}
+                target="_blank"
+                rel="noreferrer"
+                title={c.login}
+              >
                 <img
                   src={c.avatar}
                   alt={c.login}
@@ -256,12 +291,16 @@ export async function GithubStatus() {
         <Panel>
           <h3 className="text-sm font-bold text-fg">Gzipped size budgets</h3>
           <p className="mt-1 font-mono text-[11px] leading-relaxed text-dim">
-            CI ceilings, not measurements — a dashed track means the limit is asserted but no
-            published figure exists to fill it.
+            CI ceilings, not measurements — a dashed track means the limit is
+            asserted but no published figure exists to fill it.
           </p>
           <ul className="mt-4 space-y-3">
             {budgets.map((p) => (
-              <BudgetGauge key={p.slug} label={p.short} ceiling={p.sizeCeilingGzip ?? 0} />
+              <BudgetGauge
+                key={p.slug}
+                label={p.short}
+                ceiling={p.sizeCeilingGzip ?? 0}
+              />
             ))}
           </ul>
         </Panel>
@@ -276,5 +315,5 @@ export async function GithubStatus() {
         All workflow runs ↗
       </a>
     </Section>
-  );
+  )
 }

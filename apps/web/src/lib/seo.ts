@@ -15,14 +15,14 @@
  * layout resolves the relative paths, so nothing here hardcodes the origin.
  */
 
-import type { Metadata } from "next";
+import type { Metadata } from 'next'
 
-import { site } from "@/config/site";
-import type { DocPage, PackageEntry } from "@/lib/registry";
+import { site } from '@/config/site'
+import type { DocPage, PackageEntry } from '@/lib/registry'
 
 /** Absolute URL for a site-relative path — schema.org needs fully qualified. */
-export function absoluteUrl(path = "/"): string {
-  return new URL(path, site.url).toString();
+export function absoluteUrl(path = '/'): string {
+  return new URL(path, site.url).toString()
 }
 
 /**
@@ -38,30 +38,33 @@ export function absoluteUrl(path = "/"): string {
  * strips syntax first, then cuts by the same rule.)
  */
 export function clampDescription(text: string, limit = 158): string {
-  const plain = text.replace(/\s+/g, " ").trim();
-  if (plain.length <= limit) return plain;
+  const plain = text.replace(/\s+/g, ' ').trim()
+  if (plain.length <= limit) return plain
 
-  const window = plain.slice(0, limit);
+  const window = plain.slice(0, limit)
   // Prefer ending on a sentence; fall back to a word, never mid-word.
-  const sentence = window.lastIndexOf(". ");
-  if (sentence > limit * 0.55) return window.slice(0, sentence + 1);
-  return `${window.slice(0, window.lastIndexOf(" ")).replace(/[,;:—-]+$/, "").trim()}…`;
+  const sentence = window.lastIndexOf('. ')
+  if (sentence > limit * 0.55) return window.slice(0, sentence + 1)
+  return `${window
+    .slice(0, window.lastIndexOf(' '))
+    .replace(/[,;:—-]+$/, '')
+    .trim()}…`
 }
 
 interface PageSeo {
   /** Fills the `%s` in the root layout's title template. */
-  title: string;
+  title: string
   /** ~155 characters is what a result snippet shows; longer is truncated. */
-  description: string;
+  description: string
   /** Site-relative, leading slash, no trailing slash. Becomes the canonical. */
-  path: string;
+  path: string
   /** `article` for a documentation page, `website` for a section landing. */
-  type?: "website" | "article";
+  type?: 'website' | 'article'
   /** ISO date, for docs pages that describe a released version. */
-  publishedTime?: string;
-  keywords?: readonly string[];
+  publishedTime?: string
+  keywords?: readonly string[]
   /** Set on pages that exist for a signed-in human rather than for a reader. */
-  noIndex?: boolean;
+  noIndex?: boolean
 }
 
 /**
@@ -75,14 +78,17 @@ export function pageMetadata({
   title,
   description,
   path,
-  type = "website",
+  type = 'website',
   publishedTime,
   keywords,
   noIndex,
 }: PageSeo): Metadata {
-  const url = absoluteUrl(path);
+  const url = absoluteUrl(path)
   // "TypeWire · TypeWire" is what the plain form produces for the home page.
-  const social = title === site.name ? `${site.name} \u2014 ${site.tagline}` : `${title} \u00b7 ${site.name}`;
+  const social =
+    title === site.name
+      ? `${site.name} \u2014 ${site.tagline}`
+      : `${title} \u00b7 ${site.name}`
 
   return {
     title,
@@ -99,13 +105,13 @@ export function pageMetadata({
       ...(publishedTime ? { publishedTime } : {}),
     },
     twitter: {
-      card: "summary_large_image",
+      card: 'summary_large_image',
       title: social,
       description,
       creator: site.twitter.creator,
     },
     ...(noIndex ? { robots: { index: false, follow: false } } : {}),
-  };
+  }
 }
 
 /* -------------------------------------------------------------------------
@@ -117,40 +123,49 @@ export function pageMetadata({
    with <JsonLd>, which is what escapes it.
    ------------------------------------------------------------------------- */
 
-type Json = Record<string, unknown>;
+type Json = Record<string, unknown>
 
 /** Stable @id values, so separate nodes on separate pages refer to one entity. */
 export const ID = {
-  site: absoluteUrl("/#website"),
-  organization: absoluteUrl("/#organization"),
-  software: absoluteUrl("/#software"),
-  author: absoluteUrl("/#author"),
-} as const;
+  site: absoluteUrl('/#website'),
+  organization: absoluteUrl('/#organization'),
+  software: absoluteUrl('/#software'),
+  author: absoluteUrl('/#author'),
+} as const
 
 export function organizationSchema(): Json {
   return {
-    "@type": "Organization",
-    "@id": ID.organization,
+    '@type': 'Organization',
+    '@id': ID.organization,
     name: site.name,
     url: site.url,
-    logo: absoluteUrl("/icon.svg"),
+    logo: absoluteUrl('/icon.svg'),
     description: site.summary,
-    sameAs: [site.repo.url, "https://www.npmjs.com/org/tahanabavi", site.author.url],
-    founder: { "@type": "Person", "@id": ID.author, name: site.author.name, url: site.author.url },
-  };
+    sameAs: [
+      site.repo.url,
+      'https://www.npmjs.com/org/tahanabavi',
+      site.author.url,
+    ],
+    founder: {
+      '@type': 'Person',
+      '@id': ID.author,
+      name: site.author.name,
+      url: site.author.url,
+    },
+  }
 }
 
 export function websiteSchema(): Json {
   return {
-    "@type": "WebSite",
-    "@id": ID.site,
+    '@type': 'WebSite',
+    '@id': ID.site,
     name: site.name,
     alternateName: `${site.name} — ${site.tagline}`,
     url: site.url,
     description: site.description,
-    inLanguage: "en",
-    publisher: { "@id": ID.organization },
-  };
+    inLanguage: 'en',
+    publisher: { '@id': ID.organization },
+  }
 }
 
 /**
@@ -159,52 +174,64 @@ export function websiteSchema(): Json {
  * schema.org's vocabulary; `offers` at price 0 is how "free and open source"
  * is expressed there.
  */
-export function softwareSchema(packageCount: number, version: string | null): Json {
+export function softwareSchema(
+  packageCount: number,
+  version: string | null
+): Json {
   return {
-    "@type": "SoftwareApplication",
-    "@id": ID.software,
+    '@type': 'SoftwareApplication',
+    '@id': ID.software,
     name: site.name,
-    applicationCategory: "DeveloperApplication",
-    applicationSubCategory: "TypeScript library",
-    operatingSystem: "Node.js 18+, Bun, Deno, browsers",
+    applicationCategory: 'DeveloperApplication',
+    applicationSubCategory: 'TypeScript library',
+    operatingSystem: 'Node.js 18+, Bun, Deno, browsers',
     url: site.url,
-    downloadUrl: "https://www.npmjs.com/org/tahanabavi",
+    downloadUrl: 'https://www.npmjs.com/org/tahanabavi',
     codeRepository: site.repo.url,
-    programmingLanguage: "TypeScript",
+    programmingLanguage: 'TypeScript',
     description: site.summary,
     ...(version ? { softwareVersion: version } : {}),
     license: `${site.repo.url}/blob/${site.repo.branch}/LICENSE`,
-    author: { "@type": "Person", "@id": ID.author, name: site.author.name, url: site.author.url },
-    publisher: { "@id": ID.organization },
-    keywords: site.keywords.join(", "),
-    offers: { "@type": "Offer", price: 0, priceCurrency: "USD" },
-    isPartOf: { "@id": ID.site },
+    author: {
+      '@type': 'Person',
+      '@id': ID.author,
+      name: site.author.name,
+      url: site.author.url,
+    },
+    publisher: { '@id': ID.organization },
+    keywords: site.keywords.join(', '),
+    offers: { '@type': 'Offer', price: 0, priceCurrency: 'USD' },
+    isPartOf: { '@id': ID.site },
     about: `${packageCount} packages sharing one contract format`,
-  };
+  }
 }
 
 /** The trail Google prints under a result instead of the raw URL. */
-export function breadcrumbSchema(trail: Array<{ name: string; path: string }>): Json {
+export function breadcrumbSchema(
+  trail: Array<{ name: string; path: string }>
+): Json {
   return {
-    "@type": "BreadcrumbList",
+    '@type': 'BreadcrumbList',
     itemListElement: trail.map((crumb, index) => ({
-      "@type": "ListItem",
+      '@type': 'ListItem',
       position: index + 1,
       name: crumb.name,
       item: absoluteUrl(crumb.path),
     })),
-  };
+  }
 }
 
-export function faqSchema(items: ReadonlyArray<{ q: string; a: string }>): Json {
+export function faqSchema(
+  items: ReadonlyArray<{ q: string; a: string }>
+): Json {
   return {
-    "@type": "FAQPage",
+    '@type': 'FAQPage',
     mainEntity: items.map((item) => ({
-      "@type": "Question",
+      '@type': 'Question',
       name: item.q,
-      acceptedAnswer: { "@type": "Answer", text: item.a },
+      acceptedAnswer: { '@type': 'Answer', text: item.a },
     })),
-  };
+  }
 }
 
 /** A section that is a list of things — /packages, /examples. */
@@ -212,44 +239,49 @@ export function collectionSchema(
   name: string,
   description: string,
   path: string,
-  items: Array<{ name: string; path: string }>,
+  items: Array<{ name: string; path: string }>
 ): Json {
   return {
-    "@type": "CollectionPage",
+    '@type': 'CollectionPage',
     name,
     description,
     url: absoluteUrl(path),
-    isPartOf: { "@id": ID.site },
+    isPartOf: { '@id': ID.site },
     mainEntity: {
-      "@type": "ItemList",
+      '@type': 'ItemList',
       numberOfItems: items.length,
       itemListElement: items.map((item, index) => ({
-        "@type": "ListItem",
+        '@type': 'ListItem',
         position: index + 1,
         name: item.name,
         url: absoluteUrl(item.path),
       })),
     },
-  };
+  }
 }
 
 /** One npm package, described as source code rather than as a web page. */
 export function packageSchema(pkg: PackageEntry): Json {
   return {
-    "@type": "SoftwareSourceCode",
+    '@type': 'SoftwareSourceCode',
     name: pkg.npm,
     alternateName: pkg.short,
     description: pkg.description,
     url: absoluteUrl(`/packages/${pkg.slug}`),
     codeRepository: `${site.repo.url}/tree/${site.repo.branch}/${pkg.path}`,
-    programmingLanguage: { "@type": "ComputerLanguage", name: "TypeScript" },
-    runtimePlatform: "Node.js",
+    programmingLanguage: { '@type': 'ComputerLanguage', name: 'TypeScript' },
+    runtimePlatform: 'Node.js',
     ...(pkg.version ? { softwareVersion: pkg.version } : {}),
-    ...(pkg.keywords.length > 0 ? { keywords: pkg.keywords.join(", ") } : {}),
+    ...(pkg.keywords.length > 0 ? { keywords: pkg.keywords.join(', ') } : {}),
     license: `${site.repo.url}/blob/${site.repo.branch}/LICENSE`,
-    author: { "@type": "Person", "@id": ID.author, name: site.author.name, url: site.author.url },
-    isPartOf: { "@id": ID.software },
-  };
+    author: {
+      '@type': 'Person',
+      '@id': ID.author,
+      name: site.author.name,
+      url: site.author.url,
+    },
+    isPartOf: { '@id': ID.software },
+  }
 }
 
 /** A documentation page. `TechArticle` is what Google expects for reference docs. */
@@ -257,23 +289,32 @@ export function docSchema(
   pkg: PackageEntry,
   page: DocPage,
   description: string,
-  modified?: string,
+  modified?: string
 ): Json {
   return {
-    "@type": "TechArticle",
+    '@type': 'TechArticle',
     headline: `${page.title} · ${pkg.short}`,
     description,
     url: absoluteUrl(`/docs/${pkg.slug}/${page.slug}`),
-    inLanguage: "en",
+    inLanguage: 'en',
     ...(modified ? { dateModified: modified } : {}),
-    author: { "@type": "Person", "@id": ID.author, name: site.author.name, url: site.author.url },
-    publisher: { "@id": ID.organization },
-    isPartOf: { "@id": ID.site },
-    about: { "@type": "SoftwareSourceCode", name: pkg.npm },
+    author: {
+      '@type': 'Person',
+      '@id': ID.author,
+      name: site.author.name,
+      url: site.author.url,
+    },
+    publisher: { '@id': ID.organization },
+    isPartOf: { '@id': ID.site },
+    about: { '@type': 'SoftwareSourceCode', name: pkg.npm },
     ...(page.headings.length > 0
-      ? { articleSection: page.headings.filter((h) => h.depth === 2).map((h) => h.text) }
+      ? {
+          articleSection: page.headings
+            .filter((h) => h.depth === 2)
+            .map((h) => h.text),
+        }
       : {}),
-  };
+  }
 }
 
 /**
@@ -282,5 +323,5 @@ export function docSchema(
  * between them resolve.
  */
 export function graph(...nodes: Json[]): Json {
-  return { "@context": "https://schema.org", "@graph": nodes };
+  return { '@context': 'https://schema.org', '@graph': nodes }
 }

@@ -1,2 +1,2 @@
-export * from "./icons";
-export * from "./json-ld";
+export * from './icons'
+export * from './json-ld'

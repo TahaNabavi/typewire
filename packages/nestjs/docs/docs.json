@@ -1,19 +1,10 @@
 {
   "$schema": "../../../docs/docs.schema.json",
-  "documentsVersion": "0.1.1",
+  "documentsVersion": "4.0.0",
   "pages": [
     {
-      "slug": "overview",
-      "title": "Overview",
-      "readme": true,
-      "intro": true,
-      "sections": [
-        "Every wire the client speaks"
-      ]
-    },
-    {
-      "slug": "quick-start",
-      "title": "Quick start",
+      "slug": "installation",
+      "title": "Installation",
       "readme": true,
       "sections": [
         "Installation",
@@ -21,69 +12,56 @@
       ]
     },
     {
-      "slug": "transports",
-      "title": "Every transport",
+      "slug": "wires",
+      "title": "Wires",
       "readme": true,
       "sections": [
+        "Every wire the client speaks",
         "gRPC — Connect JSON, no protobuf",
         "GraphQL — no GraphQL runtime",
         "WebSocket gateways (typesocket)"
       ]
     },
     {
-      "slug": "routes",
-      "title": "Routes & decorators",
+      "slug": "response",
+      "title": "Response Handling",
       "readme": true,
       "sections": [
-        "Retrofitting existing routes: @UseContract",
+        "Non-JSON responses (`responseType`)",
+        "@SkipEnvelope()",
+        "Retrofitting existing routes: `@UseContract`",
         "Param decorators",
         "Wire-type coercion",
-        "Flat (non-structured) contracts"
+        "Error shapes (RichError-compatible)",
+        "Response envelope (mirror of setResponseWrapper)"
       ]
     },
     {
-      "slug": "responses",
-      "title": "Responses & uploads",
-      "readme": true,
-      "sections": [
-        "Non-JSON responses (responseType)",
-        "@SkipEnvelope()",
-        "Response envelope (mirror of setResponseWrapper)",
-        "File uploads (bodyType: \"form-data\")"
-      ]
-    },
-    {
-      "slug": "errors",
-      "title": "Error shapes",
-      "readme": true,
-      "sections": [
-        "Error shapes (RichError-compatible)"
-      ]
-    },
-    {
-      "slug": "security",
-      "title": "Auth & permissions",
-      "readme": true,
-      "sections": [
-        "Honoring the contract's auth flag",
-        "Permission guard *(v0.2.0)*"
-      ]
-    },
-    {
-      "slug": "config",
+      "slug": "configuration",
       "title": "Configuration",
       "readme": true,
       "sections": [
         "Global configuration",
-        "Field-level encryption (mirror of encryptionMiddleware)",
-        "OpenAPI / Swagger from contracts"
+        "Honoring the contract's `auth` flag",
+        "Permission guard _(v0.2.0)_",
+        "Flat (non-structured) contracts"
       ]
     },
     {
-      "slug": "api",
-      "title": "API",
+      "slug": "file-uploads",
+      "title": "File Uploads and Encryption",
       "readme": true,
       "sections": [
+        "File uploads (`bodyType: \"form-data\"`)",
+        "Field-level encryption (mirror of `encryptionMiddleware`)"
+      ]
+    },
+    {
+      "slug": "swagger-exports",
+      "title": "Swagger and Exports",
+      "readme": true,
+      "sections": [
+        "OpenAPI / Swagger from contracts",
         "Exports",
         "License"
       ]

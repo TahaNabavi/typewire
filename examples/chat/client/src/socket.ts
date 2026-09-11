@@ -1,16 +1,19 @@
-import { SocketClient, createPermissionMiddleware } from "@tahanabavi/typesocket";
+import {
+  SocketClient,
+  createPermissionMiddleware,
+} from '@tahanabavi/typesocket'
 
-import { chatContracts } from "../../shared/contracts.js";
-import { P, permsForUser } from "../../shared/permissions.js";
+import { chatContracts } from '../../shared/contracts.js'
+import { P, permsForUser } from '../../shared/permissions.js'
 
 /**
  * The actor's current bits. The client is module-scoped and outlives any one
  * identity, so the guard reads through this mutable holder — `setPerms` is called
  * on join. In a real app these come from the verified session, not the name.
  */
-let currentPerms = 0n;
+let currentPerms = 0n
 export function setPerms(user: string | null): void {
-  currentPerms = user ? permsForUser(user) : 0n;
+  currentPerms = user ? permsForUser(user) : 0n
 }
 
 /**
@@ -22,13 +25,16 @@ export function setPerms(user: string | null): void {
  */
 export const socket = new SocketClient(
   {
-    url: import.meta.env.VITE_SOCKET_URL ?? "http://localhost:3102",
+    url: import.meta.env.VITE_SOCKET_URL ?? 'http://localhost:3102',
     autoConnect: false,
     ackTimeoutMs: 5_000,
     // Inbound frames that fail their schema never reach a handler. In a real
     // app this is where you'd report to Sentry rather than log.
     onValidationError: (error) => {
-      console.warn(`[typesocket] dropped an invalid ${error.eventId}`, error.issues);
+      console.warn(
+        `[typesocket] dropped an invalid ${error.eventId}`,
+        error.issues
+      )
     },
   },
   chatContracts,
@@ -40,5 +46,5 @@ export const socket = new SocketClient(
       getPermissions: () => currentPerms,
       authorize: P.authorize,
     }),
-  },
-);
+  }
+)

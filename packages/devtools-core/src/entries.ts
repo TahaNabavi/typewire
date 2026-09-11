@@ -1,8 +1,4 @@
-import type {
-  InspectorEntry,
-  InspectorEvent,
-  InspectorProgress,
-} from "./types";
+import type { InspectorEntry, InspectorEvent, InspectorProgress } from './types'
 
 /**
  * Collapse a flat event log into one row per call.
@@ -18,94 +14,95 @@ import type {
  */
 export function selectEntries(
   events: readonly InspectorEvent[],
-  progress?: ReadonlyMap<string, InspectorProgress>,
+  progress?: ReadonlyMap<string, InspectorProgress>
 ): InspectorEntry[] {
-  const byKey = new Map<string, InspectorEntry>();
-  const ordered: InspectorEntry[] = [];
+  const byKey = new Map<string, InspectorEntry>()
+  const ordered: InspectorEntry[] = []
 
   for (const event of events) {
-    const key = `${event.source}:${event.id}`;
-    let entry = byKey.get(key);
+    const key = `${event.source}:${event.id}`
+    let entry = byKey.get(key)
     if (!entry) {
       entry = {
         key,
         source: event.source,
         id: event.id,
         label: event.label,
-        status: "info",
+        status: 'info',
         startedAt: event.ts,
         events: [],
-      };
-      byKey.set(key, entry);
-      ordered.push(entry);
+      }
+      byKey.set(key, entry)
+      ordered.push(entry)
     }
-    entry.events.push(event);
+    entry.events.push(event)
     // Only the opening event carries the wire, so the first one to name it wins
     // for the whole row rather than the last.
     if (entry.transport === undefined && event.transport !== undefined) {
-      entry.transport = event.transport;
+      entry.transport = event.transport
     }
-    apply(entry, event);
+    apply(entry, event)
   }
 
   if (progress?.size) {
     for (const entry of ordered) {
-      const tick = progress.get(entry.key);
-      if (tick) entry.progress = tick;
+      const tick = progress.get(entry.key)
+      if (tick) entry.progress = tick
     }
   }
 
-  return ordered;
+  return ordered
 }
 
 function apply(entry: InspectorEntry, event: InspectorEvent): void {
   switch (event.kind) {
     // typefetch
-    case "start":
-      entry.status = "pending";
-      entry.input = event.payload;
-      entry.startedAt = event.ts;
-      return;
-    case "success":
-      entry.status = "success";
-      entry.output = event.payload;
-      entry.durationMs = event.durationMs;
-      return;
-    case "error":
-    case "frame_error":
-      entry.status = "error";
-      entry.error = event.payload;
-      entry.durationMs = event.durationMs ?? entry.durationMs;
+    case 'start':
+      entry.status = 'pending'
+      entry.input = event.payload
+      entry.startedAt = event.ts
+      return
+    case 'success':
+      entry.status = 'success'
+      entry.output = event.payload
+      entry.durationMs = event.durationMs
+      return
+    case 'error':
+    case 'frame_error':
+      entry.status = 'error'
+      entry.error = event.payload
+      entry.durationMs = event.durationMs ?? entry.durationMs
       // Read from `meta` rather than off `payload`, so a connector decides what
       // counts as the normalized kind for its transport and this stays a
       // transport-agnostic hoist.
-      if (typeof event.meta?.kind === "string") entry.errorKind = event.meta.kind;
-      return;
+      if (typeof event.meta?.kind === 'string')
+        entry.errorKind = event.meta.kind
+      return
 
     // typesocket
-    case "outbound":
+    case 'outbound':
       // A frame with no ack declared has nothing left to wait for, so it is
       // complete on send rather than perpetually pending.
-      entry.status = event.meta?.expectsAck ? "pending" : "info";
-      entry.input = event.payload;
-      entry.startedAt = event.ts;
-      return;
-    case "ack":
-      entry.status = "success";
-      entry.output = event.payload;
-      entry.durationMs = event.durationMs;
-      return;
-    case "inbound":
-      entry.status = "info";
-      entry.output = event.payload;
-      return;
-    case "dropped":
-      entry.status = "dropped";
-      return;
+      entry.status = event.meta?.expectsAck ? 'pending' : 'info'
+      entry.input = event.payload
+      entry.startedAt = event.ts
+      return
+    case 'ack':
+      entry.status = 'success'
+      entry.output = event.payload
+      entry.durationMs = event.durationMs
+      return
+    case 'inbound':
+      entry.status = 'info'
+      entry.output = event.payload
+      return
+    case 'dropped':
+      entry.status = 'dropped'
+      return
 
     default:
       // Lifecycle events (connect/disconnect/connect_error) and anything a
       // future source adds: recorded and shown, but they conclude nothing.
-      return;
+      return
   }
 }

@@ -1,57 +1,63 @@
 {
   "$schema": "../../../docs/docs.schema.json",
-  "documentsVersion": "0.0.0",
+  "documentsVersion": "0.1.0",
   "pages": [
     {
       "slug": "overview",
       "title": "Overview",
-      "readme": true,
-      "intro": true,
-      "sections": [
-        "Why this and not a GraphQL client"
-      ]
-    },
-    {
-      "slug": "quick-start",
-      "title": "Quick start",
       "readme": true,
       "sections": [
         "Setup"
       ]
     },
     {
-      "slug": "contracts",
-      "title": "Contracts",
+      "slug": "endpoint-fields",
+      "title": "Endpoint Fields",
       "readme": true,
       "sections": [
-        "Endpoint fields",
+        "Endpoint fields"
+      ]
+    },
+    {
+      "slug": "why-graphql",
+      "title": "Why GraphQL",
+      "readme": true,
+      "sections": [
+        "Why this and not a GraphQL client"
+      ]
+    },
+    {
+      "slug": "variable-types",
+      "title": "Variable Types",
+      "readme": true,
+      "sections": [
         "Variable types"
       ]
     },
     {
-      "slug": "errors",
-      "title": "Errors",
+      "slug": "generator",
+      "title": "Generator",
       "readme": true,
       "sections": [
+        "What the generator refuses",
         "Errors"
       ]
     },
     {
-      "slug": "options",
-      "title": "Transport options",
+      "slug": "transport-options",
+      "title": "Transport Options",
       "readme": true,
       "sections": [
         "Transport options",
-        "License"
+        "Not supported"
       ]
     },
     {
-      "slug": "limits",
-      "title": "What it refuses",
+      "slug": "license",
+      "title": "License",
       "readme": true,
       "sections": [
-        "What the generator refuses",
-        "Not supported"
+        "License"
       ]
     }
   ]

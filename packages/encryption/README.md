@@ -37,16 +37,16 @@ byte-for-byte what they were.
 ## Usage
 
 ```ts
-import { ApiClient } from "@tahanabavi/typefetch";
-import { encryptionMiddleware } from "@tahanabavi/typefetch-encryption";
+import { ApiClient } from '@tahanabavi/typefetch'
+import { encryptionMiddleware } from '@tahanabavi/typefetch-encryption'
 
-const client = new ApiClient({ baseUrl: "https://api.example.com" }, contracts);
+const client = new ApiClient({ baseUrl: 'https://api.example.com' }, contracts)
 
 client.use(encryptionMiddleware, {
-  keyProvider: () => ({ type: "symmetric", key: process.env.FIELD_KEY! }),
-});
+  keyProvider: () => ({ type: 'symmetric', key: process.env.FIELD_KEY! }),
+})
 
-client.init();
+client.init()
 ```
 
 Which fields are encrypted is declared on the endpoint, not at the call site:
@@ -67,11 +67,11 @@ updateUser: {
 
 ## Options
 
-| Option | Default | Meaning |
-| --- | --- | --- |
-| `keyProvider` | — | Returns the symmetric key or RSA key pair. Sync or async. |
-| `customHandlers` | — | Your own `encrypt`/`decrypt` for `method: "Custom"`. |
-| `failClosed` | `true` | Throw when encryption fails rather than sending plaintext. |
+| Option           | Default | Meaning                                                    |
+| ---------------- | ------- | ---------------------------------------------------------- |
+| `keyProvider`    | —       | Returns the symmetric key or RSA key pair. Sync or async.  |
+| `customHandlers` | —       | Your own `encrypt`/`decrypt` for `method: "Custom"`.       |
+| `failClosed`     | `true`  | Throw when encryption fails rather than sending plaintext. |
 
 `failClosed` defaults to `true` on purpose: a middleware that silently falls back
 to plaintext when a key is missing is a middleware that will one day ship an SSN
@@ -79,13 +79,13 @@ in the clear.
 
 ## Methods
 
-| `method` | Key material | Notes |
-| --- | --- | --- |
-| `"AES"` | `symmetric` | Default choice. |
-| `"DES"` | `symmetric` | Legacy interop only — do not pick it for new work. |
-| `"RSA"` | `rsa` | Public key encrypts, private key decrypts. Small payloads only. |
-| `"Base64"` | none | Encoding, **not** encryption. Obfuscation at best. |
-| `"Custom"` | whatever you use | Requires `customHandlers`. |
+| `method`   | Key material     | Notes                                                           |
+| ---------- | ---------------- | --------------------------------------------------------------- |
+| `"AES"`    | `symmetric`      | Default choice.                                                 |
+| `"DES"`    | `symmetric`      | Legacy interop only — do not pick it for new work.              |
+| `"RSA"`    | `rsa`            | Public key encrypts, private key decrypts. Small payloads only. |
+| `"Base64"` | none             | Encoding, **not** encryption. Obfuscation at best.              |
+| `"Custom"` | whatever you use | Requires `customHandlers`.                                      |
 
 `method` can differ per direction: `method: { request: "RSA", response: "AES" }`.
 

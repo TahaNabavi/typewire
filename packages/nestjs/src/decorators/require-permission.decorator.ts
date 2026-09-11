@@ -1,6 +1,6 @@
-import { SetMetadata } from "@nestjs/common";
-import type { PermissionRequirement } from "@tahanabavi/typefetch";
-import { TYPEFETCH_PERMISSION_METADATA } from "../constants";
+import { SetMetadata } from '@nestjs/common'
+import type { PermissionRequirement } from '@tahanabavi/typefetch'
+import { TYPEFETCH_PERMISSION_METADATA } from '../constants'
 
 /**
  * Declare a permission requirement on a route that isn't bound to a contract —
@@ -19,7 +19,7 @@ import { TYPEFETCH_PERMISSION_METADATA } from "../constants";
  * ⁣@RequirePermission({ any: ["post.publish", "post.moderate"] })
  */
 export function RequirePermission(
-  requirement: PermissionRequirement,
+  requirement: PermissionRequirement
 ): MethodDecorator & ClassDecorator {
-  return SetMetadata(TYPEFETCH_PERMISSION_METADATA, requirement);
+  return SetMetadata(TYPEFETCH_PERMISSION_METADATA, requirement)
 }

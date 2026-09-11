@@ -29,7 +29,7 @@ Everything below follows from one sentence, so it goes first:
   and is surfaced. A queue that empties itself by giving up is worse than a queue
   that stalls loudly.
 - **Never merged.** Conflict resolution needs to understand what the data
-  *means*, which a contract library does not. The server arbitrates; the app gets
+  _means_, which a contract library does not. The server arbitrates; the app gets
   a hook.
 
 ## 2. Non-goals
@@ -69,12 +69,12 @@ only under the single-tab caveat in §6.
 
 ```ts
 export interface StorageAdapter {
-  get<T>(key: string): Promise<T | undefined>;
-  set(key: string, value: unknown): Promise<void>;
-  delete(key: string): Promise<void>;
-  keys(prefix: string): Promise<string[]>;
+  get<T>(key: string): Promise<T | undefined>
+  set(key: string, value: unknown): Promise<void>
+  delete(key: string): Promise<void>
+  keys(prefix: string): Promise<string[]>
   /** Bounded transaction — the outbox needs read-modify-write to stay ordered. */
-  transaction<T>(fn: (tx: StorageAdapter) => Promise<T>): Promise<T>;
+  transaction<T>(fn: (tx: StorageAdapter) => Promise<T>): Promise<T>
 }
 ```
 
@@ -85,18 +85,18 @@ unavailable in a private window.
 ## 4. Persistence
 
 ```ts
-import { persistQueryClient } from "@tahanabavi/typewire-offline";
+import { persistQueryClient } from '@tahanabavi/typewire-offline'
 
 const persisted = persistQueryClient(client, {
-  sources: api.modules,          // to map a stored id back to an endpoint (§8)
-  version: pkg.version,          // a mismatch discards, it never migrates
+  sources: api.modules, // to map a stored id back to an endpoint (§8)
+  version: pkg.version, // a mismatch discards, it never migrates
   maxAge: 24 * 60 * 60 * 1000,
-  include: ["catalog.*", "user.getProfile"],
+  include: ['catalog.*', 'user.getProfile'],
   throttleMs: 1_000,
-});
+})
 
-await persisted.ready;           // hydration finished; safe to render from cache
-persisted.clear();
+await persisted.ready // hydration finished; safe to render from cache
+persisted.clear()
 ```
 
 **What is written** per query: `key`, `endpointId`, the input, `data`,
@@ -113,7 +113,7 @@ into the cache **with the stored `updatedAt`** → resolve `ready`. Restoring wi
 `Date.now()` instead would mark day-old data as fresh, which is the failure mode
 that makes people distrust persistence and turn it off.
 
-Everything hydrated is *stale by default*: it renders immediately and refetches
+Everything hydrated is _stale by default_: it renders immediately and refetches
 when something observes it. That is the whole point — content on screen in the
 first frame, correctness a moment later.
 
@@ -127,28 +127,29 @@ disk on a shared machine, which is not a decision a library gets to make quietly
 const outbox = createOutbox(client, {
   sources: api.modules,
   storage,
-  tabs,                                  // from typewire-sync; see §6
-  queues: { "cart.*": "cart" },          // ids matched to a serial queue
+  tabs, // from typewire-sync; see §6
+  queues: { 'cart.*': 'cart' }, // ids matched to a serial queue
   maxAttempts: 8,
   onDead: (entry) => notifyUser(entry),
-  onConflict: (entry, error) => (error.kind === "already_exists" ? "drop" : "retry"),
-});
+  onConflict: (entry, error) =>
+    error.kind === 'already_exists' ? 'drop' : 'retry',
+})
 ```
 
 An entry:
 
 ```ts
 type OutboxEntry = {
-  id: string;                    // also the Idempotency-Key
-  queue: string;                 // "default" unless matched
-  endpointId: string;
-  input: unknown;
-  optimistic?: OptimisticPatch[]; // §7
-  state: "pending" | "sending" | "dead";
-  attempts: number;
-  createdAt: number;
-  lastError?: { kind: ErrorKind; message: string };
-};
+  id: string // also the Idempotency-Key
+  queue: string // "default" unless matched
+  endpointId: string
+  input: unknown
+  optimistic?: OptimisticPatch[] // §7
+  state: 'pending' | 'sending' | 'dead'
+  attempts: number
+  createdAt: number
+  lastError?: { kind: ErrorKind; message: string }
+}
 ```
 
 **Enqueue** happens through the `gate` seam ([`SYNC.md`](./SYNC.md) §9) — the same
@@ -174,7 +175,7 @@ A queue drained by every tab sends every write once per tab. This is the same
 class of bug as the duplicate checkout, so it has the same answer: the leader.
 
 ```ts
-tabs.leader.whenLeader(() => outbox.drain());
+tabs.leader.whenLeader(() => outbox.drain())
 ```
 
 Without `typewire-sync` installed, the outbox drains in whichever tab created it
@@ -192,7 +193,12 @@ on screen. The user sees their edit disappear, and the write lands later anyway.
 So an entry stores its own patch:
 
 ```ts
-type OptimisticPatch = { key: string; endpointId: string; input: unknown; data: unknown };
+type OptimisticPatch = {
+  key: string
+  endpointId: string
+  input: unknown
+  data: unknown
+}
 ```
 
 The boot sequence is therefore three steps, in this order:
@@ -203,7 +209,7 @@ The boot sequence is therefore three steps, in this order:
 
 On permanent failure, the patch is rolled back — the affected keys are
 invalidated, so the next read comes from the server — and `onDead` fires. Rolling
-back by writing a remembered "previous value" is deliberately *not* done: that
+back by writing a remembered "previous value" is deliberately _not_ done: that
 value may be many refetches stale by then.
 
 `query-core` has no `onMutate` hook today; optimistic writes are `setQueryData`
@@ -211,19 +217,20 @@ calls in app code. So the patch is declared, not inferred:
 
 ```ts
 await outbox.enqueue(api.modules.cart.addItem, input, {
-  optimistic: (draft) => draft.patch(api.modules.cart.getCart, { path: { id } }, add(item)),
-});
+  optimistic: (draft) =>
+    draft.patch(api.modules.cart.getCart, { path: { id } }, add(item)),
+})
 ```
 
 ## 8. What this needs from the rest of the family
 
-| Package | Change | Shared with |
-| --- | --- | --- |
-| `query-core` | the `gate` seam on `QueryClientOptions` | [`SYNC.md`](./SYNC.md) §9 |
-| `query-core` | `setQueryData(…, { updatedAt })` | `SYNC.md` |
-| `query-core` | `sources` — a resolver from `endpointId` back to the endpoint object, defaulting to a map built from a client's `modules` | `SYNC.md` §8.2, which needs the same lookup to apply a mirrored write |
-| `query-core` | `reason: "gc" \| "explicit"` on `removed` | `SYNC.md` |
-| `typewire-sync` | nothing — it is consumed as-is | — |
+| Package         | Change                                                                                                                    | Shared with                                                           |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `query-core`    | the `gate` seam on `QueryClientOptions`                                                                                   | [`SYNC.md`](./SYNC.md) §9                                             |
+| `query-core`    | `setQueryData(…, { updatedAt })`                                                                                          | `SYNC.md`                                                             |
+| `query-core`    | `sources` — a resolver from `endpointId` back to the endpoint object, defaulting to a map built from a client's `modules` | `SYNC.md` §8.2, which needs the same lookup to apply a mirrored write |
+| `query-core`    | `reason: "gc" \| "explicit"` on `removed`                                                                                 | `SYNC.md`                                                             |
+| `typewire-sync` | nothing — it is consumed as-is                                                                                            | —                                                                     |
 
 Four small additive changes in one package, serving three consumers. That is the
 argument for landing them as their own release ahead of both packages.
@@ -234,18 +241,18 @@ argument for landing them as their own release ahead of both packages.
 
 ## 9. Failure modes, named
 
-| Mode | Behaviour |
-| --- | --- |
-| Crash between send and ack | replayed on boot; the idempotency key is the server's cue |
-| Server ignores the idempotency key | duplicates. Documented in paragraph one, not buried |
-| Entry exhausts `maxAttempts` | `dead` + `onDead`, patch rolled back. Never dropped silently |
-| Terminal error mid-queue | `onConflict` decides; the queue does not wedge |
-| Storage quota exceeded | oldest cache records evicted first, **outbox entries never** |
-| IndexedDB unavailable | `localStorage` if it fits, else memory + a warning; persistence degrades, writes still queue |
-| Two tabs, no `typewire-sync` | single-tab drain, documented caveat |
-| Unreliable lock adapter | drain refuses (§6) |
-| Version mismatch on boot | cache discarded, **outbox kept** — a queued write is not invalidated by a deploy |
-| Clock moves backwards | `maxAge` uses stored `dataUpdatedAt` deltas; a negative age is treated as 0, not as fresh-forever |
+| Mode                               | Behaviour                                                                                         |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Crash between send and ack         | replayed on boot; the idempotency key is the server's cue                                         |
+| Server ignores the idempotency key | duplicates. Documented in paragraph one, not buried                                               |
+| Entry exhausts `maxAttempts`       | `dead` + `onDead`, patch rolled back. Never dropped silently                                      |
+| Terminal error mid-queue           | `onConflict` decides; the queue does not wedge                                                    |
+| Storage quota exceeded             | oldest cache records evicted first, **outbox entries never**                                      |
+| IndexedDB unavailable              | `localStorage` if it fits, else memory + a warning; persistence degrades, writes still queue      |
+| Two tabs, no `typewire-sync`       | single-tab drain, documented caveat                                                               |
+| Unreliable lock adapter            | drain refuses (§6)                                                                                |
+| Version mismatch on boot           | cache discarded, **outbox kept** — a queued write is not invalidated by a deploy                  |
+| Clock moves backwards              | `maxAge` uses stored `dataUpdatedAt` deltas; a negative age is treated as 0, not as fresh-forever |
 
 The quota and version rows share one rule worth stating on its own: **cache is
 disposable, the outbox is not.** Anything that has to give, gives on the cache
@@ -253,31 +260,31 @@ side.
 
 ## 10. Test matrix
 
-| Test | Asserts |
-| --- | --- |
-| `hydrated data keeps its original updatedAt` | §4 |
-| `a version mismatch discards the cache and keeps the outbox` | §9 |
-| `an excluded id is never written to storage` | §4 |
-| `a queued mutation survives a simulated reload` | §5 |
-| `a queue drains in order and stops at the first retryable failure` | §5 |
-| `a terminal failure consults onConflict instead of wedging the queue` | §5 |
-| `an entry that exhausts maxAttempts is dead, not deleted` | §5 |
-| `an optimistic patch is re-applied after hydration` | §7 |
-| `a dead entry rolls its patch back by invalidating, not by restoring` | §7 |
-| `two outboxes on one storage do not both drain` | §6 |
-| `the drain refuses when the lock adapter is unreliable` | §6 |
-| `quota pressure evicts cache records before outbox entries` | §9 |
-| `every API resolves with no IndexedDB and no localStorage` | SSR / Node |
+| Test                                                                  | Asserts    |
+| --------------------------------------------------------------------- | ---------- |
+| `hydrated data keeps its original updatedAt`                          | §4         |
+| `a version mismatch discards the cache and keeps the outbox`          | §9         |
+| `an excluded id is never written to storage`                          | §4         |
+| `a queued mutation survives a simulated reload`                       | §5         |
+| `a queue drains in order and stops at the first retryable failure`    | §5         |
+| `a terminal failure consults onConflict instead of wedging the queue` | §5         |
+| `an entry that exhausts maxAttempts is dead, not deleted`             | §5         |
+| `an optimistic patch is re-applied after hydration`                   | §7         |
+| `a dead entry rolls its patch back by invalidating, not by restoring` | §7         |
+| `two outboxes on one storage do not both drain`                       | §6         |
+| `the drain refuses when the lock adapter is unreliable`               | §6         |
+| `quota pressure evicts cache records before outbox entries`           | §9         |
+| `every API resolves with no IndexedDB and no localStorage`            | SSR / Node |
 
 ## 11. Milestones
 
-| # | Milestone | Contains |
-| --- | --- | --- |
-| O1 | query-core seams | `gate`, `updatedAt`, `sources`, `reason` — shared with `typewire-sync`, released once. **Done** (query-core 1.2.0) |
-| O2 | `StorageAdapter` + IndexedDB + memory | testable in Node, no browser |
-| O3 | `persistQueryClient` | dehydrate, hydrate, throttle, version/`maxAge` guards |
-| O4 | Outbox | entry state machine, ordering, backoff, dead-lettering, `onConflict` |
-| O5 | Optimistic patches + leader drain | §6 and §7, the parts that need `typewire-sync` |
+| #   | Milestone                             | Contains                                                                                                           |
+| --- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| O1  | query-core seams                      | `gate`, `updatedAt`, `sources`, `reason` — shared with `typewire-sync`, released once. **Done** (query-core 1.2.0) |
+| O2  | `StorageAdapter` + IndexedDB + memory | testable in Node, no browser                                                                                       |
+| O3  | `persistQueryClient`                  | dehydrate, hydrate, throttle, version/`maxAge` guards                                                              |
+| O4  | Outbox                                | entry state machine, ordering, backoff, dead-lettering, `onConflict`                                               |
+| O5  | Optimistic patches + leader drain     | §6 and §7, the parts that need `typewire-sync`                                                                     |
 
 O3 is shippable alone and is what most users will actually install.
 

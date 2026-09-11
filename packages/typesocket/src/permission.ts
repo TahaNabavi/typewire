@@ -1,4 +1,4 @@
-import type { OutboundAuthorizer, PermissionRequirement } from "./types";
+import type { OutboundAuthorizer, PermissionRequirement } from './types'
 
 /**
  * The decision shape the guard needs from `authorize`. Declared structurally so
@@ -7,21 +7,21 @@ import type { OutboundAuthorizer, PermissionRequirement } from "./types";
  * seam typefetch's `createPermissionMiddleware` and the NestJS guard use.
  */
 export type PermissionDecisionLike = {
-  granted: boolean;
+  granted: boolean
   /** Flags demanded by `require` that the actor lacks. */
-  missing?: string[];
+  missing?: string[]
   /** The `any` set, when it was the failing condition. */
-  missingAny?: string[];
-  reason?: string;
-};
+  missingAny?: string[]
+  reason?: string
+}
 
 /** Context handed to `onDeny` and carried by {@link PermissionDeniedError}. */
 export type PermissionDenyInfo = {
-  eventId: string;
-  event: string;
-  requirement: PermissionRequirement;
-  decision: PermissionDecisionLike;
-};
+  eventId: string
+  event: string
+  requirement: PermissionRequirement
+  decision: PermissionDecisionLike
+}
 
 /**
  * Thrown from the emit call when an outbound frame is blocked **client-side**,
@@ -30,23 +30,22 @@ export type PermissionDenyInfo = {
  * validation/ack error so callers can `instanceof`-check it.
  */
 export class PermissionDeniedError extends Error {
-  readonly code = "PERMISSION_DENIED";
-  readonly eventId: string;
-  readonly event: string;
-  readonly missing: string[];
-  readonly missingAny?: string[];
+  readonly code = 'PERMISSION_DENIED'
+  readonly eventId: string
+  readonly event: string
+  readonly missing: string[]
+  readonly missingAny?: string[]
 
   constructor(info: PermissionDenyInfo) {
     super(
-      info.requirement.reason ??
-        `Blocked by permission: emit "${info.eventId}"`,
-    );
-    this.name = "PermissionDeniedError";
-    this.eventId = info.eventId;
-    this.event = info.event;
-    this.missing = info.decision.missing ?? [];
+      info.requirement.reason ?? `Blocked by permission: emit "${info.eventId}"`
+    )
+    this.name = 'PermissionDeniedError'
+    this.eventId = info.eventId
+    this.event = info.event
+    this.missing = info.decision.missing ?? []
     if (info.decision.missingAny?.length) {
-      this.missingAny = info.decision.missingAny;
+      this.missingAny = info.decision.missingAny
     }
   }
 }
@@ -58,7 +57,7 @@ export type PermissionMiddlewareConfig = {
    * emit resolves synchronously, so the check must too. Keep it cheap — it runs
    * on every outbound frame that declares a `permission`.
    */
-  getPermissions: () => bigint;
+  getPermissions: () => bigint
 
   /**
    * Evaluate the event's requirement against the actor's bits. Pass your
@@ -67,12 +66,12 @@ export type PermissionMiddlewareConfig = {
    */
   authorize: (
     perms: bigint,
-    requirement: PermissionRequirement,
-  ) => PermissionDecisionLike;
+    requirement: PermissionRequirement
+  ) => PermissionDecisionLike
 
   /** Called on every client-side denial before the error is thrown. */
-  onDeny?: (info: PermissionDenyInfo) => void;
-};
+  onDeny?: (info: PermissionDenyInfo) => void
+}
 
 /**
  * Build a pre-emit guard that enforces a `client->server` event's contract
@@ -98,23 +97,23 @@ export type PermissionMiddlewareConfig = {
  * });
  */
 export function createPermissionMiddleware(
-  config: PermissionMiddlewareConfig,
+  config: PermissionMiddlewareConfig
 ): OutboundAuthorizer {
   return ({ eventId, event, def }) => {
-    const requirement = def.permission;
+    const requirement = def.permission
     // No requirement on this event → nothing to enforce.
     if (
       !requirement ||
       (!requirement.require?.length && !requirement.any?.length)
     ) {
-      return;
+      return
     }
 
-    const decision = config.authorize(config.getPermissions(), requirement);
-    if (decision.granted) return;
+    const decision = config.authorize(config.getPermissions(), requirement)
+    if (decision.granted) return
 
-    const info: PermissionDenyInfo = { eventId, event, requirement, decision };
-    config.onDeny?.(info);
-    throw new PermissionDeniedError(info);
-  };
+    const info: PermissionDenyInfo = { eventId, event, requirement, decision }
+    config.onDeny?.(info)
+    throw new PermissionDeniedError(info)
+  }
 }

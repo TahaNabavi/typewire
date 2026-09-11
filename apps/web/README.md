@@ -16,14 +16,14 @@ Nothing about a package is maintained in this app. `scripts/generate-registry.mj
 reads the monorepo and writes `src/generated/registry.json` (gitignored) before
 every `dev`, `build:site` and `typecheck`:
 
-| Source | What comes from it |
-| --- | --- |
-| `packages/*/package.json` | name, local version, description, keywords, dependencies, peers, export subpaths |
-| `packages/*/README.md` | tagline, feature bullets, install command, banner image (copied into `public/banners/`) |
-| `packages/*/docs/releases/*.md` | the release-note history, newest first |
-| `size-budget.json` | the gzipped CI ceiling per package |
-| `README.md` (repo root) | the roadmap checklist — `- [x]` is shipped, `- [ ]` is next |
-| **npm registry** | whether a package is actually published, and at which version |
+| Source                          | What comes from it                                                                      |
+| ------------------------------- | --------------------------------------------------------------------------------------- |
+| `packages/*/package.json`       | name, local version, description, keywords, dependencies, peers, export subpaths        |
+| `packages/*/README.md`          | tagline, feature bullets, install command, banner image (copied into `public/banners/`) |
+| `packages/*/docs/releases/*.md` | the release-note history, newest first                                                  |
+| `size-budget.json`              | the gzipped CI ceiling per package                                                      |
+| `README.md` (repo root)         | the roadmap checklist — `- [x]` is shipped, `- [ ]` is next                             |
+| **npm registry**                | whether a package is actually published, and at which version                           |
 
 So publishing a package, editing its README, or ticking a roadmap box updates
 this site on its next build. No file here needs touching.
@@ -90,7 +90,7 @@ site must not be able to block a package release, so this app exposes
 `examples/*` follows. It is built by its own workflow,
 `.github/workflows/web.yml`, on changes under `apps/web/**`.
 
-`typecheck` *is* exposed, deliberately: it is fast, and a site that no longer
+`typecheck` _is_ exposed, deliberately: it is fast, and a site that no longer
 compiles against the packages it documents should show up as a red check.
 
 ## Layout
@@ -186,13 +186,13 @@ and rendered by `next/og` at build time — 97 of them, all prerendered, none
 generated on request. Fonts are read from `src/assets/fonts/` rather than fetched,
 so a build with no network still renders the real typeface.
 
-| File | Emits |
-| --- | --- |
-| `app/robots.ts` | `/robots.txt` — allows everything but `/api` |
-| `app/sitemap.ts` | `/sitemap.xml` — enumerated from the registry, package banners included as image entries |
-| `app/manifest.ts` | `/manifest.webmanifest` |
-| `app/icon.svg`, `app/apple-icon.tsx` | favicon and touch icon, from `src/lib/brand.ts` |
-| `app/**/opengraph-image.tsx` | one card per section, plus one per package and per docs page |
+| File                                 | Emits                                                                                    |
+| ------------------------------------ | ---------------------------------------------------------------------------------------- |
+| `app/robots.ts`                      | `/robots.txt` — allows everything but `/api`                                             |
+| `app/sitemap.ts`                     | `/sitemap.xml` — enumerated from the registry, package banners included as image entries |
+| `app/manifest.ts`                    | `/manifest.webmanifest`                                                                  |
+| `app/icon.svg`, `app/apple-icon.tsx` | favicon and touch icon, from `src/lib/brand.ts`                                          |
+| `app/**/opengraph-image.tsx`         | one card per section, plus one per package and per docs page                             |
 
 Structured data is JSON-LD in an `@graph`. The root layout emits `Organization`,
 `WebSite` and `SoftwareApplication` once, with stable `@id`s; each page adds only

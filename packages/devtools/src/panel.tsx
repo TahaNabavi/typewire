@@ -4,7 +4,7 @@ import {
   type InspectorEntry,
   type InspectorEvent,
   type QueryInspector,
-} from "@tahanabavi/type-devtools-core";
+} from '@tahanabavi/type-devtools-core'
 import {
   useCallback,
   useEffect,
@@ -14,8 +14,8 @@ import {
   useSyncExternalStore,
   type CSSProperties,
   type ReactNode,
-} from "react";
-import { Cache } from "./cache";
+} from 'react'
+import { Cache } from './cache'
 import {
   Chip,
   ChromeProvider,
@@ -23,59 +23,55 @@ import {
   makeStyles,
   useChrome,
   type ChromeValue,
-} from "./chrome";
-import { ActiveOverrides, useOverrides } from "./overrides";
-import {
-  downloadText,
-  safeStringify,
-  safeStringifyInline,
-} from "./serialize";
-import { useSettings } from "./settings";
-import { SettingsPanel } from "./settings-panel";
-import { createSoundPlayer, type SoundPlayer } from "./sound";
+} from './chrome'
+import { ActiveOverrides, useOverrides } from './overrides'
+import { downloadText, safeStringify, safeStringifyInline } from './serialize'
+import { useSettings } from './settings'
+import { SettingsPanel } from './settings-panel'
+import { createSoundPlayer, type SoundPlayer } from './sound'
 import {
   PALETTES,
   resolveThemeName,
   usePrefersDark,
   usePrefersReducedMotion,
-} from "./theme";
-import { Timeline, transportOf } from "./timeline";
-import { useInspectorEvents, useInspectorProgress } from "./use-inspector";
+} from './theme'
+import { Timeline, transportOf } from './timeline'
+import { useInspectorEvents, useInspectorProgress } from './use-inspector'
 
 export interface TypeDevtoolsProps {
   /** The transport timeline (HTTP / WS). */
-  bridge: InspectorBridge;
+  bridge: InspectorBridge
   /** Optional query cache. Provide it to unlock the Cache tab. */
-  queries?: QueryInspector;
+  queries?: QueryInspector
   /** Render expanded on first mount. Default `false`. */
-  defaultOpen?: boolean;
-  title?: string;
+  defaultOpen?: boolean
+  title?: string
 }
 
-type Tab = "timeline" | "cache" | "settings";
+type Tab = 'timeline' | 'cache' | 'settings'
 /** `"all"` or one wire's name. Open, because the transport registry is. */
-type TransportFilter = "all" | (string & {});
-type StatusFilter = "all" | "pending" | "success" | "error";
-type Size = "normal" | "large" | "full";
+type TransportFilter = 'all' | (string & {})
+type StatusFilter = 'all' | 'pending' | 'success' | 'error'
+type Size = 'normal' | 'large' | 'full'
 
 /**
  * Display order for the filter chips. Anything not listed — a third-party
  * adapter — sorts after these, alphabetically, so the row of chips stays stable
  * as traffic arrives instead of reordering itself under the cursor.
  */
-const TRANSPORT_ORDER = ["http", "graphql", "grpc", "ws"];
+const TRANSPORT_ORDER = ['http', 'graphql', 'grpc', 'ws']
 
 const SIZES: Record<Size, { width: string; height: string }> = {
   normal: {
-    width: "min(820px, calc(100vw - 32px))",
-    height: "min(460px, calc(100vh - 32px))",
+    width: 'min(820px, calc(100vw - 32px))',
+    height: 'min(460px, calc(100vh - 32px))',
   },
   large: {
-    width: "min(1100px, calc(100vw - 32px))",
-    height: "min(680px, calc(100vh - 32px))",
+    width: 'min(1100px, calc(100vw - 32px))',
+    height: 'min(680px, calc(100vh - 32px))',
   },
-  full: { width: "calc(100vw - 32px)", height: "calc(100vh - 32px)" },
-};
+  full: { width: 'calc(100vw - 32px)', height: 'calc(100vh - 32px)' },
+}
 
 /**
  * The inspector panel: one timeline for every transport, a live query cache, and
@@ -86,98 +82,98 @@ export function TypeDevtools({
   bridge,
   queries,
   defaultOpen = false,
-  title = "TypeWire devtools",
+  title = 'TypeWire devtools',
 }: TypeDevtoolsProps) {
-  const [settings, updateSettings] = useSettings();
-  const prefersDark = usePrefersDark();
-  const reducedMotion = usePrefersReducedMotion();
+  const [settings, updateSettings] = useSettings()
+  const prefersDark = usePrefersDark()
+  const reducedMotion = usePrefersReducedMotion()
 
-  const palette = PALETTES[resolveThemeName(settings.theme, prefersDark)];
+  const palette = PALETTES[resolveThemeName(settings.theme, prefersDark)]
   const styles = useMemo(
     () => makeStyles(palette, settings.density),
-    [palette, settings.density],
-  );
-  const motionOk = settings.animations && !reducedMotion;
+    [palette, settings.density]
+  )
+  const motionOk = settings.animations && !reducedMotion
 
   // The sound player is created once and kept in a ref; settings sync into it.
-  const soundRef = useRef<SoundPlayer | null>(null);
+  const soundRef = useRef<SoundPlayer | null>(null)
   if (!soundRef.current) {
     soundRef.current = createSoundPlayer({
       enabled: settings.sound,
       volume: settings.soundVolume,
-    });
+    })
   }
   useEffect(() => {
-    soundRef.current?.setEnabled(settings.sound);
-  }, [settings.sound]);
+    soundRef.current?.setEnabled(settings.sound)
+  }, [settings.sound])
   useEffect(() => {
-    soundRef.current?.setVolume(settings.soundVolume);
-  }, [settings.soundVolume]);
+    soundRef.current?.setVolume(settings.soundVolume)
+  }, [settings.soundVolume])
 
-  const events = useInspectorEvents(bridge);
-  const progress = useInspectorProgress(bridge);
+  const events = useInspectorEvents(bridge)
+  const progress = useInspectorProgress(bridge)
   const entries = useMemo(
     () => selectEntries(events, progress),
-    [events, progress],
-  );
-  const overrides = useOverrides(bridge);
-  const cacheCount = useOptionalQueryCount(queries);
+    [events, progress]
+  )
+  const overrides = useOverrides(bridge)
+  const cacheCount = useOptionalQueryCount(queries)
 
-  const [open, setOpen] = useState(defaultOpen);
-  const [tab, setTab] = useState<Tab>("timeline");
-  const [size, setSize] = useState<Size>("normal");
-  const [transportFilter, setTransportFilter] = useState<TransportFilter>("all");
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
-  const [search, setSearch] = useState("");
-  const [paused, setPaused] = useState(false);
-  const [frozen, setFrozen] = useState<InspectorEntry[] | null>(null);
-  const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  const [open, setOpen] = useState(defaultOpen)
+  const [tab, setTab] = useState<Tab>('timeline')
+  const [size, setSize] = useState<Size>('normal')
+  const [transportFilter, setTransportFilter] = useState<TransportFilter>('all')
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+  const [search, setSearch] = useState('')
+  const [paused, setPaused] = useState(false)
+  const [frozen, setFrozen] = useState<InspectorEntry[] | null>(null)
+  const [selectedKey, setSelectedKey] = useState<string | null>(null)
 
   // Sound cue on new traffic — a tick, or a buzz if the arrivals include an error.
-  const seenCount = useRef(events.length);
+  const seenCount = useRef(events.length)
   useEffect(() => {
     if (events.length > seenCount.current) {
-      const added = events.slice(seenCount.current);
+      const added = events.slice(seenCount.current)
       const errored = added.some(
-        (e) => e.kind === "error" || e.kind === "frame_error",
-      );
-      if (errored) soundRef.current?.error();
-      else soundRef.current?.tick();
+        (e) => e.kind === 'error' || e.kind === 'frame_error'
+      )
+      if (errored) soundRef.current?.error()
+      else soundRef.current?.tick()
     }
-    seenCount.current = events.length;
-  }, [events]);
+    seenCount.current = events.length
+  }, [events])
 
-  const source = paused && frozen ? frozen : entries;
+  const source = paused && frozen ? frozen : entries
   const visible = useMemo(() => {
-    const term = search.trim().toLowerCase();
+    const term = search.trim().toLowerCase()
     const rows = source.filter(
       (entry) =>
-        (transportFilter === "all" || transportOf(entry) === transportFilter) &&
-        (statusFilter === "all" || entry.status === statusFilter) &&
-        (term === "" || matchesEntry(entry, term)),
-    );
+        (transportFilter === 'all' || transportOf(entry) === transportFilter) &&
+        (statusFilter === 'all' || entry.status === statusFilter) &&
+        (term === '' || matchesEntry(entry, term))
+    )
     // Newest first: the row you care about is the one that just happened.
-    return [...rows].reverse();
-  }, [source, transportFilter, statusFilter, search]);
+    return [...rows].reverse()
+  }, [source, transportFilter, statusFilter, search])
 
   // Derived from the traffic rather than hard-coded: which wires an app speaks
   // is its own business, and a REST-only app has no use for a `graphql` chip it
   // can never select.
   const transports = useMemo(
     () => transportOptions(source, transportFilter),
-    [source, transportFilter],
-  );
+    [source, transportFilter]
+  )
 
-  const selected = entries.find((e) => e.key === selectedKey) ?? null;
-  const stats = useMemo(() => summarize(entries), [entries]);
-  const connection = useMemo(() => connectionState(events), [events]);
+  const selected = entries.find((e) => e.key === selectedKey) ?? null
+  const stats = useMemo(() => summarize(entries), [entries])
+  const connection = useMemo(() => connectionState(events), [events])
 
   const togglePause = useCallback(() => {
     setPaused((wasPaused) => {
-      setFrozen(wasPaused ? null : entries);
-      return !wasPaused;
-    });
-  }, [entries]);
+      setFrozen(wasPaused ? null : entries)
+      return !wasPaused
+    })
+  }, [entries])
 
   const chrome: ChromeValue = useMemo(
     () => ({
@@ -188,8 +184,8 @@ export function TypeDevtools({
       sound: soundRef.current as SoundPlayer,
       motionOk,
     }),
-    [palette, styles, settings, updateSettings, motionOk],
-  );
+    [palette, styles, settings, updateSettings, motionOk]
+  )
 
   if (!open) {
     return (
@@ -210,7 +206,7 @@ export function TypeDevtools({
           )}
         </button>
       </ChromeProvider>
-    );
+    )
   }
 
   return (
@@ -225,7 +221,11 @@ export function TypeDevtools({
             <span style={styles.title}>{title}</span>
           </div>
           <div style={styles.windowControls}>
-            <IconButton title="Resize" testId="typewire-size" onClick={() => setSize(nextSize(size))}>
+            <IconButton
+              title="Resize"
+              testId="typewire-size"
+              onClick={() => setSize(nextSize(size))}
+            >
               ⤢
             </IconButton>
             <IconButton
@@ -239,11 +239,21 @@ export function TypeDevtools({
         </header>
 
         <div style={styles.tabRow}>
-          <TabButton id="timeline" active={tab} onSelect={setTab} count={entries.length}>
+          <TabButton
+            id="timeline"
+            active={tab}
+            onSelect={setTab}
+            count={entries.length}
+          >
             Timeline
           </TabButton>
           {queries && (
-            <TabButton id="cache" active={tab} onSelect={setTab} count={cacheCount}>
+            <TabButton
+              id="cache"
+              active={tab}
+              onSelect={setTab}
+              count={cacheCount}
+            >
               Cache
             </TabButton>
           )}
@@ -252,16 +262,16 @@ export function TypeDevtools({
           </TabButton>
         </div>
 
-        {tab !== "settings" && (
+        {tab !== 'settings' && (
           <div style={styles.toolbar}>
-            {tab === "timeline" && (
+            {tab === 'timeline' && (
               <>
                 {/*
                   Hidden while an app speaks a single wire — a filter with one
                   option filters nothing. Kept visible whenever a filter is
                   active, so the chip that turns it back off can never vanish.
                 */}
-                {(transports.length > 2 || transportFilter !== "all") && (
+                {(transports.length > 2 || transportFilter !== 'all') && (
                   <div style={styles.filters}>
                     {transports.map((value) => (
                       <Chip
@@ -276,16 +286,18 @@ export function TypeDevtools({
                   </div>
                 )}
                 <div style={styles.filters}>
-                  {(["all", "pending", "success", "error"] as const).map((value) => (
-                    <Chip
-                      key={value}
-                      testId={`typewire-status-${value}`}
-                      active={statusFilter === value}
-                      onClick={() => setStatusFilter(value)}
-                    >
-                      {value}
-                    </Chip>
-                  ))}
+                  {(['all', 'pending', 'success', 'error'] as const).map(
+                    (value) => (
+                      <Chip
+                        key={value}
+                        testId={`typewire-status-${value}`}
+                        active={statusFilter === value}
+                        onClick={() => setStatusFilter(value)}
+                      >
+                        {value}
+                      </Chip>
+                    )
+                  )}
                 </div>
               </>
             )}
@@ -300,21 +312,24 @@ export function TypeDevtools({
               />
             </div>
 
-            {tab === "timeline" && (
+            {tab === 'timeline' && (
               <>
                 <Chip
                   testId="typewire-pause"
                   active={paused}
                   onClick={togglePause}
-                  title={paused ? "Resume" : "Pause"}
+                  title={paused ? 'Resume' : 'Pause'}
                 >
-                  {paused ? "▶" : "⏸"}
+                  {paused ? '▶' : '⏸'}
                 </Chip>
                 <Chip
                   testId="typewire-export"
                   title="Download timeline as JSON"
                   onClick={() =>
-                    downloadText("typewire-timeline.json", safeStringify(entries))
+                    downloadText(
+                      'typewire-timeline.json',
+                      safeStringify(entries)
+                    )
                   }
                 >
                   export
@@ -322,10 +337,10 @@ export function TypeDevtools({
                 <Chip
                   testId="typewire-clear"
                   onClick={() => {
-                    bridge.clear();
-                    setFrozen(null);
-                    setPaused(false);
-                    setSelectedKey(null);
+                    bridge.clear()
+                    setFrozen(null)
+                    setPaused(false)
+                    setSelectedKey(null)
                   }}
                 >
                   clear
@@ -335,9 +350,9 @@ export function TypeDevtools({
           </div>
         )}
 
-        {tab === "timeline" && <ActiveOverrides overrides={overrides} />}
+        {tab === 'timeline' && <ActiveOverrides overrides={overrides} />}
 
-        {tab === "timeline" && (
+        {tab === 'timeline' && (
           <Timeline
             visible={visible}
             selected={selected}
@@ -346,23 +361,29 @@ export function TypeDevtools({
             search={search}
           />
         )}
-        {tab === "cache" && queries && <Cache inspector={queries} search={search} />}
-        {tab === "settings" && <SettingsPanel />}
+        {tab === 'cache' && queries && (
+          <Cache inspector={queries} search={search} />
+        )}
+        {tab === 'settings' && <SettingsPanel />}
 
         <footer style={styles.statusbar}>
           <span>{stats.total} calls</span>
-          <span style={{ color: stats.errors ? palette.error : palette.textMuted }}>
+          <span
+            style={{ color: stats.errors ? palette.error : palette.textMuted }}
+          >
             {stats.errors} errors
           </span>
           {stats.pending > 0 && <span>{stats.pending} pending</span>}
           {stats.avgMs !== null && <span>avg {stats.avgMs}ms</span>}
-          {connection !== "none" && (
-            <span style={{ ...styles.connDot, marginLeft: "auto" }}>
+          {connection !== 'none' && (
+            <span style={{ ...styles.connDot, marginLeft: 'auto' }}>
               <span
                 style={{
                   ...dotStyle,
                   background:
-                    connection === "connected" ? palette.success : palette.error,
+                    connection === 'connected'
+                      ? palette.success
+                      : palette.error,
                 }}
               />
               ws {connection}
@@ -372,7 +393,7 @@ export function TypeDevtools({
             <span
               style={{
                 color: palette.pending,
-                marginLeft: connection === "none" ? "auto" : 0,
+                marginLeft: connection === 'none' ? 'auto' : 0,
               }}
             >
               paused
@@ -381,7 +402,7 @@ export function TypeDevtools({
         </footer>
       </section>
     </ChromeProvider>
-  );
+  )
 }
 
 function TabButton({
@@ -391,13 +412,13 @@ function TabButton({
   count,
   children,
 }: {
-  id: Tab;
-  active: Tab;
-  onSelect: (tab: Tab) => void;
-  count?: number;
-  children: ReactNode;
+  id: Tab
+  active: Tab
+  onSelect: (tab: Tab) => void
+  count?: number
+  children: ReactNode
 }) {
-  const { styles } = useChrome();
+  const { styles } = useChrome()
   return (
     <button
       type="button"
@@ -408,20 +429,20 @@ function TabButton({
       {children}
       {count !== undefined && <span style={styles.tabCount}>{count}</span>}
     </button>
-  );
+  )
 }
 
 /** Count of cached queries, safe to call whether or not a client is attached. */
 function useOptionalQueryCount(inspector?: QueryInspector): number {
   const subscribe = useCallback(
     (cb: () => void) => (inspector ? inspector.subscribe(cb) : () => {}),
-    [inspector],
-  );
+    [inspector]
+  )
   const getSnapshot = useCallback(
     () => (inspector ? inspector.getSnapshot().queries.length : 0),
-    [inspector],
-  );
-  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+    [inspector]
+  )
+  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
 }
 
 /**
@@ -434,52 +455,52 @@ function useOptionalQueryCount(inspector?: QueryInspector): number {
  */
 function transportOptions(
   entries: InspectorEntry[],
-  active: TransportFilter,
+  active: TransportFilter
 ): TransportFilter[] {
-  const seen = new Set(entries.map(transportOf));
-  if (active !== "all") seen.add(active);
+  const seen = new Set(entries.map(transportOf))
+  if (active !== 'all') seen.add(active)
   const sorted = [...seen].sort((a, b) => {
-    const ai = TRANSPORT_ORDER.indexOf(a);
-    const bi = TRANSPORT_ORDER.indexOf(b);
-    if (ai !== bi) return (ai < 0 ? Infinity : ai) - (bi < 0 ? Infinity : bi);
-    return a.localeCompare(b);
-  });
-  return ["all", ...sorted];
+    const ai = TRANSPORT_ORDER.indexOf(a)
+    const bi = TRANSPORT_ORDER.indexOf(b)
+    if (ai !== bi) return (ai < 0 ? Infinity : ai) - (bi < 0 ? Infinity : bi)
+    return a.localeCompare(b)
+  })
+  return ['all', ...sorted]
 }
 
 function matchesEntry(entry: InspectorEntry, term: string): boolean {
-  if (entry.label.toLowerCase().includes(term)) return true;
+  if (entry.label.toLowerCase().includes(term)) return true
   // Searchable, so "not_found" or "grpc" narrows the list the same way an
   // endpoint name does — the two things you actually type when hunting a bug.
-  if (entry.errorKind?.toLowerCase().includes(term)) return true;
-  if (transportOf(entry).toLowerCase().includes(term)) return true;
+  if (entry.errorKind?.toLowerCase().includes(term)) return true
+  if (transportOf(entry).toLowerCase().includes(term)) return true
   for (const value of [entry.input, entry.output, entry.error]) {
     if (
       value !== undefined &&
       safeStringifyInline(value).toLowerCase().includes(term)
     ) {
-      return true;
+      return true
     }
   }
-  return false;
+  return false
 }
 
 function summarize(entries: InspectorEntry[]): {
-  total: number;
-  errors: number;
-  pending: number;
-  avgMs: number | null;
+  total: number
+  errors: number
+  pending: number
+  avgMs: number | null
 } {
-  let errors = 0;
-  let pending = 0;
-  let durationSum = 0;
-  let durationCount = 0;
+  let errors = 0
+  let pending = 0
+  let durationSum = 0
+  let durationCount = 0
   for (const entry of entries) {
-    if (entry.status === "error") errors++;
-    if (entry.status === "pending") pending++;
+    if (entry.status === 'error') errors++
+    if (entry.status === 'pending') pending++
     if (entry.durationMs !== undefined) {
-      durationSum += entry.durationMs;
-      durationCount++;
+      durationSum += entry.durationMs
+      durationCount++
     }
   }
   return {
@@ -487,30 +508,30 @@ function summarize(entries: InspectorEntry[]): {
     errors,
     pending,
     avgMs: durationCount === 0 ? null : Math.round(durationSum / durationCount),
-  };
+  }
 }
 
 /** Latest WS connection state, from the lifecycle events on the timeline. */
 function connectionState(
-  events: readonly InspectorEvent[],
-): "connected" | "disconnected" | "none" {
-  let state: "connected" | "disconnected" | "none" = "none";
+  events: readonly InspectorEvent[]
+): 'connected' | 'disconnected' | 'none' {
+  let state: 'connected' | 'disconnected' | 'none' = 'none'
   for (const event of events) {
-    if (event.kind === "connect") state = "connected";
-    else if (event.kind === "disconnect" || event.kind === "connect_error") {
-      state = "disconnected";
+    if (event.kind === 'connect') state = 'connected'
+    else if (event.kind === 'disconnect' || event.kind === 'connect_error') {
+      state = 'disconnected'
     }
   }
-  return state;
+  return state
 }
 
 function nextSize(size: Size): Size {
-  return size === "normal" ? "large" : size === "large" ? "full" : "normal";
+  return size === 'normal' ? 'large' : size === 'large' ? 'full' : 'normal'
 }
 
 const dotStyle: CSSProperties = {
-  display: "inline-block",
+  display: 'inline-block',
   width: 7,
   height: 7,
-  borderRadius: "50%",
-};
+  borderRadius: '50%',
+}

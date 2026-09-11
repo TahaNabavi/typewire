@@ -1,18 +1,18 @@
-import type { ReactNode } from "react";
-import { Geist, Geist_Mono, JetBrains_Mono } from "next/font/google";
+import type { ReactNode } from 'react'
+import { Geist, Geist_Mono, JetBrains_Mono } from 'next/font/google'
 
-import { SiteFooter } from "@/components/layouts/site-footer";
-import { SiteHeader } from "@/components/layouts/site-header";
-import { JsonLd } from "@/components/shared/json-ld";
-import { THEME_SCRIPT } from "@/layouts/root-layout/theme-script";
-import { packages } from "@/lib/registry";
+import { SiteFooter } from '@/components/layouts/site-footer'
+import { SiteHeader } from '@/components/layouts/site-header'
+import { JsonLd } from '@/components/shared/json-ld'
+import { THEME_SCRIPT } from '@/layouts/root-layout/theme-script'
+import { packages } from '@/lib/registry'
 import {
   graph,
   organizationSchema,
   softwareSchema,
   websiteSchema,
-} from "@/lib/seo";
-import clsx from "clsx";
+} from '@/lib/seo'
+import clsx from 'clsx'
 
 /**
  * Geist for both roles: a grotesque drawn for interfaces, and its monospace
@@ -23,31 +23,31 @@ import clsx from "clsx";
 
 const jetBrain = JetBrains_Mono({
   // subsets: ["latin"],
-  variable: "--font-jetbrain",
+  variable: '--font-jetbrain',
   // display: "swap",
-});
+})
 const sans = Geist({
-  subsets: ["latin"],
-  variable: "--font-geist-sans",
-  display: "swap",
-});
+  subsets: ['latin'],
+  variable: '--font-geist-sans',
+  display: 'swap',
+})
 const mono = Geist_Mono({
-  subsets: ["latin"],
-  variable: "--font-geist-mono",
-  display: "swap",
-});
+  subsets: ['latin'],
+  variable: '--font-geist-mono',
+  display: 'swap',
+})
 
 export function RootLayout({ children }: { children: ReactNode }) {
   // Three nodes that describe the project rather than any one page, emitted
   // once at the root so every page carries them and every page's own schema can
   // reference them by @id instead of repeating them.
   const latest =
-    packages.find((p) => p.npm === "@tahanabavi/typefetch")?.version ?? null;
+    packages.find((p) => p.npm === '@tahanabavi/typefetch')?.version ?? null
   const siteSchema = graph(
     organizationSchema(),
     websiteSchema(),
-    softwareSchema(packages.length, latest),
-  );
+    softwareSchema(packages.length, latest)
+  )
 
   return (
     <html
@@ -72,5 +72,5 @@ export function RootLayout({ children }: { children: ReactNode }) {
         <SiteFooter />
       </body>
     </html>
-  );
+  )
 }

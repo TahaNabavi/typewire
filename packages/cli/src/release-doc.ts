@@ -1,13 +1,13 @@
-import { mkdir, writeFile } from "node:fs/promises";
-import { dirname, join, resolve } from "node:path";
-import { exists } from "./config/fs";
-import { UsageError } from "./errors";
-import type { ReleaseDocCommandOptions } from "./types";
+import { mkdir, writeFile } from 'node:fs/promises'
+import { dirname, join, resolve } from 'node:path'
+import { exists } from './config/fs'
+import { UsageError } from './errors'
+import type { ReleaseDocCommandOptions } from './types'
 
 export type ReleaseDocResult = {
-  path: string;
-  created: boolean;
-};
+  path: string
+  created: boolean
+}
 
 /**
  * Scaffold `docs/releases/<version>.md`.
@@ -18,45 +18,48 @@ export type ReleaseDocResult = {
  * a migration guide.
  */
 export async function runReleaseDocCommand(
-  options: ReleaseDocCommandOptions = {},
+  options: ReleaseDocCommandOptions = {}
 ): Promise<ReleaseDocResult> {
-  const version = normalizeVersion(options.version);
-  const outputDir = resolve(process.cwd(), options.outputDir ?? "./docs/releases");
-  const path = join(outputDir, `${version}.md`);
+  const version = normalizeVersion(options.version)
+  const outputDir = resolve(
+    process.cwd(),
+    options.outputDir ?? './docs/releases'
+  )
+  const path = join(outputDir, `${version}.md`)
 
   if ((await exists(path)) && !options.force) {
-    return { path, created: false };
+    return { path, created: false }
   }
 
-  await mkdir(dirname(path), { recursive: true });
-  await writeFile(path, template(version, options.title), "utf8");
+  await mkdir(dirname(path), { recursive: true })
+  await writeFile(path, template(version, options.title), 'utf8')
 
-  return { path, created: true };
+  return { path, created: true }
 }
 
 /** `2.0.0` and `v2.0.0` both name the same release; the file is `v2.0.0.md`. */
 function normalizeVersion(version: string | undefined): string {
-  const value = version?.trim();
+  const value = version?.trim()
 
   if (!value) {
     throw new UsageError(
       `release-doc needs a version.\n` +
         `  typewire release-doc v2.0.0\n` +
-        `  typewire release-doc --version 2.0.0 --title "Pluggable transports"`,
-    );
+        `  typewire release-doc --version 2.0.0 --title "Pluggable transports"`
+    )
   }
 
   if (!/^v?\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/.test(value)) {
     throw new UsageError(
-      `"${value}" is not a version. Expected something like v2.0.0 or 2.1.0-rc.1.`,
-    );
+      `"${value}" is not a version. Expected something like v2.0.0 or 2.1.0-rc.1.`
+    )
   }
 
-  return value.startsWith("v") ? value : `v${value}`;
+  return value.startsWith('v') ? value : `v${value}`
 }
 
 function template(version: string, title: string | undefined): string {
-  const heading = title ? `${version} — ${title}` : version;
+  const heading = title ? `${version} — ${title}` : version
 
   return `# ${heading}
 
@@ -108,5 +111,5 @@ function template(version: string, title: string | undefined): string {
 
 <!-- What this release does not do, and why. Prevents the same issue being
      filed three times. -->
-`;
+`
 }

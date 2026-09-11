@@ -11,21 +11,21 @@
  * See ../../docs/ARCHITECTURE.md.
  */
 
-export { InspectorBridge } from "./bridge";
-export type { InspectorBridgeOptions } from "./bridge";
+export { InspectorBridge } from './bridge'
+export type { InspectorBridgeOptions } from './bridge'
 
-export { selectEntries } from "./entries";
+export { selectEntries } from './entries'
 
-export { connectTypeFetch } from "./connect-typefetch";
-export type { TypeFetchLike } from "./connect-typefetch";
+export { connectTypeFetch } from './connect-typefetch'
+export type { TypeFetchLike } from './connect-typefetch'
 
-export { connectTypeSocket } from "./connect-typesocket";
-export type { TypeSocketLike } from "./connect-typesocket";
+export { connectTypeSocket } from './connect-typesocket'
+export type { TypeSocketLike } from './connect-typesocket'
 
-export { QueryInspector } from "./query-inspector";
-export type { QueryInspectorOptions } from "./query-inspector";
+export { QueryInspector } from './query-inspector'
+export type { QueryInspectorOptions } from './query-inspector'
 
-export { connectQueryClient } from "./connect-query";
+export { connectQueryClient } from './connect-query'
 
 export type {
   InspectorEntry,
@@ -49,4 +49,4 @@ export type {
   TypeFetchRequestEvent,
   TypeSocketEvent,
   TypeSocketOverride,
-} from "./types";
+} from './types'

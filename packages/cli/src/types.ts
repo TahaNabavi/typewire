@@ -1,84 +1,79 @@
-import type { Contracts, RequestOptions } from "@tahanabavi/typefetch";
+import type { Contracts, RequestOptions } from '@tahanabavi/typefetch'
 import type {
   ApiTestMode,
   ApiTestReportFormat,
   ApiTestRunnerOptions,
-} from "@tahanabavi/typefetch";
+} from '@tahanabavi/typefetch'
 
 export type TypeFetchCliCommand =
-  | "test"
-  | "list"
-  | "init"
-  | "release-doc"
-  | "help"
-  | "version";
+  'test' | 'list' | 'init' | 'release-doc' | 'help' | 'version'
 
 export type ParsedCliArgs = {
-  command: TypeFetchCliCommand;
-  flags: Record<string, string | boolean | string[]>;
-  positionals: string[];
-  raw: string[];
-};
+  command: TypeFetchCliCommand
+  flags: Record<string, string | boolean | string[]>
+  positionals: string[]
+  raw: string[]
+}
 
 export type TypeFetchClientLike = {
-  init?: () => void;
+  init?: () => void
   modules: Record<
     string,
     Record<string, (input: any, options?: RequestOptions) => Promise<any>>
-  >;
-};
+  >
+}
 
 export type TypeFetchCreateClientOptions = {
-  baseUrl?: string;
-  token?: string;
-};
+  baseUrl?: string
+  token?: string
+}
 
 export type TypeFetchReportConfig = {
   /** Path base or full file path. Examples: ./typefetch-report/report or ./typefetch-report/report.md */
-  output?: string;
-  formats?: ApiTestReportFormat[];
-};
+  output?: string
+  formats?: ApiTestReportFormat[]
+}
 
 export type TypeFetchCliTestConfig<C extends Contracts = Contracts> = {
-  contracts: C;
+  contracts: C
 
   /** Use client for simple projects. */
-  client?: TypeFetchClientLike;
+  client?: TypeFetchClientLike
 
   /** Prefer createClient when you want CLI flags like --base-url and --token to work. */
   createClient?: (
-    options: TypeFetchCreateClientOptions,
-  ) => TypeFetchClientLike | Promise<TypeFetchClientLike>;
+    options: TypeFetchCreateClientOptions
+  ) => TypeFetchClientLike | Promise<TypeFetchClientLike>
 
-  options?: ApiTestRunnerOptions;
-  context?: Record<string, unknown>;
-  report?: TypeFetchReportConfig;
-};
+  options?: ApiTestRunnerOptions
+  context?: Record<string, unknown>
+  report?: TypeFetchReportConfig
+}
 
 export type CliResolvedOptions = {
-  mode?: ApiTestMode;
-  baseUrl?: string;
-  token?: string;
-  timeout?: number;
-  includeTags?: string[];
-  excludeTags?: string[];
-  includeDestructive?: boolean;
-  stopOnFail?: boolean;
-  output?: string;
-  formats?: ApiTestReportFormat[];
-  config?: string;
-};
+  mode?: ApiTestMode
+  baseUrl?: string
+  token?: string
+  timeout?: number
+  includeTags?: string[]
+  excludeTags?: string[]
+  includeDestructive?: boolean
+  stopOnFail?: boolean
+  output?: string
+  formats?: ApiTestReportFormat[]
+  config?: string
+}
 
 export type InitCommandOptions = {
-  force?: boolean;
+  force?: boolean
   /** Point at contracts that already exist instead of generating an example. */
-  contractsPath?: string;
-  output?: string;
-};
+  contractsPath?: string
+  output?: string
+}
 
 export type ReleaseDocCommandOptions = {
-  force?: boolean;
-  version?: string;
-  outputDir?: string;
-  title?: string;
-};
+  force?: boolean
+  version?: string
+  outputDir?: string
+  title?: string
+}

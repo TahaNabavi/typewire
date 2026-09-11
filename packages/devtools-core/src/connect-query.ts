@@ -1,7 +1,7 @@
-import { QueryInspector, type QueryInspectorOptions } from "./query-inspector";
-import type { QueryClientLike } from "./types";
+import { QueryInspector, type QueryInspectorOptions } from './query-inspector'
+import type { QueryClientLike } from './types'
 
-export type { QueryClientLike } from "./types";
+export type { QueryClientLike } from './types'
 
 /**
  * Mirror a `QueryClient`'s cache into a `QueryInspector` the panel can render.
@@ -18,9 +18,9 @@ export type { QueryClientLike } from "./types";
  */
 export function connectQueryClient(
   client: QueryClientLike,
-  options?: QueryInspectorOptions,
+  options?: QueryInspectorOptions
 ): QueryInspector {
-  const inspector = new QueryInspector(client, options);
-  inspector.connect();
-  return inspector;
+  const inspector = new QueryInspector(client, options)
+  inspector.connect()
+  return inspector
 }
