@@ -1,6 +1,6 @@
-import { InternalServerErrorException, StreamableFile } from "@nestjs/common";
-import type { EndpointDefZ, ResponseType } from "@tahanabavi/typefetch";
-import type { Readable } from "stream";
+import { InternalServerErrorException, StreamableFile } from '@nestjs/common'
+import type { EndpointDefZ, ResponseType } from '@tahanabavi/typefetch'
+import type { Readable } from 'stream'
 
 /**
  * Serving a contract's `responseType`
@@ -26,22 +26,22 @@ import type { Readable } from "stream";
 
 /** The response types whose value is a browser artifact, not a server one. */
 const OPAQUE_RESPONSE_TYPES = new Set<ResponseType>([
-  "blob",
-  "arrayBuffer",
-  "formData",
-  "file",
-  "stream",
-  "response",
-]);
+  'blob',
+  'arrayBuffer',
+  'formData',
+  'file',
+  'stream',
+  'response',
+])
 
 /** Response types that must be sent as bytes rather than serialised. */
 const BINARY_RESPONSE_TYPES = new Set<ResponseType>([
-  "blob",
-  "arrayBuffer",
-  "formData",
-  "file",
-  "stream",
-]);
+  'blob',
+  'arrayBuffer',
+  'formData',
+  'file',
+  'stream',
+])
 
 /**
  * Headers a cross-origin client needs to see for a contract response to decode
@@ -57,42 +57,42 @@ const BINARY_RESPONSE_TYPES = new Set<ResponseType>([
  * ```
  */
 export const CONTRACT_EXPOSED_HEADERS = [
-  "Content-Disposition",
-  "Content-Length",
-] as const;
+  'Content-Disposition',
+  'Content-Length',
+] as const
 
-const CONTRACT_FILE = Symbol.for("typewire:contractFile");
+const CONTRACT_FILE = Symbol.for('typewire:contractFile')
 
 /** What a handler may hand to {@link contractFile}. */
-export type ContractFileBody = Buffer | Uint8Array | ArrayBuffer | Readable;
+export type ContractFileBody = Buffer | Uint8Array | ArrayBuffer | Readable
 
 export type ContractFileOptions = {
   /**
    * The download name. Sent in both RFC 6266 spellings, so a client reading
    * either gets the same value and a non-ASCII name survives the trip.
    */
-  filename?: string;
+  filename?: string
   /** Defaults to `application/octet-stream`. */
-  contentType?: string;
+  contentType?: string
   /**
    * Byte length, for streams. Buffers report their own, and sending it is what
    * makes the client's download progress `lengthComputable` instead of an
    * indeterminate spinner.
    */
-  length?: number;
+  length?: number
   /**
    * `"attachment"` (default) prompts a download; `"inline"` renders in place.
    * Only meaningful alongside `filename`.
    */
-  disposition?: "attachment" | "inline";
-};
+  disposition?: 'attachment' | 'inline'
+}
 
 /** The marker a handler returns for a non-JSON contract response. */
 export type ContractFileResponse = {
-  readonly [CONTRACT_FILE]: true;
-  readonly body: ContractFileBody;
-  readonly options: ContractFileOptions;
-};
+  readonly [CONTRACT_FILE]: true
+  readonly body: ContractFileBody
+  readonly options: ContractFileOptions
+}
 
 /**
  * Return bytes from a handler bound to a non-JSON `responseType`, together with
@@ -114,21 +114,21 @@ export type ContractFileResponse = {
  */
 export function contractFile(
   body: ContractFileBody,
-  options: ContractFileOptions = {},
+  options: ContractFileOptions = {}
 ): ContractFileResponse {
-  return { [CONTRACT_FILE]: true, body, options };
+  return { [CONTRACT_FILE]: true, body, options }
 }
 
 export function isContractFile(value: unknown): value is ContractFileResponse {
   return (
-    typeof value === "object" &&
+    typeof value === 'object' &&
     value !== null &&
     (value as Record<symbol, unknown>)[CONTRACT_FILE] === true
-  );
+  )
 }
 
 export function responseTypeOf(endpoint: EndpointDefZ): ResponseType {
-  return endpoint.responseType ?? "json";
+  return endpoint.responseType ?? 'json'
 }
 
 /**
@@ -137,7 +137,7 @@ export function responseTypeOf(endpoint: EndpointDefZ): ResponseType {
  * describe a value that exists on this side of the wire.
  */
 export function validatesResponse(endpoint: EndpointDefZ): boolean {
-  return !OPAQUE_RESPONSE_TYPES.has(responseTypeOf(endpoint));
+  return !OPAQUE_RESPONSE_TYPES.has(responseTypeOf(endpoint))
 }
 
 /**
@@ -151,28 +151,28 @@ export function validatesResponse(endpoint: EndpointDefZ): boolean {
 export function shapeContractResponse(
   endpoint: EndpointDefZ,
   value: unknown,
-  response: unknown,
+  response: unknown
 ): unknown {
-  const responseType = responseTypeOf(endpoint);
+  const responseType = responseTypeOf(endpoint)
 
-  if (value === undefined) return value;
+  if (value === undefined) return value
 
-  if (responseType === "text") {
+  if (responseType === 'text') {
     // Express answers a string with `text/html`, which is both wrong and a
     // stored-XSS foot-gun the moment the string came from user input.
-    setHeaderIfAbsent(response, "Content-Type", "text/plain; charset=utf-8");
-    return value;
+    setHeaderIfAbsent(response, 'Content-Type', 'text/plain; charset=utf-8')
+    return value
   }
 
   // `"response"` hands the whole `Response` to the caller: the contract has
   // deliberately said nothing about the body, so neither does this.
-  if (!BINARY_RESPONSE_TYPES.has(responseType)) return value;
+  if (!BINARY_RESPONSE_TYPES.has(responseType)) return value
 
   const file = isContractFile(value)
     ? value
     : isBinary(value)
       ? contractFile(value as ContractFileBody)
-      : undefined;
+      : undefined
 
   if (!file) {
     throw new InternalServerErrorException({
@@ -180,13 +180,13 @@ export function shapeContractResponse(
         `Endpoint declares responseType: "${responseType}" but the handler ` +
         `returned ${describeValue(value)}. Return a Buffer, a Readable, or ` +
         `contractFile(body, { filename, contentType }).`,
-      code: "RESPONSE_TYPE_MISMATCH",
-    });
+      code: 'RESPONSE_TYPE_MISMATCH',
+    })
   }
 
-  exposeContractHeaders(response);
+  exposeContractHeaders(response)
 
-  const body = normalizeBody(file.body);
+  const body = normalizeBody(file.body)
 
   return new StreamableFile(body as Uint8Array & Readable, {
     type: file.options.contentType ?? defaultContentType(responseType),
@@ -195,18 +195,18 @@ export function shapeContractResponse(
       ? {
           disposition: contentDisposition(
             file.options.filename,
-            file.options.disposition ?? "attachment",
+            file.options.disposition ?? 'attachment'
           ),
         }
       : {}),
-  });
+  })
 }
 
 /** `StreamableFile` takes bytes or a stream; an `ArrayBuffer` is neither. */
 function normalizeBody(body: ContractFileBody): Uint8Array | Readable {
   return body instanceof ArrayBuffer
     ? new Uint8Array(body)
-    : (body as Uint8Array | Readable);
+    : (body as Uint8Array | Readable)
 }
 
 /**
@@ -221,73 +221,73 @@ function normalizeBody(body: ContractFileBody): Uint8Array | Readable {
  */
 export function contentDisposition(
   filename: string,
-  type: "attachment" | "inline",
+  type: 'attachment' | 'inline'
 ): string {
-  const base = filename.split(/[\\/]/).pop() ?? filename;
+  const base = filename.split(/[\\/]/).pop() ?? filename
   // Keep printable ASCII only, minus the two characters that would let a
   // filename close the quoted parameter and inject one of its own. The
   // extended form below carries the real name, so nothing is lost.
   const ascii = Array.from(base)
     .filter((char) => {
-      const code = char.charCodeAt(0);
-      return code >= 0x20 && code <= 0x7e && code !== 0x22 && code !== 0x5c;
+      const code = char.charCodeAt(0)
+      return code >= 0x20 && code <= 0x7e && code !== 0x22 && code !== 0x5c
     })
-    .join("")
-    .trim();
-  const fallback = ascii || "download";
+    .join('')
+    .trim()
+  const fallback = ascii || 'download'
 
   return (
     `${type}; filename="${fallback}"; ` +
     `filename*=UTF-8''${encodeURIComponent(base)}`
-  );
+  )
 }
 
 /** `blob`/`file`/`stream` carry no declared media type; octet-stream is the honest default. */
 function defaultContentType(responseType: ResponseType): string {
-  return responseType === "formData"
-    ? "multipart/form-data"
-    : "application/octet-stream";
+  return responseType === 'formData'
+    ? 'multipart/form-data'
+    : 'application/octet-stream'
 }
 
 function isBinary(value: unknown): boolean {
-  if (typeof Buffer !== "undefined" && Buffer.isBuffer(value)) return true;
-  if (value instanceof Uint8Array) return true;
-  return isReadable(value);
+  if (typeof Buffer !== 'undefined' && Buffer.isBuffer(value)) return true
+  if (value instanceof Uint8Array) return true
+  return isReadable(value)
 }
 
 function isReadable(value: unknown): boolean {
   return (
-    typeof value === "object" &&
+    typeof value === 'object' &&
     value !== null &&
-    typeof (value as { pipe?: unknown }).pipe === "function" &&
-    typeof (value as { read?: unknown }).read === "function"
-  );
+    typeof (value as { pipe?: unknown }).pipe === 'function' &&
+    typeof (value as { read?: unknown }).read === 'function'
+  )
 }
 
 function byteLengthOf(body: ContractFileBody): number | undefined {
-  if (typeof Buffer !== "undefined" && Buffer.isBuffer(body)) return body.length;
-  if (body instanceof Uint8Array) return body.byteLength;
+  if (typeof Buffer !== 'undefined' && Buffer.isBuffer(body)) return body.length
+  if (body instanceof Uint8Array) return body.byteLength
   // A stream's length is unknowable here; the caller supplies it or the client
   // falls back to an indeterminate progress indicator.
-  return undefined;
+  return undefined
 }
 
 function describeValue(value: unknown): string {
-  if (value === null) return "null";
-  if (Array.isArray(value)) return "an array";
-  const type = typeof value;
-  return type === "object"
-    ? `a plain ${(value as object).constructor?.name ?? "object"}`
-    : `a ${type}`;
+  if (value === null) return 'null'
+  if (Array.isArray(value)) return 'an array'
+  const type = typeof value
+  return type === 'object'
+    ? `a plain ${(value as object).constructor?.name ?? 'object'}`
+    : `a ${type}`
 }
 
 function setHeaderIfAbsent(response: any, name: string, value: string): void {
-  if (!response || typeof response.setHeader !== "function") return;
-  if (typeof response.getHeader === "function" && response.getHeader(name)) {
-    return;
+  if (!response || typeof response.setHeader !== 'function') return
+  if (typeof response.getHeader === 'function' && response.getHeader(name)) {
+    return
   }
   try {
-    response.setHeader(name, value);
+    response.setHeader(name, value)
   } catch {
     /* headers already sent — the handler owns the response */
   }
@@ -299,26 +299,26 @@ function setHeaderIfAbsent(response: any, name: string, value: string): void {
  * header is inert, which is why it is safe to set unconditionally.
  */
 function exposeContractHeaders(response: any): void {
-  if (!response || typeof response.setHeader !== "function") return;
+  if (!response || typeof response.setHeader !== 'function') return
 
-  const header = "Access-Control-Expose-Headers";
+  const header = 'Access-Control-Expose-Headers'
   const current =
-    typeof response.getHeader === "function" ? response.getHeader(header) : "";
+    typeof response.getHeader === 'function' ? response.getHeader(header) : ''
 
-  const existing = String(current ?? "")
-    .split(",")
+  const existing = String(current ?? '')
+    .split(',')
     .map((part) => part.trim())
-    .filter(Boolean);
+    .filter(Boolean)
 
-  const merged = [...existing];
+  const merged = [...existing]
   for (const name of CONTRACT_EXPOSED_HEADERS) {
     if (!merged.some((value) => value.toLowerCase() === name.toLowerCase())) {
-      merged.push(name);
+      merged.push(name)
     }
   }
 
   try {
-    response.setHeader(header, merged.join(", "));
+    response.setHeader(header, merged.join(', '))
   } catch {
     /* headers already sent — the handler owns the response */
   }

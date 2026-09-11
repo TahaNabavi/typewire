@@ -1,15 +1,8 @@
-import {
-  applyDecorators,
-  Delete,
-  Get,
-  Patch,
-  Post,
-  Put,
-} from "@nestjs/common";
-import type { EndpointDefZ, Method } from "@tahanabavi/typefetch";
-import { assertTransport } from "../transport";
-import type { ContractEndpointOptions } from "../types";
-import { UseContract } from "./use-contract.decorator";
+import { applyDecorators, Delete, Get, Patch, Post, Put } from '@nestjs/common'
+import type { EndpointDefZ, Method } from '@tahanabavi/typefetch'
+import { assertTransport } from '../transport'
+import type { ContractEndpointOptions } from '../types'
+import { UseContract } from './use-contract.decorator'
 
 const METHOD_DECORATORS: Record<
   Method,
@@ -20,7 +13,7 @@ const METHOD_DECORATORS: Record<
   PUT: Put,
   PATCH: Patch,
   DELETE: Delete,
-};
+}
 
 /**
  * Bind a handler to a contract endpoint: the HTTP method and path are taken
@@ -50,19 +43,19 @@ const METHOD_DECORATORS: Record<
  */
 export function TypeFetchEndpoint(
   endpoint: EndpointDefZ,
-  options: ContractEndpointOptions = {},
+  options: ContractEndpointOptions = {}
 ): MethodDecorator {
-  assertTransport(endpoint, "http", "@TypeFetchEndpoint()");
+  assertTransport(endpoint, 'http', '@TypeFetchEndpoint()')
 
-  const routeDecorator = METHOD_DECORATORS[endpoint.method];
+  const routeDecorator = METHOD_DECORATORS[endpoint.method]
   if (!routeDecorator) {
     throw new Error(
-      `[typewire-nestjs] Unsupported HTTP method "${endpoint.method}" on contract path "${endpoint.path}"`,
-    );
+      `[typewire-nestjs] Unsupported HTTP method "${endpoint.method}" on contract path "${endpoint.path}"`
+    )
   }
 
   return applyDecorators(
     routeDecorator(endpoint.path),
-    UseContract(endpoint, options),
-  );
+    UseContract(endpoint, options)
+  )
 }

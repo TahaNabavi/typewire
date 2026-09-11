@@ -1,4 +1,4 @@
-import type { AnyQuerySource } from "./types";
+import type { AnyQuerySource } from './types'
 
 /**
  * Read the cross-package `"module.member"` key off a source.
@@ -11,23 +11,23 @@ import type { AnyQuerySource } from "./types";
 export function resolveSourceId(source: AnyQuerySource): string {
   const id =
     (source as { endpointId?: unknown }).endpointId ??
-    (source as { eventId?: unknown }).eventId;
-  if (typeof id !== "string" || id.length === 0) {
+    (source as { eventId?: unknown }).eventId
+  if (typeof id !== 'string' || id.length === 0) {
     throw new TypeError(
-      "Query source is missing a string `endpointId` (typefetch) or `eventId` " +
-        "(typesocket). Pass a generated client member, not a bare function.",
-    );
+      'Query source is missing a string `endpointId` (typefetch) or `eventId` ' +
+        '(typesocket). Pass a generated client member, not a bare function.'
+    )
   }
-  return id;
+  return id
 }
 
 /** Whether a value is a callable source carrying a usable id. */
 export function hasSourceId(value: unknown): value is AnyQuerySource {
-  if (typeof value !== "function") return false;
+  if (typeof value !== 'function') return false
   const id =
     (value as { endpointId?: unknown }).endpointId ??
-    (value as { eventId?: unknown }).eventId;
-  return typeof id === "string" && id.length > 0;
+    (value as { eventId?: unknown }).eventId
+  return typeof id === 'string' && id.length > 0
 }
 
 /**
@@ -46,16 +46,16 @@ export function hasSourceId(value: unknown): value is AnyQuerySource {
 export function collectSources(
   ...trees: unknown[]
 ): Record<string, AnyQuerySource> {
-  const out: Record<string, AnyQuerySource> = {};
+  const out: Record<string, AnyQuerySource> = {}
   const visit = (node: unknown): void => {
     if (hasSourceId(node)) {
-      out[resolveSourceId(node)] = node;
-      return;
+      out[resolveSourceId(node)] = node
+      return
     }
-    if (node && typeof node === "object") {
-      for (const value of Object.values(node)) visit(value);
+    if (node && typeof node === 'object') {
+      for (const value of Object.values(node)) visit(value)
     }
-  };
-  for (const tree of trees) visit(tree);
-  return out;
+  }
+  for (const tree of trees) visit(tree)
+  return out
 }

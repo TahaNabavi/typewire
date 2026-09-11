@@ -7,13 +7,13 @@
  * encode one.
  */
 export const PATHS = {
-  ROOT: "/",
-  DOCS: "/docs",
+  ROOT: '/',
+  DOCS: '/docs',
   DOCS_PACKAGE: (slug: string) => `/docs/${slug}`,
   DOCS_PAGE: (slug: string, page: string) => `/docs/${slug}/${page}`,
-  PACKAGES: "/packages",
+  PACKAGES: '/packages',
   PACKAGE: (slug: string) => `/packages/${slug}`,
-  EXAMPLES: "/examples",
-  PLAYGROUND: "/playground",
-  ROADMAP: "/roadmap",
-} as const;
+  EXAMPLES: '/examples',
+  PLAYGROUND: '/playground',
+  ROADMAP: '/roadmap',
+} as const

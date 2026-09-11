@@ -90,7 +90,7 @@
 
   ```ts
   export default defineConfig({
-    lint: { rules: { "path-params-declared": "error" } }, // shared default
+    lint: { rules: { 'path-params-declared': 'error' } }, // shared default
 
     projects: {
       dashboard: {
@@ -101,12 +101,12 @@
           contracts: adminContracts,
           createClient: createAdminClient,
         },
-        lint: { rules: { "duplicate-id": "off" } }, // merged over the shared rules
-        diff: { baseline: "admin.lock.json" }, // its own snapshot
+        lint: { rules: { 'duplicate-id': 'off' } }, // merged over the shared rules
+        diff: { baseline: 'admin.lock.json' }, // its own snapshot
       },
       landing: { typefetch: { contracts: landingContracts } }, // no client needed
     },
-  });
+  })
   ```
 
   One file rather than three, because the alternative is three configs, three

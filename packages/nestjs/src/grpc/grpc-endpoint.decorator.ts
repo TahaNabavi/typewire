@@ -4,13 +4,13 @@ import {
   UseFilters,
   UseInterceptors,
   applyDecorators,
-} from "@nestjs/common";
-import { UseContract } from "../decorators/use-contract.decorator";
-import { SkipEnvelope } from "../envelope/skip-envelope.decorator";
-import { assertTransport } from "../transport";
-import { ConnectExceptionFilter } from "./connect-exception.filter";
-import { ConnectDeadlineInterceptor } from "./deadline";
-import type { GrpcContractEndpoint, GrpcEndpointOptions } from "./types";
+} from '@nestjs/common'
+import { UseContract } from '../decorators/use-contract.decorator'
+import { SkipEnvelope } from '../envelope/skip-envelope.decorator'
+import { assertTransport } from '../transport'
+import { ConnectExceptionFilter } from './connect-exception.filter'
+import { ConnectDeadlineInterceptor } from './deadline'
+import type { GrpcContractEndpoint, GrpcEndpointOptions } from './types'
 
 /**
  * Bind a handler to a gRPC contract endpoint, served over **Connect's JSON
@@ -44,18 +44,18 @@ import type { GrpcContractEndpoint, GrpcEndpointOptions } from "./types";
  */
 export function GrpcEndpoint(
   endpoint: GrpcContractEndpoint,
-  options: GrpcEndpointOptions = {},
+  options: GrpcEndpointOptions = {}
 ): MethodDecorator {
-  assertTransport(endpoint, "grpc", "@GrpcEndpoint()");
+  assertTransport(endpoint, 'grpc', '@GrpcEndpoint()')
 
-  const service = options.service ?? endpoint.service;
+  const service = options.service ?? endpoint.service
 
   if (!service || !endpoint.rpc) {
     throw new Error(
       `[typewire-nestjs] A gRPC endpoint needs both \`service\` and \`rpc\` ` +
         `(got ${JSON.stringify(service)} / ${JSON.stringify(endpoint.rpc)}). ` +
-        `They are the route: POST /<service>/<rpc>.`,
-    );
+        `They are the route: POST /<service>/<rpc>.`
+    )
   }
 
   if (endpoint.codec) {
@@ -63,8 +63,8 @@ export function GrpcEndpoint(
       `[typewire-nestjs] "${service}/${endpoint.rpc}" declares a \`codec\`, ` +
         `which sends binary grpc-web. This package serves Connect's JSON ` +
         `protocol only — put a grpc-web proxy in front, or drop \`codec\` to ` +
-        `use JSON on both ends.`,
-    );
+        `use JSON on both ends.`
+    )
   }
 
   return applyDecorators(
@@ -76,6 +76,6 @@ export function GrpcEndpoint(
     SkipEnvelope(),
     UseFilters(ConnectExceptionFilter),
     UseInterceptors(ConnectDeadlineInterceptor),
-    UseContract(endpoint, options),
-  );
+    UseContract(endpoint, options)
+  )
 }

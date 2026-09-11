@@ -1,5 +1,5 @@
-import type { EncryptionMethod } from "@tahanabavi/typefetch";
-import type { CustomEncryptionHandlers, KeyMaterial } from "./types";
+import type { EncryptionMethod } from '@tahanabavi/typefetch'
+import type { CustomEncryptionHandlers, KeyMaterial } from './types'
 
 /**
  * Crypto primitives ported **verbatim** from the typefetch client's
@@ -8,125 +8,123 @@ import type { CustomEncryptionHandlers, KeyMaterial } from "./types";
  * are optional peers, required lazily only when encryption is actually used.
  */
 
-let cryptoJs: any;
-let forgeLib: any;
+let cryptoJs: any
+let forgeLib: any
 
 function getCryptoJs(): any {
   if (!cryptoJs) {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      cryptoJs = require("crypto-js");
+      cryptoJs = require('crypto-js') // eslint-disable-line @typescript-eslint/no-require-imports
     } catch {
       throw new Error(
-        "[typefetch-nestjs] contract encryption with AES/DES/Base64 requires " +
+        '[typefetch-nestjs] contract encryption with AES/DES/Base64 requires ' +
           "the optional peer dependency 'crypto-js'. Install it with " +
-          "`npm i crypto-js`.",
-      );
+          '`npm i crypto-js`.'
+      )
     }
   }
-  return cryptoJs;
+  return cryptoJs
 }
 
 function getForge(): any {
   if (!forgeLib) {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      forgeLib = require("node-forge");
+      forgeLib = require('node-forge') // eslint-disable-line @typescript-eslint/no-require-imports
     } catch {
       throw new Error(
-        "[typefetch-nestjs] contract encryption with RSA requires the optional " +
-          "peer dependency 'node-forge'. Install it with `npm i node-forge`.",
-      );
+        '[typefetch-nestjs] contract encryption with RSA requires the optional ' +
+          "peer dependency 'node-forge'. Install it with `npm i node-forge`."
+      )
     }
   }
-  return forgeLib;
+  return forgeLib
 }
 
 function encryptWithAES(value: string, key: string): string {
-  return getCryptoJs().AES.encrypt(value, key).toString();
+  return getCryptoJs().AES.encrypt(value, key).toString()
 }
 
 function decryptWithAES(value: string, key: string): string {
-  const CryptoJS = getCryptoJs();
-  return CryptoJS.AES.decrypt(value, key).toString(CryptoJS.enc.Utf8);
+  const CryptoJS = getCryptoJs()
+  return CryptoJS.AES.decrypt(value, key).toString(CryptoJS.enc.Utf8)
 }
 
 function encryptWithDES(value: string, key: string): string {
-  return getCryptoJs().DES.encrypt(value, key).toString();
+  return getCryptoJs().DES.encrypt(value, key).toString()
 }
 
 function decryptWithDES(value: string, key: string): string {
-  const CryptoJS = getCryptoJs();
-  return CryptoJS.DES.decrypt(value, key).toString(CryptoJS.enc.Utf8);
+  const CryptoJS = getCryptoJs()
+  return CryptoJS.DES.decrypt(value, key).toString(CryptoJS.enc.Utf8)
 }
 
 function encodeWithBase64(value: string): string {
-  const CryptoJS = getCryptoJs();
-  return CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(value));
+  const CryptoJS = getCryptoJs()
+  return CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(value))
 }
 
 function decodeWithBase64(value: string): string {
-  const CryptoJS = getCryptoJs();
-  return CryptoJS.enc.Base64.parse(value).toString(CryptoJS.enc.Utf8);
+  const CryptoJS = getCryptoJs()
+  return CryptoJS.enc.Base64.parse(value).toString(CryptoJS.enc.Utf8)
 }
 
 function encryptWithRSA(value: string, publicKey: string): string {
-  const forge = getForge();
-  const publicKeyObject = forge.pki.publicKeyFromPem(publicKey);
+  const forge = getForge()
+  const publicKeyObject = forge.pki.publicKeyFromPem(publicKey)
   const encrypted = publicKeyObject.encrypt(
     forge.util.encodeUtf8(value),
-    "RSA-OAEP",
-  );
-  return forge.util.encode64(encrypted);
+    'RSA-OAEP'
+  )
+  return forge.util.encode64(encrypted)
 }
 
 function decryptWithRSA(value: string, privateKey: string): string {
-  const forge = getForge();
-  const privateKeyObject = forge.pki.privateKeyFromPem(privateKey);
+  const forge = getForge()
+  const privateKeyObject = forge.pki.privateKeyFromPem(privateKey)
   const decrypted = privateKeyObject.decrypt(
     forge.util.decode64(value),
-    "RSA-OAEP",
-  );
-  return forge.util.decodeUtf8(decrypted);
+    'RSA-OAEP'
+  )
+  return forge.util.decodeUtf8(decrypted)
 }
 
 export async function encryptValue(
   value: string,
   method: EncryptionMethod,
   keyMaterial: KeyMaterial,
-  customHandlers?: CustomEncryptionHandlers,
+  customHandlers?: CustomEncryptionHandlers
 ): Promise<string> {
   switch (method) {
-    case "AES":
-      if (keyMaterial.type !== "symmetric") {
-        throw new Error("AES encryption requires symmetric key material.");
+    case 'AES':
+      if (keyMaterial.type !== 'symmetric') {
+        throw new Error('AES encryption requires symmetric key material.')
       }
-      return encryptWithAES(value, keyMaterial.key);
+      return encryptWithAES(value, keyMaterial.key)
 
-    case "DES":
-      if (keyMaterial.type !== "symmetric") {
-        throw new Error("DES encryption requires symmetric key material.");
+    case 'DES':
+      if (keyMaterial.type !== 'symmetric') {
+        throw new Error('DES encryption requires symmetric key material.')
       }
-      return encryptWithDES(value, keyMaterial.key);
+      return encryptWithDES(value, keyMaterial.key)
 
-    case "Base64":
-      return encodeWithBase64(value);
+    case 'Base64':
+      return encodeWithBase64(value)
 
-    case "RSA":
-      if (keyMaterial.type !== "rsa") {
-        throw new Error("RSA encryption requires RSA key material.");
+    case 'RSA':
+      if (keyMaterial.type !== 'rsa') {
+        throw new Error('RSA encryption requires RSA key material.')
       }
-      return encryptWithRSA(value, keyMaterial.publicKey);
+      return encryptWithRSA(value, keyMaterial.publicKey)
 
-    case "Custom":
+    case 'Custom':
       if (!customHandlers) {
-        throw new Error("Custom encryption requires custom handlers.");
+        throw new Error('Custom encryption requires custom handlers.')
       }
-      return await customHandlers.encrypt(value, keyMaterial);
+      return await customHandlers.encrypt(value, keyMaterial)
 
     default: {
-      const exhaustive: never = method;
-      throw new Error(`Unsupported encryption method: ${exhaustive}`);
+      const exhaustive: never = method
+      throw new Error(`Unsupported encryption method: ${exhaustive}`)
     }
   }
 }
@@ -135,39 +133,39 @@ export async function decryptValue(
   value: string,
   method: EncryptionMethod,
   keyMaterial: KeyMaterial,
-  customHandlers?: CustomEncryptionHandlers,
+  customHandlers?: CustomEncryptionHandlers
 ): Promise<string> {
   switch (method) {
-    case "AES":
-      if (keyMaterial.type !== "symmetric") {
-        throw new Error("AES decryption requires symmetric key material.");
+    case 'AES':
+      if (keyMaterial.type !== 'symmetric') {
+        throw new Error('AES decryption requires symmetric key material.')
       }
-      return decryptWithAES(value, keyMaterial.key);
+      return decryptWithAES(value, keyMaterial.key)
 
-    case "DES":
-      if (keyMaterial.type !== "symmetric") {
-        throw new Error("DES decryption requires symmetric key material.");
+    case 'DES':
+      if (keyMaterial.type !== 'symmetric') {
+        throw new Error('DES decryption requires symmetric key material.')
       }
-      return decryptWithDES(value, keyMaterial.key);
+      return decryptWithDES(value, keyMaterial.key)
 
-    case "Base64":
-      return decodeWithBase64(value);
+    case 'Base64':
+      return decodeWithBase64(value)
 
-    case "RSA":
-      if (keyMaterial.type !== "rsa") {
-        throw new Error("RSA decryption requires RSA key material.");
+    case 'RSA':
+      if (keyMaterial.type !== 'rsa') {
+        throw new Error('RSA decryption requires RSA key material.')
       }
-      return decryptWithRSA(value, keyMaterial.privateKey);
+      return decryptWithRSA(value, keyMaterial.privateKey)
 
-    case "Custom":
+    case 'Custom':
       if (!customHandlers) {
-        throw new Error("Custom decryption requires custom handlers.");
+        throw new Error('Custom decryption requires custom handlers.')
       }
-      return await customHandlers.decrypt(value, keyMaterial);
+      return await customHandlers.decrypt(value, keyMaterial)
 
     default: {
-      const exhaustive: never = method;
-      throw new Error(`Unsupported decryption method: ${exhaustive}`);
+      const exhaustive: never = method
+      throw new Error(`Unsupported decryption method: ${exhaustive}`)
     }
   }
 }

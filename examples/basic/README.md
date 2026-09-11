@@ -13,12 +13,12 @@ exits. No UI, no ports left open.
 
 ## What's here
 
-| File | Role |
-| --- | --- |
-| [`src/contracts.ts`](./src/contracts.ts) | The single source of truth. Three events, each tagged with its direction. |
-| [`src/server.ts`](./src/server.ts) | A plain socket.io server that reads its event names and schemas **off the contract**. |
-| [`src/client.ts`](./src/client.ts) | The typesocket client: listen, emit, ack, wait, instrument. |
-| [`src/main.ts`](./src/main.ts) | Boots one, runs the other, tears both down. |
+| File                                     | Role                                                                                  |
+| ---------------------------------------- | ------------------------------------------------------------------------------------- |
+| [`src/contracts.ts`](./src/contracts.ts) | The single source of truth. Three events, each tagged with its direction.             |
+| [`src/server.ts`](./src/server.ts)       | A plain socket.io server that reads its event names and schemas **off the contract**. |
+| [`src/client.ts`](./src/client.ts)       | The typesocket client: listen, emit, ack, wait, instrument.                           |
+| [`src/main.ts`](./src/main.ts)           | Boots one, runs the other, tears both down.                                           |
 
 ## The five things worth reading
 

@@ -1,32 +1,43 @@
-import Link from "next/link";
-import { notFound } from "next/navigation";
+import Link from 'next/link'
+import { notFound } from 'next/navigation'
 
-import { JsonLd } from "@/components/shared/json-ld";
-import { site } from "@/config/site";
-import { excerpt, renderMarkdown, stripReadmeChrome } from "@/features/docs/markdown";
-import { DocsShell } from "@/features/docs/shell";
-import { generatedAt, getDocPage, getPackage } from "@/lib/registry";
-import { breadcrumbSchema, docSchema, graph } from "@/lib/seo";
-import { PATHS } from "@/routes/paths";
+import { JsonLd } from '@/components/shared/json-ld'
+import { site } from '@/config/site'
+import {
+  excerpt,
+  renderMarkdown,
+  stripReadmeChrome,
+} from '@/features/docs/markdown'
+import { DocsShell } from '@/features/docs/shell'
+import { generatedAt, getDocPage, getPackage } from '@/lib/registry'
+import { breadcrumbSchema, docSchema, graph } from '@/lib/seo'
 
-export async function DocsPage({ pkgSlug, pageSlug }: { pkgSlug: string; pageSlug: string }) {
-  const pkg = getPackage(pkgSlug);
-  const page = pkg && getDocPage(pkg, pageSlug);
-  if (!pkg || !page) notFound();
+export async function DocsPage({
+  pkgSlug,
+  pageSlug,
+}: {
+  pkgSlug: string
+  pageSlug: string
+}) {
+  const pkg = getPackage(pkgSlug)
+  const page = pkg && getDocPage(pkg, pageSlug)
+  if (!pkg || !page) notFound()
 
   // A README opens with a banner and an H1 repeating the package name, both of
   // which the shell already renders above.
-  const markdown = page.isReadme ? stripReadmeChrome(page.markdown) : page.markdown;
-  const html = await renderMarkdown(markdown);
+  const markdown = page.isReadme
+    ? stripReadmeChrome(page.markdown)
+    : page.markdown
+  const html = await renderMarkdown(markdown)
 
   // The same sentence generateMetadata puts in the description, so the page and
   // its structured data never disagree about what the page is.
-  const description = excerpt(page.markdown) ?? pkg.description;
+  const description = excerpt(page.markdown) ?? pkg.description
 
-  const pages = pkg.docs?.pages ?? [];
-  const index = pages.findIndex((p) => p.slug === page.slug);
-  const previous = index > 0 ? pages[index - 1] : null;
-  const next = index >= 0 && index < pages.length - 1 ? pages[index + 1] : null;
+  const pages = pkg.docs?.pages ?? []
+  const index = pages.findIndex((p) => p.slug === page.slug)
+  const previous = index > 0 ? pages[index - 1] : null
+  const next = index >= 0 && index < pages.length - 1 ? pages[index + 1] : null
 
   return (
     <DocsShell pkg={pkg} activeSlug={page.slug} headings={page.headings}>
@@ -34,11 +45,11 @@ export async function DocsPage({ pkgSlug, pageSlug }: { pkgSlug: string; pageSlu
         data={graph(
           docSchema(pkg, page, description, generatedAt),
           breadcrumbSchema([
-            { name: "TypeWire", path: "/" },
-            { name: "Docs", path: "/docs" },
+            { name: 'TypeWire', path: '/' },
+            { name: 'Docs', path: '/docs' },
             { name: pkg.short, path: `/docs/${pkg.slug}` },
             { name: page.title, path: `/docs/${pkg.slug}/${page.slug}` },
-          ]),
+          ])
         )}
       />
 
@@ -72,7 +83,7 @@ export async function DocsPage({ pkgSlug, pageSlug }: { pkgSlug: string; pageSlu
         </div>
 
         <p className="mt-6 font-mono text-[11px] text-dim">
-          Rendered from{" "}
+          Rendered from{' '}
           <a
             href={`${site.repo.url}/blob/${site.repo.branch}/${page.path}`}
             target="_blank"
@@ -80,10 +91,10 @@ export async function DocsPage({ pkgSlug, pageSlug }: { pkgSlug: string; pageSlu
             className="text-blue hover:underline"
           >
             {page.path}
-          </a>{" "}
+          </a>{' '}
           — edit that file and this page follows.
         </p>
       </footer>
     </DocsShell>
-  );
+  )
 }

@@ -1,14 +1,14 @@
-import "reflect-metadata";
+import 'reflect-metadata'
 import {
   Controller,
   Get,
   INestApplication,
   NotFoundException,
-} from "@nestjs/common";
-import { Test } from "@nestjs/testing";
-import type { Contracts } from "@tahanabavi/typefetch";
-import request from "supertest";
-import { z } from "zod";
+} from '@nestjs/common'
+import { Test } from '@nestjs/testing'
+import type { Contracts } from '@tahanabavi/typefetch'
+import request from 'supertest'
+import { z } from 'zod'
 import {
   ContractInput,
   InferRequest,
@@ -16,78 +16,80 @@ import {
   SkipEnvelope,
   TypeFetchEndpoint,
   TypeFetchModule,
-} from "../index";
+} from '../index'
 
 const contracts = {
   user: {
     getUser: {
-      method: "GET",
-      path: "/users/:id",
+      method: 'GET',
+      path: '/users/:id',
       request: z.object({ path: z.object({ id: z.string() }) }),
       response: z.object({ id: z.string(), name: z.string() }),
     },
     createUser: {
-      method: "POST",
-      path: "/users",
+      method: 'POST',
+      path: '/users',
       request: z.object({ body: z.object({ name: z.string().min(2) }) }),
       response: z.object({ id: z.string(), name: z.string() }),
     },
   },
   broken: {
     badResponse: {
-      method: "GET",
-      path: "/broken",
+      method: 'GET',
+      path: '/broken',
       request: z.object({}),
       response: z.object({ mustExist: z.string() }),
     },
   },
-} as const satisfies Contracts;
+} as const satisfies Contracts
 
-type GetUser = typeof contracts.user.getUser;
-type CreateUser = typeof contracts.user.createUser;
+type GetUser = typeof contracts.user.getUser
+type CreateUser = typeof contracts.user.createUser
 
 @Controller()
 class AppController {
   @TypeFetchEndpoint(contracts.user.getUser)
-  getUser(@ContractInput() input: InferRequest<GetUser>): InferResponse<GetUser> {
-    return { id: input.path.id, name: "Taha" };
+  getUser(
+    @ContractInput() input: InferRequest<GetUser>
+  ): InferResponse<GetUser> {
+    return { id: input.path.id, name: 'Taha' }
   }
 
   @TypeFetchEndpoint(contracts.user.createUser)
   createUser(
-    @ContractInput() input: InferRequest<CreateUser>,
+    @ContractInput() input: InferRequest<CreateUser>
   ): InferResponse<CreateUser> {
-    return { id: "u-1", name: input.body.name };
+    return { id: 'u-1', name: input.body.name }
   }
 
   @TypeFetchEndpoint(contracts.broken.badResponse)
   broken() {
-    return { wrong: "shape" } as any;
+    return { wrong: 'shape' } as any
   }
 
   // A route whose body shape belongs to someone else — a load balancer's
   // health probe, a webhook receipt, an OAuth callback.
-  @Get("healthz")
+  @Get('healthz')
   @SkipEnvelope()
   healthz() {
-    return { status: "ok" };
+    return { status: 'ok' }
   }
 
-  @Get("healthz/fail")
+  @Get('healthz/fail')
   @SkipEnvelope()
   healthzFail(): never {
-    throw new NotFoundException("probe target missing");
+    throw new NotFoundException('probe target missing')
   }
 
   // a plain, non-contract route: the envelope must wrap it too
-  @Get("ping")
+  @Get('ping')
   ping() {
-    return { pong: true };
+    return { pong: true }
   }
 
-  @Get("missing")
+  @Get('missing')
   missing() {
-    throw new NotFoundException("no such thing");
+    throw new NotFoundException('no such thing')
   }
 }
 
@@ -96,76 +98,80 @@ const clientWrapper = (successResponse: z.ZodTypeAny) =>
   z.union([
     z.object({ success: z.literal(true), data: successResponse }),
     z.object({ success: z.literal(false), message: z.string() }),
-  ]);
+  ])
 
-describe("response envelope (e2e)", () => {
-  let app: INestApplication;
+describe('response envelope (e2e)', () => {
+  let app: INestApplication
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [TypeFetchModule.forRoot({ envelope: true })],
       controllers: [AppController],
-    }).compile();
-    app = moduleRef.createNestApplication({ logger: false });
-    await app.init();
-  });
+    }).compile()
+    app = moduleRef.createNestApplication({ logger: false })
+    await app.init()
+  })
 
   afterAll(async () => {
-    await app.close();
-  });
+    await app.close()
+  })
 
-  const http = () => request(app.getHttpServer());
+  const http = () => request(app.getHttpServer())
 
-  it("wraps a successful contract response in { success: true, data }", async () => {
-    const res = await http().get("/users/42").expect(200);
+  it('wraps a successful contract response in { success: true, data }', async () => {
+    const res = await http().get('/users/42').expect(200)
     expect(res.body).toEqual({
       success: true,
-      data: { id: "42", name: "Taha" },
-    });
-  });
+      data: { id: '42', name: 'Taha' },
+    })
+  })
 
   it("produces output the client's own wrapper schema can parse & unwrap", async () => {
-    const res = await http().get("/users/42").expect(200);
+    const res = await http().get('/users/42').expect(200)
 
     // This is the whole point: the frontend wrapper parses the backend body.
-    const parsed = clientWrapper(contracts.user.getUser.response).parse(res.body);
-    expect(parsed.success).toBe(true);
+    const parsed = clientWrapper(contracts.user.getUser.response).parse(
+      res.body
+    )
+    expect(parsed.success).toBe(true)
     if (parsed.success) {
-      expect(parsed.data).toEqual({ id: "42", name: "Taha" });
+      expect(parsed.data).toEqual({ id: '42', name: 'Taha' })
     }
-  });
+  })
 
-  it("wraps validation errors into the { success: false } branch (status preserved)", async () => {
-    const res = await http().post("/users").send({ name: "x" }).expect(400);
-    expect(res.body.success).toBe(false);
-    expect(res.body.message).toBe("Request validation failed");
-    expect(res.body.code).toBe("VALIDATION_ERROR");
-    expect(res.body.errors["body.name"]).toBeDefined();
+  it('wraps validation errors into the { success: false } branch (status preserved)', async () => {
+    const res = await http().post('/users').send({ name: 'x' }).expect(400)
+    expect(res.body.success).toBe(false)
+    expect(res.body.message).toBe('Request validation failed')
+    expect(res.body.code).toBe('VALIDATION_ERROR')
+    expect(res.body.errors['body.name']).toBeDefined()
 
     // the client wrapper accepts the failure branch
-    const parsed = clientWrapper(contracts.user.createUser.response).parse(res.body);
-    expect(parsed.success).toBe(false);
-  });
+    const parsed = clientWrapper(contracts.user.createUser.response).parse(
+      res.body
+    )
+    expect(parsed.success).toBe(false)
+  })
 
-  it("wraps response-contract violations (500) as a failure envelope", async () => {
-    const res = await http().get("/broken").expect(500);
-    expect(res.body.success).toBe(false);
-    expect(res.body.code).toBe("RESPONSE_CONTRACT_VIOLATION");
-  });
+  it('wraps response-contract violations (500) as a failure envelope', async () => {
+    const res = await http().get('/broken').expect(500)
+    expect(res.body.success).toBe(false)
+    expect(res.body.code).toBe('RESPONSE_CONTRACT_VIOLATION')
+  })
 
-  it("wraps ordinary Nest exceptions (404) into the envelope", async () => {
-    const res = await http().get("/missing").expect(404);
-    expect(res.body).toEqual({ success: false, message: "no such thing" });
-  });
+  it('wraps ordinary Nest exceptions (404) into the envelope', async () => {
+    const res = await http().get('/missing').expect(404)
+    expect(res.body).toEqual({ success: false, message: 'no such thing' })
+  })
 
-  it("wraps non-contract routes too (uniform API shape)", async () => {
-    const res = await http().get("/ping").expect(200);
-    expect(res.body).toEqual({ success: true, data: { pong: true } });
-  });
-});
+  it('wraps non-contract routes too (uniform API shape)', async () => {
+    const res = await http().get('/ping').expect(200)
+    expect(res.body).toEqual({ success: true, data: { pong: true } })
+  })
+})
 
-describe("response envelope — custom shape + errorStatus 200", () => {
-  let app: INestApplication;
+describe('response envelope — custom shape + errorStatus 200', () => {
+  let app: INestApplication
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -179,67 +185,65 @@ describe("response envelope — custom shape + errorStatus 200", () => {
         }),
       ],
       controllers: [AppController],
-    }).compile();
-    app = moduleRef.createNestApplication({ logger: false });
-    await app.init();
-  });
+    }).compile()
+    app = moduleRef.createNestApplication({ logger: false })
+    await app.init()
+  })
 
   afterAll(async () => {
-    await app.close();
-  });
+    await app.close()
+  })
 
-  it("uses the custom success shape", async () => {
-    const res = await request(app.getHttpServer()).get("/users/7").expect(200);
-    expect(res.body).toEqual({ ok: true, result: { id: "7", name: "Taha" } });
-  });
+  it('uses the custom success shape', async () => {
+    const res = await request(app.getHttpServer()).get('/users/7').expect(200)
+    expect(res.body).toEqual({ ok: true, result: { id: '7', name: 'Taha' } })
+  })
 
-  it("returns errors as 200 with the custom error shape", async () => {
-    const res = await request(app.getHttpServer())
-      .get("/missing")
-      .expect(200);
-    expect(res.body).toEqual({ ok: false, reason: "no such thing" });
-  });
-});
+  it('returns errors as 200 with the custom error shape', async () => {
+    const res = await request(app.getHttpServer()).get('/missing').expect(200)
+    expect(res.body).toEqual({ ok: false, reason: 'no such thing' })
+  })
+})
 
-describe("@SkipEnvelope()", () => {
-  let app: INestApplication;
+describe('@SkipEnvelope()', () => {
+  let app: INestApplication
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [TypeFetchModule.forRoot({ envelope: true })],
       controllers: [AppController],
-    }).compile();
+    }).compile()
 
-    app = moduleRef.createNestApplication();
-    app.useLogger(false);
-    await app.init();
-  });
+    app = moduleRef.createNestApplication()
+    app.useLogger(false)
+    await app.init()
+  })
 
   afterAll(async () => {
-    await app?.close();
-  });
+    await app?.close()
+  })
 
   it("leaves an exempt route's success body alone", async () => {
-    const res = await request(app.getHttpServer()).get("/healthz");
+    const res = await request(app.getHttpServer()).get('/healthz')
 
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual({ status: "ok" });
-  });
+    expect(res.status).toBe(200)
+    expect(res.body).toEqual({ status: 'ok' })
+  })
 
   // The success wrapper and the error branch are one decision: a probe that
   // parses `{ status }` on 200 and `{ success: false }` on 404 has two shapes
   // to handle, which is the thing the exemption exists to avoid.
   it("leaves an exempt route's error body alone too", async () => {
-    const res = await request(app.getHttpServer()).get("/healthz/fail");
+    const res = await request(app.getHttpServer()).get('/healthz/fail')
 
-    expect(res.status).toBe(404);
-    expect(res.body).not.toHaveProperty("success");
-    expect(res.body.message).toBe("probe target missing");
-  });
+    expect(res.status).toBe(404)
+    expect(res.body).not.toHaveProperty('success')
+    expect(res.body.message).toBe('probe target missing')
+  })
 
-  it("still wraps everything else", async () => {
-    const res = await request(app.getHttpServer()).get("/ping");
+  it('still wraps everything else', async () => {
+    const res = await request(app.getHttpServer()).get('/ping')
 
-    expect(res.body).toEqual({ success: true, data: { pong: true } });
-  });
-});
+    expect(res.body).toEqual({ success: true, data: { pong: true } })
+  })
+})

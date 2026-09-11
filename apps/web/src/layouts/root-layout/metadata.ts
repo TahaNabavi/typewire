@@ -1,7 +1,7 @@
-import type { Metadata, Viewport } from "next";
+import type { Metadata, Viewport } from 'next'
 
-import { env } from "@/config/env";
-import { site } from "@/config/site";
+import { env } from '@/config/env'
+import { site } from '@/config/site'
 
 /**
  * The defaults every route inherits.
@@ -23,13 +23,13 @@ export const metadata: Metadata = {
   authors: [{ name: site.author.name, url: site.author.url }],
   creator: site.author.name,
   publisher: site.author.name,
-  category: "technology",
+  category: 'technology',
   // No `alternates` here on purpose. A canonical inherited by a page that
   // forgot to set its own would announce that page as a duplicate of the home
   // page; a missing canonical only means the crawler uses the URL it fetched.
   // Every page sets its own through pageMetadata() in lib/seo.ts.
   openGraph: {
-    type: "website",
+    type: 'website',
     title: `${site.name} — ${site.tagline}`,
     description: site.description,
     url: site.url,
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     locale: site.locale,
   },
   twitter: {
-    card: "summary_large_image",
+    card: 'summary_large_image',
     title: `${site.name} — ${site.tagline}`,
     description: site.description,
     creator: site.twitter.creator,
@@ -51,9 +51,9 @@ export const metadata: Metadata = {
       // Let Google show the full snippet and a large image. The defaults are
       // conservative and cost a documentation site the preview that makes a
       // result worth clicking.
-      "max-snippet": -1,
-      "max-image-preview": "large",
-      "max-video-preview": -1,
+      'max-snippet': -1,
+      'max-image-preview': 'large',
+      'max-video-preview': -1,
     },
   },
   // Phone numbers and addresses do not appear here, but version strings and
@@ -63,7 +63,7 @@ export const metadata: Metadata = {
   // app/apple-icon.tsx are file conventions, and Next emits their <link> tags
   // already. Declaring them again is how a page ends up with two of each.
   ...verification(),
-};
+}
 
 /**
  * Ownership proof for the webmaster consoles, from the environment.
@@ -73,16 +73,16 @@ export const metadata: Metadata = {
  * they are read rather than hardcoded. An unset variable contributes no tag at
  * all; an empty `content=""` would be read as a failed verification.
  */
-function verification(): Pick<Metadata, "verification"> {
-  const google = env.GOOGLE_SITE_VERIFICATION;
-  const bing = env.BING_SITE_VERIFICATION;
-  if (!google && !bing) return {};
+function verification(): Pick<Metadata, 'verification'> {
+  const google = env.GOOGLE_SITE_VERIFICATION
+  const bing = env.BING_SITE_VERIFICATION
+  if (!google && !bing) return {}
   return {
     verification: {
       ...(google ? { google } : {}),
-      ...(bing ? { other: { "msvalidate.01": bing } } : {}),
+      ...(bing ? { other: { 'msvalidate.01': bing } } : {}),
     },
-  };
+  }
 }
 
 /**
@@ -91,11 +91,11 @@ function verification(): Pick<Metadata, "verification"> {
  * split `themeScript` below applies to the document itself.
  */
 export const viewport: Viewport = {
-  width: "device-width",
+  width: 'device-width',
   initialScale: 1,
-  colorScheme: "light dark",
+  colorScheme: 'light dark',
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f7f9fc" },
-    { media: "(prefers-color-scheme: dark)", color: "#060a14" },
+    { media: '(prefers-color-scheme: light)', color: '#f7f9fc' },
+    { media: '(prefers-color-scheme: dark)', color: '#060a14' },
   ],
-};
+}

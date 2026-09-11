@@ -4,26 +4,26 @@ import type {
   InspectorProgress,
   InspectorSource,
   Observable,
-} from "./types";
+} from './types'
 
 /** Enough to see a page's traffic without letting a long session grow forever. */
-const DEFAULT_LIMIT = 500;
+const DEFAULT_LIMIT = 500
 
 /**
  * Event kinds that end a call, across both transports. Progress for that
  * correlation id is released when one arrives.
  */
 const CONCLUDING_KINDS = new Set([
-  "success",
-  "error",
-  "frame_error",
-  "ack",
-  "dropped",
-]);
+  'success',
+  'error',
+  'frame_error',
+  'ack',
+  'dropped',
+])
 
 export interface InspectorBridgeOptions {
   /** Maximum retained events; the oldest are dropped first. Default 500. */
-  limit?: number;
+  limit?: number
 }
 
 /**
@@ -35,28 +35,28 @@ export interface InspectorBridgeOptions {
  * branch per transport.
  */
 export class InspectorBridge implements Observable<readonly InspectorEvent[]> {
-  private readonly limit: number;
-  private readonly listeners = new Set<() => void>();
-  private readonly overrides = new Map<string, InspectorOverride>();
+  private readonly limit: number
+  private readonly listeners = new Set<() => void>()
+  private readonly overrides = new Map<string, InspectorOverride>()
 
   /**
    * Replaced, never mutated in place: `getSnapshot` feeds
    * `useSyncExternalStore`, which compares by identity.
    */
-  private events: readonly InspectorEvent[] = [];
+  private events: readonly InspectorEvent[] = []
 
   /**
    * Latest progress per in-flight call, keyed `${source}:${id}`. Replaced
    * wholesale for the same identity-comparison reason as `events`.
    */
-  private progress: ReadonlyMap<string, InspectorProgress> = new Map();
+  private progress: ReadonlyMap<string, InspectorProgress> = new Map()
 
   constructor(options: InspectorBridgeOptions = {}) {
-    this.limit = options.limit ?? DEFAULT_LIMIT;
+    this.limit = options.limit ?? DEFAULT_LIMIT
   }
 
   getSnapshot(): readonly InspectorEvent[] {
-    return this.events;
+    return this.events
   }
 
   /**
@@ -68,14 +68,14 @@ export class InspectorBridge implements Observable<readonly InspectorEvent[]> {
    * `useSyncExternalStore`.
    */
   getProgressSnapshot(): ReadonlyMap<string, InspectorProgress> {
-    return this.progress;
+    return this.progress
   }
 
   subscribe(listener: () => void): () => void {
-    this.listeners.add(listener);
+    this.listeners.add(listener)
     return () => {
-      this.listeners.delete(listener);
-    };
+      this.listeners.delete(listener)
+    }
   }
 
   /** Append an event, trimming the oldest once the buffer is full. */
@@ -83,17 +83,17 @@ export class InspectorBridge implements Observable<readonly InspectorEvent[]> {
     const next =
       this.events.length >= this.limit
         ? [...this.events.slice(this.events.length - this.limit + 1), event]
-        : [...this.events, event];
-    this.events = next;
+        : [...this.events, event]
+    this.events = next
 
     // A concluded call has nothing left to transfer. Dropping its progress here
     // is what keeps the map bounded over a long session — otherwise every
     // upload a page ever made would be retained at 100%.
     if (CONCLUDING_KINDS.has(event.kind)) {
-      this.dropProgress(progressKey(event.source, event.id));
+      this.dropProgress(progressKey(event.source, event.id))
     }
 
-    this.notify();
+    this.notify()
   }
 
   /**
@@ -107,26 +107,26 @@ export class InspectorBridge implements Observable<readonly InspectorEvent[]> {
   recordProgress(
     source: InspectorSource,
     id: string,
-    progress: InspectorProgress,
+    progress: InspectorProgress
   ): void {
-    const next = new Map(this.progress);
-    next.set(progressKey(source, id), progress);
-    this.progress = next;
-    this.notify();
+    const next = new Map(this.progress)
+    next.set(progressKey(source, id), progress)
+    this.progress = next
+    this.notify()
   }
 
   clear(): void {
-    this.events = [];
-    this.progress = new Map();
-    this.notify();
+    this.events = []
+    this.progress = new Map()
+    this.notify()
   }
 
   /** Remove one call's progress, if it has any. Does not notify on its own. */
   private dropProgress(key: string): void {
-    if (!this.progress.has(key)) return;
-    const next = new Map(this.progress);
-    next.delete(key);
-    this.progress = next;
+    if (!this.progress.has(key)) return
+    const next = new Map(this.progress)
+    next.delete(key)
+    this.progress = next
   }
 
   /**
@@ -139,47 +139,47 @@ export class InspectorBridge implements Observable<readonly InspectorEvent[]> {
   setOverride(
     source: InspectorSource,
     label: string,
-    override: InspectorOverride,
+    override: InspectorOverride
   ): void {
-    this.overrides.set(overrideKey(source, label), override);
-    this.notify();
+    this.overrides.set(overrideKey(source, label), override)
+    this.notify()
   }
 
   removeOverride(source: InspectorSource, label: string): void {
-    if (this.overrides.delete(overrideKey(source, label))) this.notify();
+    if (this.overrides.delete(overrideKey(source, label))) this.notify()
   }
 
   getOverride(
     source: InspectorSource,
-    label: string,
+    label: string
   ): InspectorOverride | undefined {
-    return this.overrides.get(overrideKey(source, label));
+    return this.overrides.get(overrideKey(source, label))
   }
 
   /** Every active override, for rendering the panel's override list. */
   listOverrides(): Array<{
-    source: InspectorSource;
-    label: string;
-    override: InspectorOverride;
+    source: InspectorSource
+    label: string
+    override: InspectorOverride
   }> {
     return [...this.overrides.entries()].map(([key, override]) => {
-      const separator = key.indexOf(":");
+      const separator = key.indexOf(':')
       return {
         source: key.slice(0, separator),
         label: key.slice(separator + 1),
         override,
-      };
-    });
+      }
+    })
   }
 
   clearOverrides(): void {
-    if (this.overrides.size === 0) return;
-    this.overrides.clear();
-    this.notify();
+    if (this.overrides.size === 0) return
+    this.overrides.clear()
+    this.notify()
   }
 
   private notify(): void {
-    for (const listener of [...this.listeners]) listener();
+    for (const listener of [...this.listeners]) listener()
   }
 }
 
@@ -188,7 +188,7 @@ export class InspectorBridge implements Observable<readonly InspectorEvent[]> {
  * halves even when the label contains colons of its own.
  */
 function overrideKey(source: InspectorSource, label: string): string {
-  return `${source}:${label}`;
+  return `${source}:${label}`
 }
 
 /**
@@ -197,5 +197,5 @@ function overrideKey(source: InspectorSource, label: string): string {
  * other. This is the same key `selectEntries` builds for an `InspectorEntry`.
  */
 function progressKey(source: InspectorSource, id: string): string {
-  return `${source}:${id}`;
+  return `${source}:${id}`
 }

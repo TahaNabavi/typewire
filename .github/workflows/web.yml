@@ -6,23 +6,23 @@ name: Web
 on:
   pull_request:
     paths:
-      - "apps/web/**"
-      - "packages/*/package.json"
-      - "packages/*/README.md"
-      - "packages/*/docs/**"
-      - "size-budget.json"
-      - "README.md"
-      - ".github/workflows/web.yml"
+      - 'apps/web/**'
+      - 'packages/*/package.json'
+      - 'packages/*/README.md'
+      - 'packages/*/docs/**'
+      - 'size-budget.json'
+      - 'README.md'
+      - '.github/workflows/web.yml'
   push:
     branches-ignore:
       - main
     paths:
-      - "apps/web/**"
-      - "packages/*/package.json"
-      - "packages/*/README.md"
-      - "packages/*/docs/**"
-      - "size-budget.json"
-      - "README.md"
+      - 'apps/web/**'
+      - 'packages/*/package.json'
+      - 'packages/*/README.md'
+      - 'packages/*/docs/**'
+      - 'size-budget.json'
+      - 'README.md'
 
 permissions:
   contents: read

@@ -1,12 +1,12 @@
-import { CodeBlock } from "@/components/ui/code-block";
-import { Section } from "@/components/ui/section";
-import { DriftCompare } from "@/features/home/drift-compare";
+import { CodeBlock } from '@/components/ui/code-block'
+import { Section } from '@/components/ui/section'
+import { DriftCompare } from '@/features/home/drift-compare'
 
 const STEPS = [
   {
-    n: "01",
-    title: "Define it once",
-    body: "A plain object with Zod schemas, imported by the frontend and the backend.",
+    n: '01',
+    title: 'Define it once',
+    body: 'A plain object with Zod schemas, imported by the frontend and the backend.',
     code: `export const contracts = {
   user: {
     getUser: {
@@ -24,18 +24,18 @@ const STEPS = [
 } as const;`,
   },
   {
-    n: "02",
-    title: "Consume it on the client",
-    body: "Input and output are validated with the same schema that types them.",
+    n: '02',
+    title: 'Consume it on the client',
+    body: 'Input and output are validated with the same schema that types them.',
     code: `const user = await client.modules.user
   .getUser({ path: { id: "123" } });
 
 // user: { id: string; name: string }`,
   },
   {
-    n: "03",
-    title: "Implement it on the server",
-    body: "The route is wired from the contract, so it cannot drift from the client.",
+    n: '03',
+    title: 'Implement it on the server',
+    body: 'The route is wired from the contract, so it cannot drift from the client.',
     code: `type Input = InferRequest<
   typeof contracts.user.getUser
 >;
@@ -45,7 +45,7 @@ async getUser(@ContractInput() input: Input) {
   return { id: input.path.id, name: "Taha" };
 }`,
   },
-];
+]
 
 export function WhatIs() {
   return (
@@ -62,7 +62,9 @@ export function WhatIs() {
               <span className="font-mono text-sm text-blue">{step.n}</span>
               <h3 className="text-lg font-bold text-fg">{step.title}</h3>
             </div>
-            <p className="mt-2 mb-4 text-sm leading-relaxed text-muted-foreground">{step.body}</p>
+            <p className="mt-2 mb-4 text-sm leading-relaxed text-muted-foreground">
+              {step.body}
+            </p>
             <CodeBlock code={step.code} />
           </div>
         ))}
@@ -70,9 +72,11 @@ export function WhatIs() {
 
       {/* Reveal instance 1 of 2 on this page — three claims, in sequence. */}
       <p className="reveal-sweep mx-auto mt-14 max-w-4xl text-center text-xl font-semibold leading-relaxed text-fg md:text-2xl">
-        <span>The route can&apos;t drift from the client.</span>{" "}
-        <span>The client can&apos;t drift from the types.</span>{" "}
-        <span>The types can&apos;t drift from what&apos;s validated at runtime.</span>
+        <span>The route can&apos;t drift from the client.</span>{' '}
+        <span>The client can&apos;t drift from the types.</span>{' '}
+        <span>
+          The types can&apos;t drift from what&apos;s validated at runtime.
+        </span>
       </p>
 
       {/* The same rename, twice — the thing the three laws above are for. */}
@@ -83,5 +87,5 @@ export function WhatIs() {
         <DriftCompare />
       </div>
     </Section>
-  );
+  )
 }

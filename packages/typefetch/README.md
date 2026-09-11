@@ -8,8 +8,8 @@ Define your API once with Zod schemas, then TypeFetch generates a fully typed cl
 
 ```ts
 const user = await api.user.getUser({
-  path: { id: "123" },
-});
+  path: { id: '123' },
+})
 ```
 
 > **Using NestJS on the backend?** [`@tahanabavi/typefetch-nestjs`](https://github.com/tahanabavi/typefetch-nestjs) validates the same contracts server-side. See [Backend (NestJS)](#backend-nestjs).
@@ -18,36 +18,36 @@ const user = await api.user.getUser({
 
 ## Features
 
-* End-to-end TypeScript inference from Zod schemas
-* Runtime request and response validation
-* Structured request model: `{ path, query, body, headers }`
-* Automatic path parameter injection
-* Automatic query string generation
-* JSON and `form-data` request bodies
-* JSON, text, blob, arrayBuffer, formData, file, stream and raw response types
-* Upload progress (via `XMLHttpRequest`) and download progress
-* Middleware pipeline
-* Built-in retry engine with backoff strategies
-* Timeout and `AbortController` support
-* Static tokens and dynamic token providers
-* Mock mode for development and testing
-* Response wrapper support for API envelopes
-* Normalized error handling with `RichError`
-* Typed per-endpoint error responses via an optional `errors` map
-* Stable endpoint identifiers and contract metadata on every generated method
-* Runtime instrumentation with structured request lifecycle events
-* Per-request runtime overrides for mock, error, latency, and schema swapping
-* Pluggable transports — HTTP built in, gRPC and GraphQL as optional packages
-* Normalized error taxonomy (`RichError.kind`) shared across every transport
-* Zero runtime dependencies
-* Field-level encryption middleware (optional package)
-* Backward-compatible flat request schemas
-* Contract-driven API test runner
-* Automatic test input generation from Zod schemas
-* Schema, mock, live, and full API test modes
-* Markdown, HTML, and JSON test reports
-* CLI commands for project setup, endpoint listing, API testing, and release documentation (optional package)
-* Versioned release documentation under `docs/releases`
+- End-to-end TypeScript inference from Zod schemas
+- Runtime request and response validation
+- Structured request model: `{ path, query, body, headers }`
+- Automatic path parameter injection
+- Automatic query string generation
+- JSON and `form-data` request bodies
+- JSON, text, blob, arrayBuffer, formData, file, stream and raw response types
+- Upload progress (via `XMLHttpRequest`) and download progress
+- Middleware pipeline
+- Built-in retry engine with backoff strategies
+- Timeout and `AbortController` support
+- Static tokens and dynamic token providers
+- Mock mode for development and testing
+- Response wrapper support for API envelopes
+- Normalized error handling with `RichError`
+- Typed per-endpoint error responses via an optional `errors` map
+- Stable endpoint identifiers and contract metadata on every generated method
+- Runtime instrumentation with structured request lifecycle events
+- Per-request runtime overrides for mock, error, latency, and schema swapping
+- Pluggable transports — HTTP built in, gRPC and GraphQL as optional packages
+- Normalized error taxonomy (`RichError.kind`) shared across every transport
+- Zero runtime dependencies
+- Field-level encryption middleware (optional package)
+- Backward-compatible flat request schemas
+- Contract-driven API test runner
+- Automatic test input generation from Zod schemas
+- Schema, mock, live, and full API test modes
+- Markdown, HTML, and JSON test reports
+- CLI commands for project setup, endpoint listing, API testing, and release documentation (optional package)
+- Versioned release documentation under `docs/releases`
 
 ---
 
@@ -59,17 +59,17 @@ same middleware chain, the same `onError` and the same devtools timeline — so
 application code stops caring which wire it is on.
 
 ```ts
-import { ApiClient } from "@tahanabavi/typefetch";
-import { graphqlTransport } from "@tahanabavi/typefetch-graphql";
-import { grpcTransport } from "@tahanabavi/typefetch-grpc";
+import { ApiClient } from '@tahanabavi/typefetch'
+import { graphqlTransport } from '@tahanabavi/typefetch-graphql'
+import { grpcTransport } from '@tahanabavi/typefetch-grpc'
 
 const client = new ApiClient(
   {
-    baseUrl: "https://api.example.com",
+    baseUrl: 'https://api.example.com',
     transports: [graphqlTransport(), grpcTransport()],
   },
-  contracts,
-);
+  contracts
+)
 ```
 
 ```ts
@@ -94,8 +94,8 @@ into one shared taxonomy, so a single handler covers all three protocols:
 
 ```ts
 client.onError((error) => {
-  if (error.kind === "unauthenticated") redirectToLogin();  // 401 · gRPC 16 · UNAUTHENTICATED
-});
+  if (error.kind === 'unauthenticated') redirectToLogin() // 401 · gRPC 16 · UNAUTHENTICATED
+})
 ```
 
 **Zero runtime dependencies.** `crypto-js`, `node-forge` and `jiti` moved to
@@ -103,7 +103,7 @@ client.onError((error) => {
 
 **Fixed:** a request input that failed its own `request` schema used to escape as
 a raw `ZodError` — no `kind`, never passed to `onError`, invisible to
-instrumentation — while a bad *response* one line later did all four. Both ends
+instrumentation — while a bad _response_ one line later did all four. Both ends
 of the contract now fail identically.
 
 See [`docs/releases/v2.0.0.md`](./docs/releases/v2.0.0.md) for the full migration
@@ -135,7 +135,7 @@ downloadPdf: {
 ```ts
 await api.media.upload(input, {
   onUploadProgress: ({ percent }) => setProgress(percent ?? 0),
-});
+})
 ```
 
 `fetch` has no upload-progress API, so passing `onUploadProgress` switches that
@@ -146,11 +146,11 @@ trackProgress: "upload" })` puts it directly in the mutation's state. See
 
 **Two fixes**, both behavior changes worth reading before upgrading:
 
-* Failed responses are no longer decoded with `res.json()` before their status is
+- Failed responses are no longer decoded with `res.json()` before their status is
   checked, so an HTML 502 or an empty 401 now produces a `RichError` carrying
   `status` instead of a raw `SyntaxError`. See
   [Non-JSON error bodies](#non-json-error-bodies).
-* `onError` now fires **once per failed request** instead of once per layer that
+- `onError` now fires **once per failed request** instead of once per layer that
   saw the error — a request with `maxRetries: 2` called it four times. See
   [Error Handling](#error-handling).
 
@@ -165,18 +165,18 @@ on the contract — the flag names your frontend and backend both check:
 export const contracts = {
   message: {
     remove: {
-      method: "DELETE",
-      path: "/messages/:id",
-      permission: { require: ["chat.MANAGE_MESSAGES"] }, // ← new, optional
+      method: 'DELETE',
+      path: '/messages/:id',
+      permission: { require: ['chat.MANAGE_MESSAGES'] }, // ← new, optional
       request: z.object({ path: z.object({ id: z.string() }) }),
       response: z.object({ removed: z.string() }),
     },
   },
-};
+}
 ```
 
-`PermissionRequirement` is `{ require?, any?, reason? }` — `require` needs *all*
-listed flags, `any` needs *at least one*. A server guard
+`PermissionRequirement` is `{ require?, any?, reason? }` — `require` needs _all_
+listed flags, `any` needs _at least one_. A server guard
 ([`@tahanabavi/typewire-nestjs`](../nestjs)) reads it off the contract and rejects
 with a typed **403** naming the missing flags; the client can read the same key to
 pre-block a call before it leaves the browser. The flag names reference a
@@ -214,10 +214,10 @@ The testing runner can discover endpoints from your contracts, generate valid re
 
 Supported modes:
 
-* `schema` — validates generated or custom request input without network calls
-* `mock` — validates endpoint `mockData` against the response schema
-* `live` — executes real requests through `ApiClient`
-* `full` — runs schema, mock, and live phases where applicable
+- `schema` — validates generated or custom request input without network calls
+- `mock` — validates endpoint `mockData` against the response schema
+- `live` — executes real requests through `ApiClient`
+- `full` — runs schema, mock, and live phases where applicable
 
 ### CLI
 
@@ -293,26 +293,26 @@ dependencies**.
 
 Install only what you use — nothing below is bundled unless you register it.
 
-| Package | Add when you need |
-| --- | --- |
-| `@tahanabavi/typefetch-graphql` | GraphQL routes |
-| `@tahanabavi/typefetch-grpc` | gRPC / Connect routes |
+| Package                            | Add when you need      |
+| ---------------------------------- | ---------------------- |
+| `@tahanabavi/typefetch-graphql`    | GraphQL routes         |
+| `@tahanabavi/typefetch-grpc`       | gRPC / Connect routes  |
 | `@tahanabavi/typefetch-encryption` | `encryptionMiddleware` |
-| `@tahanabavi/typewire-cli` | the `typewire` command |
+| `@tahanabavi/typewire-cli`         | the `typewire` command |
 
 ---
 
 ## Quick Start
 
 ```ts
-import { z } from "zod";
-import { ApiClient } from "@tahanabavi/typefetch";
+import { z } from 'zod'
+import { ApiClient } from '@tahanabavi/typefetch'
 
 const contracts = {
   user: {
     getUser: {
-      method: "GET",
-      path: "/users/:id",
+      method: 'GET',
+      path: '/users/:id',
       auth: true,
       request: z.object({
         path: z.object({
@@ -325,25 +325,25 @@ const contracts = {
       }),
     },
   },
-} as const;
+} as const
 
 const client = new ApiClient(
   {
-    baseUrl: "https://api.example.com",
-    tokenProvider: async () => "your-token",
+    baseUrl: 'https://api.example.com',
+    tokenProvider: async () => 'your-token',
   },
-  contracts,
-);
+  contracts
+)
 
-client.init();
+client.init()
 
-const api = client.modules;
+const api = client.modules
 
 const user = await api.user.getUser({
-  path: { id: "123" },
-});
+  path: { id: '123' },
+})
 
-console.log(user.name);
+console.log(user.name)
 ```
 
 ---
@@ -356,8 +356,8 @@ A TypeFetch contract is a grouped object of modules and endpoints.
 const contracts = {
   user: {
     getUser: {
-      method: "GET",
-      path: "/users/:id",
+      method: 'GET',
+      path: '/users/:id',
       request: z.object({
         path: z.object({
           id: z.string(),
@@ -370,8 +370,8 @@ const contracts = {
     },
 
     createUser: {
-      method: "POST",
-      path: "/users",
+      method: 'POST',
+      path: '/users',
       request: z.object({
         body: z.object({
           name: z.string(),
@@ -385,22 +385,22 @@ const contracts = {
       }),
     },
   },
-} as const;
+} as const
 ```
 
 After calling `client.init()`, TypeFetch generates typed methods:
 
 ```ts
 await api.user.getUser({
-  path: { id: "123" },
-});
+  path: { id: '123' },
+})
 
 await api.user.createUser({
   body: {
-    name: "Taha",
-    email: "taha@example.com",
+    name: 'Taha',
+    email: 'taha@example.com',
   },
-});
+})
 ```
 
 ---
@@ -415,7 +415,7 @@ z.object({
   query: z.object({}).optional(),
   body: z.any().optional(),
   headers: z.record(z.string(), z.string()).optional(),
-});
+})
 ```
 
 Each section has a specific purpose.
@@ -433,15 +433,17 @@ Example:
 const contracts = {
   user: {
     updateUser: {
-      method: "PATCH",
-      path: "/users/:id",
+      method: 'PATCH',
+      path: '/users/:id',
       request: z.object({
         path: z.object({
           id: z.string(),
         }),
-        query: z.object({
-          notify: z.boolean().optional(),
-        }).optional(),
+        query: z
+          .object({
+            notify: z.boolean().optional(),
+          })
+          .optional(),
         body: z.object({
           name: z.string(),
         }),
@@ -453,22 +455,22 @@ const contracts = {
       }),
     },
   },
-} as const;
+} as const
 ```
 
 Usage:
 
 ```ts
 await api.user.updateUser({
-  path: { id: "123" },
+  path: { id: '123' },
   query: { notify: true },
   headers: {
-    "X-Tenant": "main",
+    'X-Tenant': 'main',
   },
   body: {
-    name: "Taha",
+    name: 'Taha',
   },
-});
+})
 ```
 
 TypeFetch sends:
@@ -492,14 +494,14 @@ With body:
 You can use `makeRequestSchema` to make structured request schemas easier to write.
 
 ```ts
-import { z } from "zod";
-import { makeRequestSchema } from "@tahanabavi/typefetch";
+import { z } from 'zod'
+import { makeRequestSchema } from '@tahanabavi/typefetch'
 
 const updateUserRequest = makeRequestSchema<
   { id: z.ZodString },
   { notify: z.ZodOptional<z.ZodBoolean> },
   z.ZodObject<{
-    name: z.ZodString;
+    name: z.ZodString
   }>
 >()({
   path: z.object({
@@ -512,7 +514,7 @@ const updateUserRequest = makeRequestSchema<
     name: z.string(),
   }),
   headers: z.record(z.string(), z.string()).optional(),
-});
+})
 ```
 
 Use it inside an endpoint:
@@ -521,8 +523,8 @@ Use it inside an endpoint:
 const contracts = {
   user: {
     updateUser: {
-      method: "PATCH",
-      path: "/users/:id",
+      method: 'PATCH',
+      path: '/users/:id',
       request: updateUserRequest,
       response: z.object({
         id: z.string(),
@@ -530,7 +532,7 @@ const contracts = {
       }),
     },
   },
-} as const;
+} as const
 ```
 
 ---
@@ -543,8 +545,8 @@ Flat request schemas are still supported.
 const contracts = {
   user: {
     createUser: {
-      method: "POST",
-      path: "/users",
+      method: 'POST',
+      path: '/users',
       request: z.object({
         name: z.string(),
       }),
@@ -554,15 +556,15 @@ const contracts = {
       }),
     },
   },
-} as const;
+} as const
 ```
 
 Usage:
 
 ```ts
 await api.user.createUser({
-  name: "Taha",
-});
+  name: 'Taha',
+})
 ```
 
 For non-`GET` requests, the full flat input is sent as the JSON body.
@@ -574,18 +576,18 @@ For `GET` requests, flat input is validated but no body is sent.
 ## Creating the Client
 
 ```ts
-import { ApiClient } from "@tahanabavi/typefetch";
+import { ApiClient } from '@tahanabavi/typefetch'
 
 const client = new ApiClient(
   {
-    baseUrl: "https://api.example.com",
+    baseUrl: 'https://api.example.com',
   },
-  contracts,
-);
+  contracts
+)
 
-client.init();
+client.init()
 
-const api = client.modules;
+const api = client.modules
 ```
 
 Always call `client.init()` before using `client.modules`.
@@ -597,17 +599,17 @@ Always call `client.init()` before using `client.modules`.
 ```ts
 const client = new ApiClient(
   {
-    baseUrl: "https://api.example.com",
-    token: "static-token",
-    tokenProvider: async () => "dynamic-token",
+    baseUrl: 'https://api.example.com',
+    token: 'static-token',
+    tokenProvider: async () => 'dynamic-token',
     useMockData: false,
     mockDelay: {
       min: 200,
       max: 1000,
     },
   },
-  contracts,
-);
+  contracts
+)
 ```
 
 | Option          | Type                              | Description            |
@@ -633,17 +635,17 @@ export const contracts = {
   user: {
     // http — the default; no `transport` key needed
     getUser: {
-      method: "GET",
-      path: "/users/:id",
+      method: 'GET',
+      path: '/users/:id',
       request: z.object({ path: z.object({ id: z.string() }) }),
       response: User,
     },
 
     // grpc — needs @tahanabavi/typefetch-grpc
     syncUser: {
-      transport: "grpc",
-      service: "user.v1.UserService",
-      rpc: "SyncUser",
+      transport: 'grpc',
+      service: 'user.v1.UserService',
+      rpc: 'SyncUser',
       request: z.object({ id: z.string() }),
       response: User,
       deadlineMs: 5_000,
@@ -651,14 +653,14 @@ export const contracts = {
 
     // graphql — needs @tahanabavi/typefetch-graphql
     userProfile: {
-      transport: "graphql",
-      operation: "query",
-      root: "user",
+      transport: 'graphql',
+      operation: 'query',
+      root: 'user',
       request: z.object({ id: z.string() }),
       response: User,
     },
   },
-};
+}
 ```
 
 ### Registering
@@ -667,22 +669,22 @@ Adapters are passed explicitly at the setup site, so an app that never registers
 a transport never ships a byte of it:
 
 ```ts
-import { ApiClient } from "@tahanabavi/typefetch";
-import { graphqlTransport } from "@tahanabavi/typefetch-graphql";
-import { grpcTransport } from "@tahanabavi/typefetch-grpc";
+import { ApiClient } from '@tahanabavi/typefetch'
+import { graphqlTransport } from '@tahanabavi/typefetch-graphql'
+import { grpcTransport } from '@tahanabavi/typefetch-grpc'
 
 const client = new ApiClient(
   {
-    baseUrl: "https://api.example.com",
+    baseUrl: 'https://api.example.com',
     transports: [
-      graphqlTransport({ url: "https://api.example.com/graphql" }),
-      grpcTransport({ baseUrl: "https://grpc.example.com" }),
+      graphqlTransport({ url: 'https://api.example.com/graphql' }),
+      grpcTransport({ baseUrl: 'https://grpc.example.com' }),
     ],
   },
-  contracts,
-);
+  contracts
+)
 
-client.init();
+client.init()
 ```
 
 A route naming a transport with no adapter registered fails at `init()` with the
@@ -697,9 +699,14 @@ Transports merge themselves into an open registry:
 
 ```ts
 // inside @tahanabavi/typefetch-grpc
-declare module "@tahanabavi/typefetch" {
+declare module '@tahanabavi/typefetch' {
   interface TransportRegistry {
-    grpc: { service: string; rpc: string; deadlineMs?: number; codec?: GrpcCodec };
+    grpc: {
+      service: string
+      rpc: string
+      deadlineMs?: number
+      codec?: GrpcCodec
+    }
   }
 }
 ```
@@ -725,9 +732,9 @@ Tooling must never read `method` or `path` directly, since those exist only on
 HTTP routes. Ask the transport instead:
 
 ```ts
-import { describeEndpoint } from "@tahanabavi/typefetch";
+import { describeEndpoint } from '@tahanabavi/typefetch'
 
-describeEndpoint(contracts.user.syncUser);
+describeEndpoint(contracts.user.syncUser)
 // { protocol: "gRPC", operation: "unary", target: "user.v1.UserService/SyncUser" }
 ```
 
@@ -752,11 +759,11 @@ uploadAvatar: {
 }
 ```
 
-| `driver` | Behaviour |
-| --- | --- |
-| `"auto"` *(default)* | `fetch`, switching to XHR only when a call asks for upload progress |
-| `"fetch"` | Always `fetch` — pins the modern path when a proxy or polyfill makes the swap undesirable |
-| `"xhr"` | Always `XMLHttpRequest` where it exists, falling back to `fetch` with a one-time warning |
+| `driver`             | Behaviour                                                                                 |
+| -------------------- | ----------------------------------------------------------------------------------------- |
+| `"auto"` _(default)_ | `fetch`, switching to XHR only when a call asks for upload progress                       |
+| `"fetch"`            | Always `fetch` — pins the modern path when a proxy or polyfill makes the swap undesirable |
+| `"xhr"`              | Always `XMLHttpRequest` where it exists, falling back to `fetch` with a one-time warning  |
 
 XHR has no equivalent for `cache`, `mode`, `redirect`, `referrerPolicy`,
 `integrity` or `duplex`, so those `RequestInit` fields are dropped on the XHR
@@ -772,8 +779,8 @@ Set `auth: true` on endpoints that require an authorization token.
 const contracts = {
   user: {
     getProfile: {
-      method: "GET",
-      path: "/profile",
+      method: 'GET',
+      path: '/profile',
       auth: true,
       request: z.object({}),
       response: z.object({
@@ -782,7 +789,7 @@ const contracts = {
       }),
     },
   },
-} as const;
+} as const
 ```
 
 Use a static token:
@@ -790,11 +797,11 @@ Use a static token:
 ```ts
 const client = new ApiClient(
   {
-    baseUrl: "https://api.example.com",
-    token: "my-token",
+    baseUrl: 'https://api.example.com',
+    token: 'my-token',
   },
-  contracts,
-);
+  contracts
+)
 ```
 
 Or use a dynamic token provider:
@@ -802,51 +809,51 @@ Or use a dynamic token provider:
 ```ts
 const client = new ApiClient(
   {
-    baseUrl: "https://api.example.com",
+    baseUrl: 'https://api.example.com',
     tokenProvider: async () => {
-      return localStorage.getItem("token") ?? "";
+      return localStorage.getItem('token') ?? ''
     },
   },
-  contracts,
-);
+  contracts
+)
 ```
 
 You can also set the token provider later:
 
 ```ts
-client.setTokenProvider(async () => "new-token");
+client.setTokenProvider(async () => 'new-token')
 ```
 
 ---
 
 ## Permissions
 
-Where `auth` answers *"is there a token?"*, `permission` answers *"is this actor
-allowed?"* — declared once on the contract, enforced on the server and mirrored
+Where `auth` answers _"is there a token?"_, `permission` answers _"is this actor
+allowed?"_ — declared once on the contract, enforced on the server and mirrored
 on the client. It is optional and additive: endpoints without it are unaffected.
 
 ```ts
 const contracts = {
   message: {
     remove: {
-      method: "DELETE",
-      path: "/messages/:id",
+      method: 'DELETE',
+      path: '/messages/:id',
       auth: true,
-      permission: { require: ["chat.MANAGE_MESSAGES"] },
+      permission: { require: ['chat.MANAGE_MESSAGES'] },
       request: z.object({ path: z.object({ id: z.string() }) }),
       response: z.object({ removed: z.string() }),
     },
   },
-} as const;
+} as const
 ```
 
 The `permission` value is a `PermissionRequirement`:
 
-| Field     | Type              | Meaning                                             |
-| --------- | ----------------- | --------------------------------------------------- |
+| Field     | Type                | Meaning                                                |
+| --------- | ------------------- | ------------------------------------------------------ |
 | `require` | `readonly string[]` | The actor must hold **all** of these flags (`hasAll`). |
 | `any`     | `readonly string[]` | The actor must hold **at least one** (`hasAny`).       |
-| `reason`  | `string`          | Human message, surfaced in the 403 body / audit log. |
+| `reason`  | `string`            | Human message, surfaced in the 403 body / audit log.   |
 
 The flag names reference a [`@tahanabavi/type-permission`](../permission) bit
 map. To keep TypeFetch dependency-free, `PermissionRequirement` is **redeclared
@@ -863,18 +870,20 @@ mirror of the server guard — inject where the bits are (`getPermissions`) and 
 to evaluate (`authorize`), and it stays dependency-free:
 
 ```ts
-import { createPermissionMiddleware } from "@tahanabavi/typefetch";
-import { P } from "./permissions";
+import { createPermissionMiddleware } from '@tahanabavi/typefetch'
+import { P } from './permissions'
 
-client.use(createPermissionMiddleware({
-  getPermissions: () => store.getSnapshot().global, // keep it cheap; runs per request
-  authorize: P.authorize,
-  onDeny: ({ decision }) => console.warn("denied", decision.missing),
-}));
+client.use(
+  createPermissionMiddleware({
+    getPermissions: () => store.getSnapshot().global, // keep it cheap; runs per request
+    authorize: P.authorize,
+    onDeny: ({ decision }) => console.warn('denied', decision.missing),
+  })
+)
 
 // throws PermissionDeniedError *before* sending — only when the contract
 // declares a permission the user lacks; other endpoints are untouched:
-await api.message.remove({ path: { id } });
+await api.message.remove({ path: { id } })
 ```
 
 `PermissionDeniedError` carries `{ status: 403, missing, missingAny? }`, so a
@@ -891,21 +900,21 @@ TypeFetch supports middleware for logging, authentication, caching, retries, enc
 
 ```ts
 client.use(async (ctx, next) => {
-  console.log("Request:", ctx.url);
+  console.log('Request:', ctx.url)
 
-  const response = await next();
+  const response = await next()
 
-  console.log("Response:", response.status);
+  console.log('Response:', response.status)
 
-  return response;
-});
+  return response
+})
 ```
 
 Middlewares run in registration order before the request, then unwind in reverse order after the response.
 
 ```ts
-client.use(firstMiddleware);
-client.use(secondMiddleware);
+client.use(firstMiddleware)
+client.use(secondMiddleware)
 ```
 
 Execution flow:
@@ -931,14 +940,14 @@ client.use(loggingMiddleware, {
   debug: true,
   logRequest: true,
   logResponse: true,
-});
+})
 ```
 
 Factory middleware example:
 
 ```ts
-client.use(cacheMiddleware({ ttl: 60_000 }));
-client.use(retryMiddleware({ maxRetries: 3, delay: 300 }));
+client.use(cacheMiddleware({ ttl: 60_000 }))
+client.use(retryMiddleware({ maxRetries: 3, delay: 300 }))
 ```
 
 ---
@@ -950,11 +959,11 @@ TypeFetch includes a built-in retry engine on the client.
 ```ts
 client.setRetryConfig({
   maxRetries: 3,
-  backoff: "exponential",
+  backoff: 'exponential',
   retryCondition: (error, attempt) => {
-    return error.status !== undefined && error.status >= 500;
+    return error.status !== undefined && error.status >= 500
   },
-});
+})
 ```
 
 Supported backoff strategies:
@@ -970,8 +979,8 @@ Example:
 ```ts
 client.setRetryConfig({
   maxRetries: 3,
-  backoff: "fixed",
-});
+  backoff: 'fixed',
+})
 ```
 
 ---
@@ -983,29 +992,29 @@ Each request can receive per-call options.
 ```ts
 await api.user.getUser(
   {
-    path: { id: "123" },
+    path: { id: '123' },
   },
   {
     timeout: 5000,
-  },
-);
+  }
+)
 ```
 
 You can also pass an external `AbortSignal`.
 
 ```ts
-const controller = new AbortController();
+const controller = new AbortController()
 
 await api.user.getUser(
   {
-    path: { id: "123" },
+    path: { id: '123' },
   },
   {
     signal: controller.signal,
-  },
-);
+  }
+)
 
-controller.abort();
+controller.abort()
 ```
 
 ---
@@ -1018,8 +1027,8 @@ Mock mode lets you return endpoint-level mock data instead of calling the networ
 const contracts = {
   user: {
     getUser: {
-      method: "GET",
-      path: "/users/:id",
+      method: 'GET',
+      path: '/users/:id',
       request: z.object({
         path: z.object({
           id: z.string(),
@@ -1030,12 +1039,12 @@ const contracts = {
         name: z.string(),
       }),
       mockData: {
-        id: "mock-1",
-        name: "Mock User",
+        id: 'mock-1',
+        name: 'Mock User',
       },
     },
   },
-} as const;
+} as const
 ```
 
 Enable mock mode:
@@ -1044,7 +1053,7 @@ Enable mock mode:
 client.setMockMode(true, {
   min: 200,
   max: 1000,
-});
+})
 ```
 
 Dynamic mock data is also supported:
@@ -1052,8 +1061,8 @@ Dynamic mock data is also supported:
 ```ts
 mockData: () => ({
   id: crypto.randomUUID(),
-  name: "Dynamic Mock User",
-});
+  name: 'Dynamic Mock User',
+})
 ```
 
 Mock responses are still validated against the endpoint response schema.
@@ -1078,7 +1087,7 @@ Many APIs return wrapped responses.
 TypeFetch can validate and unwrap these responses.
 
 ```ts
-import { z } from "zod";
+import { z } from 'zod'
 
 client.setResponseWrapper((successResponse) =>
   z.union([
@@ -1095,8 +1104,8 @@ client.setResponseWrapper((successResponse) =>
       timestamp: z.string().optional(),
       requestId: z.string().optional(),
     }),
-  ]),
-);
+  ])
+)
 ```
 
 Successful responses return only `data`.
@@ -1111,10 +1120,10 @@ TypeFetch normalizes errors into `RichError`.
 
 ```ts
 client.onError((error) => {
-  console.error(error.message);
-  console.error(error.status);
-  console.error(error.code);
-});
+  console.error(error.message)
+  console.error(error.status)
+  console.error(error.code)
+})
 ```
 
 `RichError` may include:
@@ -1132,13 +1141,13 @@ client.onError((error) => {
 
 Handled error types include:
 
-* HTTP errors
-* Validation errors
-* Wrapped API errors
-* Missing token errors
-* Network errors
-* Timeout errors
-* Retry exhaustion
+- HTTP errors
+- Validation errors
+- Wrapped API errors
+- Missing token errors
+- Network errors
+- Timeout errors
+- Retry exhaustion
 
 `onError` fires **exactly once per failed request** — after retries are
 exhausted, not once per attempt.
@@ -1153,25 +1162,25 @@ Example:
 ```ts
 try {
   await api.user.getUser({
-    path: { id: "missing" },
-  });
+    path: { id: 'missing' },
+  })
 } catch (error) {
   if (error instanceof RichError) {
-    console.error(error.status, error.message);
+    console.error(error.status, error.message)
   }
 }
 ```
 
 ### Non-JSON error bodies
 
-A failed response is read as text and *then* parsed, never with `res.json()`
+A failed response is read as text and _then_ parsed, never with `res.json()`
 directly. Real failures are frequently not JSON — a 502 from a proxy is an HTML
 page, a 401 from a gateway is often empty — and the HTTP status is the single
 most useful fact about them.
 
-* JSON body → parsed, and `data` typed against the endpoint's `errors` map.
-* Anything else → the raw text lands in `error.detail`.
-* Empty body → still a `RichError` carrying `status`.
+- JSON body → parsed, and `data` typed against the endpoint's `errors` map.
+- Anything else → the raw text lands in `error.detail`.
+- Empty body → still a `RichError` carrying `status`.
 
 `message` falls back through the body's `message`, then `statusText`, then
 `HTTP <status>`.
@@ -1180,7 +1189,7 @@ This applies whatever the endpoint's `responseType` is: a `blob` endpoint still
 reports its 404 as JSON.
 
 > **Changed in v1.9.0.** Before this, the body was decoded with `res.json()`
-> *before* the status was checked, so any non-JSON failure threw a raw
+> _before_ the status was checked, so any non-JSON failure threw a raw
 > `SyntaxError` and the status never reached the caller. If you have a `catch`
 > that special-cases that `SyntaxError`, it now receives a `RichError` instead.
 
@@ -1210,14 +1219,14 @@ This is fully backward compatible: endpoints without `errors` behave exactly as 
 When a request fails and a schema is declared for the response status, the client parses the body and attaches it to `RichError.data`. Use the `isContractError` guard to narrow a caught error to a specific status and get a fully typed `data`.
 
 ```ts
-import { isContractError } from "@tahanabavi/typefetch";
-import { contracts } from "./contracts";
+import { isContractError } from '@tahanabavi/typefetch'
+import { contracts } from './contracts'
 
 try {
-  await api.user.createUser({ body: { email } });
+  await api.user.createUser({ body: { email } })
 } catch (e) {
   if (isContractError(contracts.user.createUser, e, 409)) {
-    e.data.conflictField; // fully typed from the 409 schema
+    e.data.conflictField // fully typed from the 409 schema
   }
 }
 ```
@@ -1228,20 +1237,20 @@ try {
 
 Error typing never masks the real error:
 
-* If no schema is declared for the status, `RichError.data` holds the **raw** JSON body and `RichError.dataParsed` is `false`.
-* If the body does not match the declared schema, `RichError.data` falls back to the **raw** JSON body and `RichError.dataParsed` is `false`.
-* Only when a schema is declared and the body passes it is `RichError.dataParsed` `true` and `RichError.data` the parsed, typed body.
-* All existing `RichError` fields (`message`, `status`, `code`, `title`, `detail`, `errors`) are unchanged.
+- If no schema is declared for the status, `RichError.data` holds the **raw** JSON body and `RichError.dataParsed` is `false`.
+- If the body does not match the declared schema, `RichError.data` falls back to the **raw** JSON body and `RichError.dataParsed` is `false`.
+- Only when a schema is declared and the body passes it is `RichError.dataParsed` `true` and `RichError.data` the parsed, typed body.
+- All existing `RichError` fields (`message`, `status`, `code`, `title`, `detail`, `errors`) are unchanged.
 
 ### Type helpers
 
 ```ts
-import type { InferError, InferErrors } from "@tahanabavi/typefetch";
+import type { InferError, InferErrors } from '@tahanabavi/typefetch'
 
-type Conflict = InferError<typeof contracts.user.createUser, 409>;
+type Conflict = InferError<typeof contracts.user.createUser, 409>
 // { code: "EMAIL_TAKEN"; conflictField: string }
 
-type AllErrors = InferErrors<typeof contracts.user.createUser>;
+type AllErrors = InferErrors<typeof contracts.user.createUser>
 // { 409: {...}; 422: {...} }
 ```
 
@@ -1257,9 +1266,9 @@ Set `bodyType: "form-data"` on an endpoint.
 const contracts = {
   user: {
     uploadAvatar: {
-      method: "POST",
-      path: "/users/:id/avatar",
-      bodyType: "form-data",
+      method: 'POST',
+      path: '/users/:id/avatar',
+      bodyType: 'form-data',
       request: z.object({
         path: z.object({
           id: z.string(),
@@ -1274,19 +1283,19 @@ const contracts = {
       }),
     },
   },
-} as const;
+} as const
 ```
 
 Usage:
 
 ```ts
 await api.user.uploadAvatar({
-  path: { id: "123" },
+  path: { id: '123' },
   body: {
     file,
-    alt: "Profile avatar",
+    alt: 'Profile avatar',
   },
-});
+})
 ```
 
 When using `form-data`, TypeFetch does not force the `Content-Type: application/json` header.
@@ -1301,35 +1310,35 @@ By default a response body is read as JSON. Set `responseType` on the endpoint t
 read it as something else:
 
 ```ts
-import { z } from "zod";
-import { zBlob, zFile } from "@tahanabavi/typefetch";
+import { z } from 'zod'
+import { zBlob, zFile } from '@tahanabavi/typefetch'
 
 const contracts = {
   report: {
     downloadPdf: {
-      method: "GET",
-      path: "/reports/:id/pdf",
-      responseType: "blob", // ← new
+      method: 'GET',
+      path: '/reports/:id/pdf',
+      responseType: 'blob', // ← new
       request: z.object({ path: z.object({ id: z.string() }) }),
       response: zBlob(),
     },
   },
-} as const;
+} as const
 
-const pdf = await api.report.downloadPdf({ path: { id: "42" } });
+const pdf = await api.report.downloadPdf({ path: { id: '42' } })
 // pdf: Blob
 ```
 
-| `responseType`  | Resolves to                                  | Schema helper     |
-| --------------- | -------------------------------------------- | ----------------- |
-| `"json"`        | parsed JSON *(default)*                      | any Zod schema    |
-| `"text"`        | `string`                                     | `z.string()`      |
-| `"blob"`        | `Blob`                                       | `zBlob()`         |
-| `"arrayBuffer"` | `ArrayBuffer`                                | `zArrayBuffer()`  |
-| `"formData"`    | `FormData`                                   | `zFormData()`     |
-| `"file"`        | `{ blob, filename, contentType, size }`      | `zFile()`         |
-| `"stream"`      | `ReadableStream \| null` *(undrained)*       | `zStream()`       |
-| `"response"`    | the whole `Response` *(untouched)*           | `zResponse()`     |
+| `responseType`  | Resolves to                             | Schema helper    |
+| --------------- | --------------------------------------- | ---------------- |
+| `"json"`        | parsed JSON _(default)_                 | any Zod schema   |
+| `"text"`        | `string`                                | `z.string()`     |
+| `"blob"`        | `Blob`                                  | `zBlob()`        |
+| `"arrayBuffer"` | `ArrayBuffer`                           | `zArrayBuffer()` |
+| `"formData"`    | `FormData`                              | `zFormData()`    |
+| `"file"`        | `{ blob, filename, contentType, size }` | `zFile()`        |
+| `"stream"`      | `ReadableStream \| null` _(undrained)_  | `zStream()`      |
+| `"response"`    | the whole `Response` _(untouched)_      | `zResponse()`    |
 
 `responseType` lives on the **contract**, not on the call. The decoded value is
 what the endpoint's `response` schema validates, so a per-call override would
@@ -1338,7 +1347,7 @@ silently invalidate the endpoint's inferred return type.
 ### Schema helpers
 
 Write `response: zBlob()`, not `response: z.instanceof(Blob)`. The latter reads
-the global when the module is *evaluated*, so merely importing a contract that
+the global when the module is _evaluated_, so merely importing a contract that
 uses it throws a `ReferenceError` anywhere `Blob` is absent — older Node, and any
 server-side render that loads your shared contract file. Every helper here defers
 that lookup into the validator, so the schema is always constructible.
@@ -1350,15 +1359,15 @@ otherwise re-derive from the response headers by hand:
 
 ```ts
 const { blob, filename, contentType, size } = await api.report.downloadFile({
-  path: { id: "42" },
-});
+  path: { id: '42' },
+})
 
-const url = URL.createObjectURL(blob);
-Object.assign(document.createElement("a"), {
+const url = URL.createObjectURL(blob)
+Object.assign(document.createElement('a'), {
   href: url,
-  download: filename ?? "report.pdf",
-}).click();
-URL.revokeObjectURL(url);
+  download: filename ?? 'report.pdf',
+}).click()
+URL.revokeObjectURL(url)
 ```
 
 `filename` is parsed from `Content-Disposition`, preferring the RFC 5987
@@ -1391,22 +1400,22 @@ await api.media.upload(
   { body: { file } },
   {
     onUploadProgress: ({ percent, loaded, total }) => {
-      setProgress(percent ?? 0);
+      setProgress(percent ?? 0)
     },
-  },
-);
+  }
+)
 ```
 
 Each tick is a `TransferProgress`:
 
 ```ts
 type TransferProgress = {
-  phase: "upload" | "download";
-  loaded: number;            // bytes so far
-  total?: number;            // only when the length is known
-  percent?: number;          // 0–100, two decimals, only when known
-  lengthComputable: boolean; // false → render an indeterminate bar
-};
+  phase: 'upload' | 'download'
+  loaded: number // bytes so far
+  total?: number // only when the length is known
+  percent?: number // 0–100, two decimals, only when known
+  lengthComputable: boolean // false → render an indeterminate bar
+}
 ```
 
 ### How upload progress works
@@ -1422,13 +1431,13 @@ without the handler takes the unchanged `fetch` path.
 
 Three consequences worth knowing:
 
-* **Node and SSR have no `XMLHttpRequest`.** The request still runs over `fetch`
+- **Node and SSR have no `XMLHttpRequest`.** The request still runs over `fetch`
   and the handler is never called. TypeFetch warns once so the silence isn't
   mistaken for a stalled upload.
-* **Some `RequestInit` fields have no XHR equivalent** and are not carried over:
+- **Some `RequestInit` fields have no XHR equivalent** and are not carried over:
   `cache`, `mode`, `redirect`, `referrerPolicy`, `integrity`. `credentials:
-  "include"` maps to `withCredentials`.
-* **Retries restart progress.** Each attempt re-sends the whole body and begins
+"include"` maps to `withCredentials`.
+- **Retries restart progress.** Each attempt re-sends the whole body and begins
   with a `loaded: 0` tick, so a bar visibly resets rather than appearing stuck.
 
 ### Download progress and CORS
@@ -1448,9 +1457,9 @@ undrained body — counting bytes there would consume the stream you asked to ow
 so no `useState` of your own:
 
 ```tsx
-const upload = useMutation(api.media.upload, { trackProgress: "upload" });
+const upload = useMutation(api.media.upload, { trackProgress: 'upload' })
 
-<progress value={upload.progress?.upload?.percent ?? 0} max={100} />;
+;<progress value={upload.progress?.upload?.percent ?? 0} max={100} />
 ```
 
 `trackProgress` accepts `true` (both directions), `"upload"`, or `"download"`.
@@ -1474,30 +1483,30 @@ npm install @tahanabavi/typefetch-encryption
 
 It can:
 
-* Encrypt selected request body fields
-* Decrypt selected response fields
-* Process deeply nested objects
-* Process arrays
-* Use different encryption methods per field
-* Support custom encryption and decryption handlers
+- Encrypt selected request body fields
+- Decrypt selected response fields
+- Process deeply nested objects
+- Process arrays
+- Use different encryption methods per field
+- Support custom encryption and decryption handlers
 
 Supported methods:
 
 ```ts
-type EncryptionMethod = "AES" | "DES" | "RSA" | "Base64" | "Custom";
+type EncryptionMethod = 'AES' | 'DES' | 'RSA' | 'Base64' | 'Custom'
 ```
 
 ### Registering the Middleware
 
 ```ts
-import { encryptionMiddleware } from "@tahanabavi/typefetch-encryption";
+import { encryptionMiddleware } from '@tahanabavi/typefetch-encryption'
 
 client.use(encryptionMiddleware, {
   keyProvider: async () => ({
-    type: "symmetric",
-    key: "my-secret-key",
+    type: 'symmetric',
+    key: 'my-secret-key',
   }),
-});
+})
 ```
 
 ### Endpoint Encryption Config
@@ -1506,8 +1515,8 @@ client.use(encryptionMiddleware, {
 const contracts = {
   secure: {
     createSecret: {
-      method: "POST",
-      path: "/secure",
+      method: 'POST',
+      path: '/secure',
       request: z.object({
         body: z.object({
           secret: z.string(),
@@ -1521,11 +1530,11 @@ const contracts = {
         token: z.string(),
       }),
       encryption: {
-        method: "AES",
+        method: 'AES',
         request: {
           secret: true,
           profile: {
-            pin: "Base64",
+            pin: 'Base64',
           },
         },
         response: {
@@ -1534,7 +1543,7 @@ const contracts = {
       },
     },
   },
-} as const;
+} as const
 ```
 
 Usage:
@@ -1542,22 +1551,22 @@ Usage:
 ```ts
 await api.secure.createSecret({
   body: {
-    secret: "private-value",
+    secret: 'private-value',
     profile: {
-      pin: "1234",
+      pin: '1234',
     },
   },
-});
+})
 ```
 
 Before the request is sent:
 
-* `secret` is encrypted with AES
-* `profile.pin` is encoded with Base64
+- `secret` is encrypted with AES
+- `profile.pin` is encoded with Base64
 
 After the response is received:
 
-* `token` is decrypted with AES
+- `token` is decrypted with AES
 
 ### Separate Request and Response Methods
 
@@ -1581,18 +1590,18 @@ encryption: {
 ```ts
 client.use(encryptionMiddleware, {
   keyProvider: async () => ({
-    type: "symmetric",
-    key: "custom-key",
+    type: 'symmetric',
+    key: 'custom-key',
   }),
   customHandlers: {
     encrypt: async (value, key) => {
-      return `encrypted:${value}`;
+      return `encrypted:${value}`
     },
     decrypt: async (value, key) => {
-      return value.replace("encrypted:", "");
+      return value.replace('encrypted:', '')
     },
   },
-});
+})
 ```
 
 Endpoint config:
@@ -1618,11 +1627,11 @@ That means if request encryption fails, the request is not sent as plaintext.
 ```ts
 client.use(encryptionMiddleware, {
   keyProvider: async () => ({
-    type: "symmetric",
-    key: "secret",
+    type: 'symmetric',
+    key: 'secret',
   }),
   failClosed: true,
-});
+})
 ```
 
 For debugging, you may disable fail-closed behavior:
@@ -1630,11 +1639,11 @@ For debugging, you may disable fail-closed behavior:
 ```ts
 client.use(encryptionMiddleware, {
   keyProvider: async () => ({
-    type: "symmetric",
-    key: "secret",
+    type: 'symmetric',
+    key: 'secret',
   }),
   failClosed: false,
-});
+})
 ```
 
 Use `failClosed: false` carefully.
@@ -1701,8 +1710,8 @@ Headers can be defined on the endpoint.
 const contracts = {
   user: {
     createUser: {
-      method: "POST",
-      path: "/users",
+      method: 'POST',
+      path: '/users',
       request: z.object({
         body: z.object({
           name: z.string(),
@@ -1713,19 +1722,19 @@ const contracts = {
         name: z.string(),
       }),
       headers: {
-        "X-App": "typefetch",
+        'X-App': 'typefetch',
       },
     },
   },
-} as const;
+} as const
 ```
 
 Headers can also be generated from input:
 
 ```ts
 headers: (input) => ({
-  "X-Tenant": input.headers?.["X-Tenant"] ?? "default",
-});
+  'X-Tenant': input.headers?.['X-Tenant'] ?? 'default',
+})
 ```
 
 Per-request headers can be passed through the structured request input:
@@ -1733,12 +1742,12 @@ Per-request headers can be passed through the structured request input:
 ```ts
 await api.user.createUser({
   headers: {
-    "X-Request-ID": "req-123",
+    'X-Request-ID': 'req-123',
   },
   body: {
-    name: "Taha",
+    name: 'Taha',
   },
-});
+})
 ```
 
 ---
@@ -1751,40 +1760,40 @@ A middleware receives:
 type Middleware = (
   ctx: MiddlewareContext,
   next: () => Promise<Response>,
-  options?: unknown,
-) => Promise<Response>;
+  options?: unknown
+) => Promise<Response>
 ```
 
 Example:
 
 ```ts
 client.use(async (ctx, next) => {
-  const startedAt = Date.now();
+  const startedAt = Date.now()
 
-  const response = await next();
+  const response = await next()
 
-  console.log(`${ctx.init.method} ${ctx.url} took ${Date.now() - startedAt}ms`);
+  console.log(`${ctx.init.method} ${ctx.url} took ${Date.now() - startedAt}ms`)
 
-  return response;
-});
+  return response
+})
 ```
 
 With options:
 
 ```ts
 const timingMiddleware = async (ctx, next, options) => {
-  const response = await next();
+  const response = await next()
 
   if (options?.debug) {
-    console.log("Timing middleware enabled");
+    console.log('Timing middleware enabled')
   }
 
-  return response;
-};
+  return response
+}
 
 client.use(timingMiddleware, {
   debug: true,
-});
+})
 ```
 
 ---
@@ -1802,10 +1811,10 @@ hook registered, request handling is unchanged.
 Every generated method carries stable, read-only metadata:
 
 ```ts
-const api = client.modules;
+const api = client.modules
 
-api.user.getUser.endpointId; // "user.getUser"
-api.user.getUser.endpoint;   // the original contract def (schemas, method, path, ...)
+api.user.getUser.endpointId // "user.getUser"
+api.user.getUser.endpoint // the original contract def (schemas, method, path, ...)
 ```
 
 ### Lifecycle events
@@ -1822,11 +1831,11 @@ const stop = client.instrument({
     // error:    { requestId, endpointId, status?, error, durationMs }
     // progress: { requestId, endpointId, phase, loaded, total?, percent?,
     //             lengthComputable, durationMs }
-    console.log(event.type, event.endpointId);
+    console.log(event.type, event.endpointId)
   },
-});
+})
 
-stop(); // detach later
+stop() // detach later
 ```
 
 `requestId` correlates a request's `start` with its `success`/`error`.
@@ -1844,28 +1853,28 @@ A hook can resolve a per-request `Override` to change what a single request does
 ```ts
 client.instrument({
   resolveOverride(endpointId, input) {
-    if (endpointId === "user.getUser") {
-      return { mock: { id: "forced", name: "Forced User" } };
+    if (endpointId === 'user.getUser') {
+      return { mock: { id: 'forced', name: 'Forced User' } }
     }
   },
-});
+})
 ```
 
 ```ts
 type Override = {
-  mock?: unknown | ((input: unknown) => unknown); // force mock, bypass network
-  error?: { status?: number; code?: string; message?: string; body?: unknown }; // simulate failure
-  latencyMs?: number;                              // inject latency
-  request?: z.ZodTypeAny;                          // swap request schema at runtime
-  response?: z.ZodTypeAny;                         // swap response schema at runtime
-};
+  mock?: unknown | ((input: unknown) => unknown) // force mock, bypass network
+  error?: { status?: number; code?: string; message?: string; body?: unknown } // simulate failure
+  latencyMs?: number // inject latency
+  request?: z.ZodTypeAny // swap request schema at runtime
+  response?: z.ZodTypeAny // swap response schema at runtime
+}
 ```
 
-* `mock` bypasses the network regardless of mock mode and is still validated
+- `mock` bypasses the network regardless of mock mode and is still validated
   against the (possibly overridden) response schema.
-* `error` throws a `RichError` and fires `onError`, like a real failing endpoint.
-* `latencyMs` is awaited before the request resolves.
-* `request` / `response` swap the validation schema for that request only, so you
+- `error` throws a `RichError` and fires `onError`, like a real failing endpoint.
+- `latencyMs` is awaited before the request resolves.
+- `request` / `response` swap the validation schema for that request only, so you
   can test structural changes at runtime.
 
 Fields are independent and compose. Full details in
@@ -1880,17 +1889,17 @@ TypeFetch infers endpoint input and output types automatically from Zod schemas.
 ```ts
 const user = await api.user.getUser({
   path: {
-    id: "123",
+    id: '123',
   },
-});
+})
 ```
 
 `user` is inferred as:
 
 ```ts
 {
-  id: string;
-  name: string;
+  id: string
+  name: string
 }
 ```
 
@@ -1902,20 +1911,20 @@ Example:
 
 ```ts
 // api/client.ts
-import { ApiClient } from "@tahanabavi/typefetch";
-import { contracts } from "./contracts";
+import { ApiClient } from '@tahanabavi/typefetch'
+import { contracts } from './contracts'
 
 export const client = new ApiClient(
   {
     baseUrl: import.meta.env.VITE_API_URL,
-    tokenProvider: async () => localStorage.getItem("token") ?? "",
+    tokenProvider: async () => localStorage.getItem('token') ?? '',
   },
-  contracts,
-);
+  contracts
+)
 
-client.init();
+client.init()
 
-export const api = client.modules;
+export const api = client.modules
 ```
 
 ---
@@ -1927,23 +1936,23 @@ TypeFetch is designed to be easy to test with mocked `fetch`.
 Example:
 
 ```ts
-global.fetch = vi.fn();
+global.fetch = vi.fn()
 
-(fetch as any).mockResolvedValueOnce({
+;(fetch as any).mockResolvedValueOnce({
   ok: true,
   json: async () => ({
-    id: "1",
-    name: "Taha",
+    id: '1',
+    name: 'Taha',
   }),
-});
+})
 
 const user = await api.user.getUser({
   path: {
-    id: "1",
+    id: '1',
   },
-});
+})
 
-expect(user.name).toBe("Taha");
+expect(user.name).toBe('Taha')
 ```
 
 Contract-driven API testing can also be run through the TypeFetch CLI
@@ -1964,23 +1973,23 @@ npx typewire test --mode full --format markdown,json,html --output ./typefetch-r
 
 Recommended test coverage:
 
-* Request validation
-* Response validation
-* Path parameter handling
-* Query string generation
-* JSON body serialization
-* Header merging
-* Auth token injection
-* Token provider behavior
-* Middleware execution order
-* Retry behavior
-* Timeout and abort behavior
-* Mock mode
-* Response wrappers
-* Error normalization
-* Encryption middleware
-* Instrumentation events (start / success / error)
-* Runtime overrides (mock / error / latency / schema swap)
+- Request validation
+- Response validation
+- Path parameter handling
+- Query string generation
+- JSON body serialization
+- Header merging
+- Auth token injection
+- Token provider behavior
+- Middleware execution order
+- Retry behavior
+- Timeout and abort behavior
+- Mock mode
+- Response wrappers
+- Error normalization
+- Encryption middleware
+- Instrumentation events (start / success / error)
+- Runtime overrides (mock / error / latency / schema swap)
 
 ---
 
@@ -2001,37 +2010,37 @@ Peer dependencies: `@nestjs/common`, `@nestjs/core`, `rxjs`, `reflect-metadata`,
 ### Example
 
 ```ts
-import { Controller } from "@nestjs/common";
+import { Controller } from '@nestjs/common'
 import {
   TypeFetchEndpoint,
   ContractInput,
   InferRequest,
   InferResponse,
-} from "@tahanabavi/typefetch-nestjs";
-import { contracts } from "./contracts";
+} from '@tahanabavi/typefetch-nestjs'
+import { contracts } from './contracts'
 
 @Controller()
 export class UserController {
   @TypeFetchEndpoint(contracts.user.getUser) // GET /users/:id from the contract
   async getUser(
-    @ContractInput() input: InferRequest<typeof contracts.user.getUser>,
+    @ContractInput() input: InferRequest<typeof contracts.user.getUser>
   ): Promise<InferResponse<typeof contracts.user.getUser>> {
-    return { id: input.path.id, name: "Taha" };
+    return { id: input.path.id, name: 'Taha' }
   }
 }
 ```
 
 ### Core API
 
-| Export                                                             | Purpose                                                                                                       |
-| ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
-| `@TypeFetchEndpoint(contract)`                                     | Binds the HTTP method and path from the contract and wires request/response validation.                      |
-| `@UseContract(contract)`                                           | Validation-only decorator for retrofitting existing `@Get`/`@Post` routes.                                   |
-| `@ContractInput()`                                                 | Injects the full validated, typed input, shaped exactly like what the client passed.                         |
-| `@ContractPath()` / `@ContractQuery()` / `@ContractBody()` / `@ContractHeaders()` | Inject an individual validated input section.                                                 |
-| `InferRequest<T>` / `InferResponse<T>`                             | Type helpers for a contract's input and output.                                                              |
-| `TypeFetchModule.forRoot({ ... })`                                 | Global options.                                                                                              |
-| `getContractEndpoint(ctx)`                                         | Lets a guard read the contract, e.g. to honor its `auth` flag.                                               |
+| Export                                                                            | Purpose                                                                                 |
+| --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `@TypeFetchEndpoint(contract)`                                                    | Binds the HTTP method and path from the contract and wires request/response validation. |
+| `@UseContract(contract)`                                                          | Validation-only decorator for retrofitting existing `@Get`/`@Post` routes.              |
+| `@ContractInput()`                                                                | Injects the full validated, typed input, shaped exactly like what the client passed.    |
+| `@ContractPath()` / `@ContractQuery()` / `@ContractBody()` / `@ContractHeaders()` | Inject an individual validated input section.                                           |
+| `InferRequest<T>` / `InferResponse<T>`                                            | Type helpers for a contract's input and output.                                         |
+| `TypeFetchModule.forRoot({ ... })`                                                | Global options.                                                                         |
+| `getContractEndpoint(ctx)`                                                        | Lets a guard read the contract, e.g. to honor its `auth` flag.                          |
 
 Query and path strings are auto-coerced to the contract's declared types (numbers, booleans, dates, arrays), mirroring the client's `URLSearchParams` serialization. Validation failures return a `RichError`-compatible `400` (`{ message, code, errors }`), so the client's `RichError` surfaces field errors directly.
 
@@ -2039,10 +2048,10 @@ Query and path strings are auto-coerced to the contract's declared types (number
 
 The backend mirrors TypeFetch's client capabilities:
 
-* **OpenAPI 3.0 / Swagger** generation from your contracts (`setupContractSwagger`, `buildOpenApiDocument`).
-* **Multipart / file-upload** validation for `bodyType: "form-data"` contracts.
-* **Response envelope** matching the client's `setResponseWrapper` (`{ success, data }` / `{ success, message }`).
-* **Field-level encryption** mirroring `encryptionMiddleware` — decrypts request fields before validation, encrypts response fields after — byte-compatible via `crypto-js`/`node-forge`.
+- **OpenAPI 3.0 / Swagger** generation from your contracts (`setupContractSwagger`, `buildOpenApiDocument`).
+- **Multipart / file-upload** validation for `bodyType: "form-data"` contracts.
+- **Response envelope** matching the client's `setResponseWrapper` (`{ success, data }` / `{ success, message }`).
+- **Field-level encryption** mirroring `encryptionMiddleware` — decrypts request fields before validation, encrypts response fields after — byte-compatible via `crypto-js`/`node-forge`.
 
 Full documentation lives at [`@tahanabavi/typefetch-nestjs` on GitHub](https://github.com/tahanabavi/typefetch-nestjs) and on [npm](https://www.npmjs.com/package/@tahanabavi/typefetch-nestjs).
 
@@ -2072,20 +2081,20 @@ the package split — read it before upgrading.
 
 ## Notes
 
-* Always call `client.init()` before using `client.modules`.
-* All request inputs are validated with Zod.
-* All successful responses are validated with Zod.
-* Structured request schemas are recommended for new APIs.
-* Flat request schemas are still supported for backward compatibility.
-* `GET` requests do not send a body.
-* `form-data` endpoints should use `bodyType: "form-data"`.
-* Auth tokens are only required for endpoints with `auth: true`.
-* Mock data bypasses network calls but still validates responses.
-* Every generated method exposes `endpointId` and `endpoint` metadata.
-* Instrumentation is opt-in; with no hook registered, request handling is unchanged.
-* Runtime overrides change a single request without mutating the contract.
-* Use `npx typewire test --mode schema` for fast contract validation.
-* Keep detailed release documentation in `docs/releases`.
+- Always call `client.init()` before using `client.modules`.
+- All request inputs are validated with Zod.
+- All successful responses are validated with Zod.
+- Structured request schemas are recommended for new APIs.
+- Flat request schemas are still supported for backward compatibility.
+- `GET` requests do not send a body.
+- `form-data` endpoints should use `bodyType: "form-data"`.
+- Auth tokens are only required for endpoints with `auth: true`.
+- Mock data bypasses network calls but still validates responses.
+- Every generated method exposes `endpointId` and `endpoint` metadata.
+- Instrumentation is opt-in; with no hook registered, request handling is unchanged.
+- Runtime overrides change a single request without mutating the contract.
+- Use `npx typewire test --mode schema` for fast contract validation.
+- Keep detailed release documentation in `docs/releases`.
 
 ---
 

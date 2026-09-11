@@ -1,7 +1,7 @@
-export { buildOpenApiDocument, toOpenApiPath } from "./build-openapi";
-export { toOpenApiSchema, toParameterSchemas } from "./schema";
-export { setupContractSwagger } from "./setup-swagger";
-export type { SetupContractSwaggerOptions } from "./setup-swagger";
+export { buildOpenApiDocument, toOpenApiPath } from './build-openapi'
+export { toOpenApiSchema, toParameterSchemas } from './schema'
+export { setupContractSwagger } from './setup-swagger'
+export type { SetupContractSwaggerOptions } from './setup-swagger'
 export type {
   BuildOpenApiOptions,
   JsonSchema,
@@ -12,4 +12,4 @@ export type {
   OpenApiPathItem,
   OpenApiRequestBody,
   OpenApiResponse,
-} from "./types";
+} from './types'

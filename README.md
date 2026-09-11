@@ -36,20 +36,20 @@ the types can't drift from what's validated at runtime. Everything ships under t
 
 ## Packages
 
-| Package | Status | What it does |
-| --- | --- | --- |
-| [`@tahanabavi/typefetch`](./packages/typefetch) | 📦 `2.0.0` | Strongly-typed **contract client** with pluggable transports — middleware, retries, mock mode, typed errors, normalized error kinds. **Zero runtime dependencies.** |
-| [`@tahanabavi/typefetch-graphql`](./packages/graphql) | 📦 `0.1.0` | **GraphQL** transport — selection sets generated from your Zod `response` schema, so they cannot drift. |
-| [`@tahanabavi/typefetch-grpc`](./packages/grpc) | 📦 `0.1.0` | **gRPC** transport — Connect unary JSON by default, binary grpc-web behind a codec seam, no protobuf runtime. |
-| [`@tahanabavi/typefetch-encryption`](./packages/encryption) | 📦 `0.1.0` | Field-level **encryption** middleware (AES · DES · RSA · Base64 · custom). |
-| [`@tahanabavi/typewire-cli`](./packages/cli) | 📦 `0.1.0` | The **`typewire` CLI** — project-detecting `init` wizard, contract test runner, endpoint listing, one `typewire.config.ts` for every package. |
-| [`@tahanabavi/typesocket`](./packages/typesocket) | 📦 `2.2.0` | Contract-driven **Socket.IO / WebSocket** client — direction-tagged events, validated acks, middleware, queued emits, instrumentation. |
-| [`@tahanabavi/typewire-nestjs`](./packages/nestjs) | 📦 `4.0.0` | **NestJS** backend — serve the same contracts over **every wire**: REST, gRPC (Connect JSON), GraphQL and typesocket gateways (was `typefetch-nestjs`). |
-| [`@tahanabavi/typefetch-query-core`](./packages/query-core) | 📦 `1.1.0` | Framework-agnostic **query engine** — cache, dedup, staleness, mutations, auto-invalidation. |
-| [`@tahanabavi/typefetch-react`](./packages/react) | 📦 `1.1.0` | Thin **React** adapter — `useQuery` / `useMutation` / `TypeFetchProvider`. |
-| [`@tahanabavi/type-devtools-core`](./packages/devtools-core) | 📦 `1.2.0` | **Transport-agnostic** inspector bridge + query-cache mirror — one timeline for REST, GraphQL, gRPC **and** WS, plus a `QueryClient` view, with runtime overrides. |
-| [`@tahanabavi/type-devtools`](./packages/devtools) | 📦 `1.1.0` | **React inspector panel** — timeline badged by wire, normalized failure kinds, live transfer bars, query cache, override editor, colored JSON tree. Renders any bridge. |
-| [`@tahanabavi/type-permission`](./packages/permission) | 📦 `0.1.0` | **Framework-less** capability permissions — one shared bit map, evaluated identically on client and server; layered resolution, codecs, lock file, optional contract link. |
+| Package                                                      | Status     | What it does                                                                                                                                                               |
+| ------------------------------------------------------------ | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`@tahanabavi/typefetch`](./packages/typefetch)              | 📦 `2.0.0` | Strongly-typed **contract client** with pluggable transports — middleware, retries, mock mode, typed errors, normalized error kinds. **Zero runtime dependencies.**        |
+| [`@tahanabavi/typefetch-graphql`](./packages/graphql)        | 📦 `0.1.0` | **GraphQL** transport — selection sets generated from your Zod `response` schema, so they cannot drift.                                                                    |
+| [`@tahanabavi/typefetch-grpc`](./packages/grpc)              | 📦 `0.1.0` | **gRPC** transport — Connect unary JSON by default, binary grpc-web behind a codec seam, no protobuf runtime.                                                              |
+| [`@tahanabavi/typefetch-encryption`](./packages/encryption)  | 📦 `0.1.0` | Field-level **encryption** middleware (AES · DES · RSA · Base64 · custom).                                                                                                 |
+| [`@tahanabavi/typewire-cli`](./packages/cli)                 | 📦 `0.1.0` | The **`typewire` CLI** — project-detecting `init` wizard, contract test runner, endpoint listing, one `typewire.config.ts` for every package.                              |
+| [`@tahanabavi/typesocket`](./packages/typesocket)            | 📦 `2.2.0` | Contract-driven **Socket.IO / WebSocket** client — direction-tagged events, validated acks, middleware, queued emits, instrumentation.                                     |
+| [`@tahanabavi/typewire-nestjs`](./packages/nestjs)           | 📦 `4.0.0` | **NestJS** backend — serve the same contracts over **every wire**: REST, gRPC (Connect JSON), GraphQL and typesocket gateways (was `typefetch-nestjs`).                    |
+| [`@tahanabavi/typefetch-query-core`](./packages/query-core)  | 📦 `1.1.0` | Framework-agnostic **query engine** — cache, dedup, staleness, mutations, auto-invalidation.                                                                               |
+| [`@tahanabavi/typefetch-react`](./packages/react)            | 📦 `1.1.0` | Thin **React** adapter — `useQuery` / `useMutation` / `TypeFetchProvider`.                                                                                                 |
+| [`@tahanabavi/type-devtools-core`](./packages/devtools-core) | 📦 `1.2.0` | **Transport-agnostic** inspector bridge + query-cache mirror — one timeline for REST, GraphQL, gRPC **and** WS, plus a `QueryClient` view, with runtime overrides.         |
+| [`@tahanabavi/type-devtools`](./packages/devtools)           | 📦 `1.1.0` | **React inspector panel** — timeline badged by wire, normalized failure kinds, live transfer bars, query cache, override editor, colored JSON tree. Renders any bridge.    |
+| [`@tahanabavi/type-permission`](./packages/permission)       | 📦 `0.1.0` | **Framework-less** capability permissions — one shared bit map, evaluated identically on client and server; layered resolution, codecs, lock file, optional contract link. |
 
 📦 = the version on npm today. Every package in the table is published; the
 workspace version and the registry version match for all twelve, which is what
@@ -73,81 +73,89 @@ accessor and, for Next.js, the `"use client"` directives that make it build.
 
 The rest of this section is what it generates, by hand.
 
-**1. Define the contract once** — this file is imported by frontend *and* backend:
+**1. Define the contract once** — this file is imported by frontend _and_ backend:
 
 ```ts
 // contracts.ts
-import { z } from "zod";
+import { z } from 'zod'
 
 export const contracts = {
   user: {
     getUser: {
-      method: "GET",
-      path: "/users/:id",
+      method: 'GET',
+      path: '/users/:id',
       request: z.object({ path: z.object({ id: z.string() }) }),
       response: z.object({ id: z.string(), name: z.string() }),
     },
   },
-} as const;
+} as const
 ```
 
 **2. Consume it on the frontend** with `typefetch`:
 
 ```ts
-import { ApiClient } from "@tahanabavi/typefetch";
-import { contracts } from "./contracts";
+import { ApiClient } from '@tahanabavi/typefetch'
+import { contracts } from './contracts'
 
-const client = new ApiClient({ baseUrl: "https://api.example.com" }, contracts);
-client.init();
+const client = new ApiClient({ baseUrl: 'https://api.example.com' }, contracts)
+client.init()
 
-const user = await client.modules.user.getUser({ path: { id: "123" } });
+const user = await client.modules.user.getUser({ path: { id: '123' } })
 //    ^? { id: string; name: string } — input & output validated with Zod
 ```
 
 **3. Implement it on the backend** with `typewire-nestjs` — same contract, no drift:
 
 ```ts
-import { Controller } from "@nestjs/common";
-import { TypeFetchEndpoint, ContractInput, InferRequest, InferResponse } from "@tahanabavi/typewire-nestjs";
-import { contracts } from "./contracts";
+import { Controller } from '@nestjs/common'
+import {
+  TypeFetchEndpoint,
+  ContractInput,
+  InferRequest,
+  InferResponse,
+} from '@tahanabavi/typewire-nestjs'
+import { contracts } from './contracts'
 
 @Controller()
 export class UserController {
   @TypeFetchEndpoint(contracts.user.getUser) // GET /users/:id — wired from the contract
   async getUser(
-    @ContractInput() input: InferRequest<typeof contracts.user.getUser>,
+    @ContractInput() input: InferRequest<typeof contracts.user.getUser>
   ): Promise<InferResponse<typeof contracts.user.getUser>> {
-    return { id: input.path.id, name: "Taha" };
+    return { id: input.path.id, name: 'Taha' }
   }
 }
 ```
 
 **Realtime?** The same idea, over Socket.IO with `typesocket` — one contract,
-each event tagged with the direction it travels, so the *same object* drives the
+each event tagged with the direction it travels, so the _same object_ drives the
 client and the server:
 
 ```ts
-import { createSocketClient, defineSocketContracts } from "@tahanabavi/typesocket";
-import { z } from "zod";
+import {
+  createSocketClient,
+  defineSocketContracts,
+} from '@tahanabavi/typesocket'
+import { z } from 'zod'
 
 const wsContracts = defineSocketContracts({
   chat: {
     sendMessage: {
-      direction: "client->server",
+      direction: 'client->server',
       request: z.object({ text: z.string() }),
       ack: z.object({ id: z.string() }),
     },
     message: {
-      direction: "server->client",
+      direction: 'server->client',
       payload: z.object({ text: z.string(), user: z.string() }),
     },
   },
-});
+})
 
-const socket = createSocketClient({ url: "http://localhost:3001" }, wsContracts);
+const socket = createSocketClient({ url: 'http://localhost:3001' }, wsContracts)
 
-socket.modules.chat.message.on((m) => console.log(m.user, m.text)); // m is typed
-const { id } = await socket.modules.chat.sendMessage({ text: "hello" }); // ack validated
+socket.modules.chat.message.on((m) => console.log(m.user, m.text)) // m is typed
+const { id } = await socket.modules.chat.sendMessage({ text: 'hello' }) // ack validated
 ```
 
 ## Examples
@@ -155,12 +163,12 @@ const { id } = await socket.modules.chat.sendMessage({ text: "hello" }); // ack 
 Runnable demos live in [`examples/`](./examples) and build against the local
 packages, so they can't drift from the source.
 
-| Example | What it shows |
-| --- | --- |
-| [`basic`](./examples/basic) | typesocket in four files — contract, server, client, run. Prints an annotated frame log and exits. |
+| Example                               | What it shows                                                                                                                                                                                                                       |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`basic`](./examples/basic)           | typesocket in four files — contract, server, client, run. Prints an annotated frame log and exits.                                                                                                                                  |
 | [`transports`](./examples/transports) | One client, three wires — REST, GraphQL and gRPC on a single contract, against a real server that speaks all three. The GraphQL query is generated from the Zod schema, and all three failure shapes normalize to one `error.kind`. |
-| [`chat`](./examples/chat) | A real app: multi-room chat with presence, typing, history, and a live frame inspector built purely on `instrument()`. |
-| [`query`](./examples/query) | The query layer end to end — `useQuery` / `useMutation` over HTTP **and** WebSocket, declared invalidation, and the devtools panel showing both transports in one timeline. |
+| [`chat`](./examples/chat)             | A real app: multi-room chat with presence, typing, history, and a live frame inspector built purely on `instrument()`.                                                                                                              |
+| [`query`](./examples/query)           | The query layer end to end — `useQuery` / `useMutation` over HTTP **and** WebSocket, declared invalidation, and the devtools panel showing both transports in one timeline.                                                         |
 
 ```bash
 pnpm --filter @typewire-examples/basic start
@@ -176,7 +184,7 @@ clone needs nothing but `pnpm install`.
 ## Why TypeWire?
 
 - **One source of truth.** The contract is a plain object. Client, server, cache,
-  and devtools all read the *same* one — nothing to keep in sync.
+  and devtools all read the _same_ one — nothing to keep in sync.
 - **Runtime-validated, not just typed.** Every request and response is checked
   with Zod, so a wrong shape fails loudly instead of corrupting state silently.
 - **Transport-agnostic devtools.** REST, GraphQL, gRPC and WebSocket traffic land
@@ -216,7 +224,7 @@ out — which is how the core stays at **zero runtime dependencies**.
 
 The dotted edges are the **optional** contract link: an endpoint may carry a
 `permission` requirement that the server guard enforces and the client pre-checks
-— the *same* bit map, evaluated on both ends, never drifting.
+— the _same_ bit map, evaluated on both ends, never drifting.
 
 Every one of these keys on the same `"module.member"` id, which is why adding a
 transport needed no change to query-core, devtools or the React adapter.
@@ -295,7 +303,7 @@ pnpm add @tahanabavi/typefetch
 
 The same versions are also mirrored to
 [**GitHub Packages**](https://github.com/TahaNabavi/typewire/packages). GitHub's
-npm registry requires authentication *even for public packages*, so to install
+npm registry requires authentication _even for public packages_, so to install
 from it you need a [personal access token](https://github.com/settings/tokens)
 with the `read:packages` scope and an `.npmrc` that routes the `@tahanabavi`
 scope to GitHub:

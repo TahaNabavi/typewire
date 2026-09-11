@@ -9,11 +9,11 @@
  * same engine can back a Vue or Angular adapter without changing.
  */
 
-export { TypeFetchProvider, useQueryClient } from "./context";
-export type { TypeFetchProviderProps } from "./context";
+export { TypeFetchProvider, useQueryClient } from './context'
+export type { TypeFetchProviderProps } from './context'
 
-export { useQuery } from "./use-query";
-export { useMutation } from "./use-mutation";
+export { useQuery } from './use-query'
+export { useMutation } from './use-mutation'
 
 // Re-exported so an app can build a client without a second direct dependency.
 export {
@@ -23,7 +23,7 @@ export {
   buildQueryKey,
   CancelledError,
   isCancelledError,
-} from "@tahanabavi/typefetch-query-core";
+} from '@tahanabavi/typefetch-query-core'
 
 export type {
   AnyQuerySource,
@@ -46,4 +46,4 @@ export type {
   QueryState,
   RelationsConfig,
   TransferProgressLike,
-} from "@tahanabavi/typefetch-query-core";
+} from '@tahanabavi/typefetch-query-core'

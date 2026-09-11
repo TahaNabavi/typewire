@@ -19,17 +19,17 @@ ones. That is the point: application code stops caring which wire it is on.
 ## Setup
 
 ```ts
-import { ApiClient } from "@tahanabavi/typefetch";
-import { grpcTransport } from "@tahanabavi/typefetch-grpc";
+import { ApiClient } from '@tahanabavi/typefetch'
+import { grpcTransport } from '@tahanabavi/typefetch-grpc'
 
 const client = new ApiClient(
   {
-    baseUrl: "https://api.example.com",
-    transports: [grpcTransport({ baseUrl: "https://grpc.example.com" })],
+    baseUrl: 'https://api.example.com',
+    transports: [grpcTransport({ baseUrl: 'https://grpc.example.com' })],
   },
-  contracts,
-);
-client.init();
+  contracts
+)
+client.init()
 ```
 
 Registration is explicit, so an app that never registers this transport never
@@ -38,20 +38,20 @@ ships a byte of it.
 ## Contracts
 
 ```ts
-import { z } from "zod";
+import { z } from 'zod'
 
 export const contracts = {
   user: {
     getUser: {
-      transport: "grpc",
-      service: "user.v1.UserService",
-      rpc: "GetUser",
+      transport: 'grpc',
+      service: 'user.v1.UserService',
+      rpc: 'GetUser',
       request: z.object({ id: z.string() }),
       response: z.object({ id: z.string(), name: z.string() }),
       deadlineMs: 5_000,
     },
   },
-};
+}
 ```
 
 `transport: "grpc"` does not compile until this package is installed — the
@@ -61,12 +61,12 @@ route is fully checked, including that it may **not** carry `path`, `method`,
 
 ### Fields
 
-| Field | Required | Meaning |
-| --- | --- | --- |
-| `service` | yes | Fully-qualified service, `"user.v1.UserService"` |
-| `rpc` | yes | Method name, `"GetUser"` |
-| `deadlineMs` | no | Server-side deadline (`Connect-Timeout-Ms` / `grpc-timeout`) |
-| `codec` | no | Switches this RPC to binary protobuf — see below |
+| Field        | Required | Meaning                                                      |
+| ------------ | -------- | ------------------------------------------------------------ |
+| `service`    | yes      | Fully-qualified service, `"user.v1.UserService"`             |
+| `rpc`        | yes      | Method name, `"GetUser"`                                     |
+| `deadlineMs` | no       | Server-side deadline (`Connect-Timeout-Ms` / `grpc-timeout`) |
+| `codec`      | no       | Switches this RPC to binary protobuf — see below             |
 
 `deadlineMs` is not `RequestOptions.timeout`. The timeout aborts locally; a
 deadline asks the **server** to stop working, which is what stops an abandoned
@@ -101,8 +101,8 @@ covers every transport:
 
 ```ts
 client.onError((error) => {
-  if (error.kind === "unauthenticated") redirectToLogin();
-});
+  if (error.kind === 'unauthenticated') redirectToLogin()
+})
 ```
 
 That fires for a gRPC `UNAUTHENTICATED` exactly as it does for an HTTP 401 and a
@@ -128,7 +128,7 @@ getUser: {
 
 ```ts
 if (isContractError(contracts.user.getUser, e, GrpcCode.NotFound)) {
-  e.data.message; // typed from the schema above
+  e.data.message // typed from the schema above
 }
 ```
 
@@ -144,15 +144,15 @@ Reach for this only when you need protobuf on the wire. Connect JSON is
 debuggable in a way binary frames never are.
 
 ```ts
-import { grpcTransport } from "@tahanabavi/typefetch-grpc";
-import { GetUserRequest, GetUserResponse } from "./gen/user_pb";
+import { grpcTransport } from '@tahanabavi/typefetch-grpc'
+import { GetUserRequest, GetUserResponse } from './gen/user_pb'
 
 grpcTransport({
   codec: {
     encode: (message) => GetUserRequest.toBinary(message),
     decode: (bytes) => GetUserResponse.fromBinary(bytes),
   },
-});
+})
 ```
 
 The codec deals only in **message bytes**. This package owns the 5-byte
@@ -191,15 +191,15 @@ Streaming (server, client, bidi) is deliberately out of scope: it cannot return
 
 ## Exports
 
-| Export | Purpose |
-| --- | --- |
-| `grpcTransport(config?)` | The adapter |
-| `GrpcCode` | Numeric code enum — use it as your `errors` keys |
-| `codeName` / `parseCode` | Code ↔ Connect wire name |
-| `kindFromGrpcCode` | Code → shared `ErrorKind` |
-| `statusFromGrpcCode` / `codeFromHttpStatus` | Code ↔ HTTP status |
-| `encodeFrame` / `decodeFrames` / `parseTrailer` | grpc-web framing primitives |
-| `GrpcCodec` | The binary codec interface |
+| Export                                          | Purpose                                          |
+| ----------------------------------------------- | ------------------------------------------------ |
+| `grpcTransport(config?)`                        | The adapter                                      |
+| `GrpcCode`                                      | Numeric code enum — use it as your `errors` keys |
+| `codeName` / `parseCode`                        | Code ↔ Connect wire name                         |
+| `kindFromGrpcCode`                              | Code → shared `ErrorKind`                        |
+| `statusFromGrpcCode` / `codeFromHttpStatus`     | Code ↔ HTTP status                               |
+| `encodeFrame` / `decodeFrames` / `parseTrailer` | grpc-web framing primitives                      |
+| `GrpcCodec`                                     | The binary codec interface                       |
 
 ## License
 

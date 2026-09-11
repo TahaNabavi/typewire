@@ -1,13 +1,16 @@
-import Link from "next/link";
+import Link from 'next/link'
 
-import { CodeBlock } from "@/components/ui/code-block";
-import { Container } from "@/components/ui/container";
-import { site } from "@/config/site";
-import { RUNTIME_ICONS } from "@/features/home/constants";
-import { SignalField } from "@/features/home/signal-field";
-import { InstallTerminal, type TerminalLine } from "@/features/home/install-terminal";
-import { WireFan, type Consumer } from "@/features/transports/wire-fan";
-import { install, packages, publishedPackages } from "@/lib/registry";
+import { CodeBlock } from '@/components/ui/code-block'
+import { Container } from '@/components/ui/container'
+import { site } from '@/config/site'
+import { RUNTIME_ICONS } from '@/features/home/constants'
+import { SignalField } from '@/features/home/signal-field'
+import {
+  InstallTerminal,
+  type TerminalLine,
+} from '@/features/home/install-terminal'
+import { WireFan, type Consumer } from '@/features/transports/wire-fan'
+import { install, packages, publishedPackages } from '@/lib/registry'
 
 const CONTRACT = `// contracts.ts
 export const contracts = {
@@ -19,49 +22,52 @@ export const contracts = {
       response: z.object({ id: z.string(), name: z.string() }),
     },
   },
-} as const;`;
+} as const;`
 
 /** What `typewire init` prints: it reads the project before it asks anything. */
 const SCAFFOLD_OUTPUT: TerminalLine[] = [
-  { text: "✓ detected  Next 16 · React 19 · pnpm workspace", tone: "text-green" },
-  { text: "? packages  › typefetch, typefetch-react, type-devtools" },
-  { text: "? transport › http (in core) + graphql" },
-  { text: "✓ wrote     src/contracts.ts", tone: "text-green" },
-  { text: "✓ wrote     src/lib/client.ts", tone: "text-green" },
-  { text: "✓ wrote     typewire.config.ts", tone: "text-green" },
-  { text: "→ next      pnpm dev", tone: "text-cyan" },
-];
+  {
+    text: '✓ detected  Next 16 · React 19 · pnpm workspace',
+    tone: 'text-green',
+  },
+  { text: '? packages  › typefetch, typefetch-react, type-devtools' },
+  { text: '? transport › http (in core) + graphql' },
+  { text: '✓ wrote     src/contracts.ts', tone: 'text-green' },
+  { text: '✓ wrote     src/lib/client.ts', tone: 'text-green' },
+  { text: '✓ wrote     typewire.config.ts', tone: 'text-green' },
+  { text: '→ next      pnpm dev', tone: 'text-cyan' },
+]
 
 /** The four consumers of that one object — the argument of the whole site. */
 const CONSUMERS: Consumer[] = [
   {
-    name: "typefetch",
-    role: "client",
-    transport: "http",
-    snippet: "await client.modules.user.getUser({ path: { id } })",
+    name: 'typefetch',
+    role: 'client',
+    transport: 'http',
+    snippet: 'await client.modules.user.getUser({ path: { id } })',
   },
   {
-    name: "typewire-nestjs",
-    role: "server",
-    transport: "grpc",
-    snippet: "@TypeFetchEndpoint(contracts.user.getUser)",
+    name: 'typewire-nestjs',
+    role: 'server',
+    transport: 'grpc',
+    snippet: '@TypeFetchEndpoint(contracts.user.getUser)',
   },
   {
-    name: "query-core",
-    role: "cache",
-    transport: "graphql",
-    snippet: "useQuery(contracts.user.getUser, { path: { id } })",
+    name: 'query-core',
+    role: 'cache',
+    transport: 'graphql',
+    snippet: 'useQuery(contracts.user.getUser, { path: { id } })',
   },
   {
-    name: "type-devtools",
-    role: "inspector",
-    transport: "ws",
-    snippet: "one timeline, every wire",
+    name: 'type-devtools',
+    role: 'inspector',
+    transport: 'ws',
+    snippet: 'one timeline, every wire',
   },
-];
+]
 
 export function Hero() {
-  const zeroDep = packages.filter((p) => p.zeroDeps).length;
+  const zeroDep = packages.filter((p) => p.zeroDeps).length
 
   return (
     <section className="relative overflow-hidden pt-16 pb-20 md:pt-24 md:pb-28">
@@ -87,9 +93,10 @@ export function Hero() {
             </h1>
 
             <p className="mt-5 max-w-xl text-lg leading-relaxed text-muted-foreground">
-              Define your API once as a <code className="font-mono text-fg">Zod</code> contract — then
-              validate it end-to-end across HTTP, WebSocket, and the server. One source of truth,
-              wired to everything.
+              Define your API once as a{' '}
+              <code className="font-mono text-fg">Zod</code> contract — then
+              validate it end-to-end across HTTP, WebSocket, and the server. One
+              source of truth, wired to everything.
             </p>
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -122,13 +129,13 @@ export function Hero() {
             />
             <p className="mt-2 font-mono text-xs leading-relaxed text-muted-foreground">
               {install.available ? (
-                "Reads your project, asks what it needs, wires it up."
+                'Reads your project, asks what it needs, wires it up.'
               ) : (
                 <>
-                  Reads your project, asks what it needs, wires it up. The CLI is built and tested
-                  in the repo but not published yet — until it is,{" "}
-                  <code className="text-fg">{install.today}</code> is the line that
-                  runs today.
+                  Reads your project, asks what it needs, wires it up. The CLI
+                  is built and tested in the repo but not published yet — until
+                  it is, <code className="text-fg">{install.today}</code> is the
+                  line that runs today.
                 </>
               )}
             </p>
@@ -138,8 +145,8 @@ export function Hero() {
                 `${packages.length} packages`,
                 `${publishedPackages.length} on npm`,
                 `${zeroDep} with zero runtime deps`,
-                "Zod 4",
-                "MIT",
+                'Zod 4',
+                'MIT',
               ].map((fact, i) => (
                 <li key={fact} className="flex items-center gap-3">
                   {i > 0 && <span aria-hidden>·</span>}
@@ -153,7 +160,10 @@ export function Hero() {
                 <span aria-hidden>·</span>
                 <span className="flex items-center gap-2.5">
                   {RUNTIME_ICONS.map(({ label, Icon }) => (
-                    <span key={label} className="group/rt relative flex items-center">
+                    <span
+                      key={label}
+                      className="group/rt relative flex items-center"
+                    >
                       <Icon className="size-4 opacity-70 transition-opacity group-hover/rt:opacity-100" />
                       <span className="sr-only">{label}</span>
                       <span
@@ -182,5 +192,5 @@ export function Hero() {
         </div>
       </Container>
     </section>
-  );
+  )
 }

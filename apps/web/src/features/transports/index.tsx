@@ -1,12 +1,12 @@
-import { Panel } from "@/components/ui/panel";
-import { CodeBlock } from "@/components/ui/code-block";
-import { Section } from "@/components/ui/section";
-import type { TransportTab } from "@/features/transports/store";
-import { WireLink } from "@/features/transports/wire-fan";
-import { highlight } from "@/lib/highlight";
-import type { Transport } from "@/lib/registry";
+import { Panel } from '@/components/ui/panel'
+import { CodeBlock } from '@/components/ui/code-block'
+import { Section } from '@/components/ui/section'
+import type { TransportTab } from '@/features/transports/store'
+import { WireLink } from '@/features/transports/wire-fan'
+import { highlight } from '@/lib/highlight'
+import type { Transport } from '@/lib/registry'
 
-import { TransportTabs, type Wire } from "@/features/transports/tabs";
+import { TransportTabs, type Wire } from '@/features/transports/tabs'
 
 const CONTRACT = `// contracts.ts — fixed
 export const contracts = {
@@ -18,14 +18,16 @@ export const contracts = {
       response: z.object({ id: z.string(), name: z.string() }),
     },
   },
-} as const;`;
+} as const;`
 
-const WIRES: Array<Omit<Wire, "html"> & { tab: TransportTab; transport: Transport; code: string }> = [
+const WIRES: Array<
+  Omit<Wire, 'html'> & { tab: TransportTab; transport: Transport; code: string }
+> = [
   {
-    tab: "REST",
-    transport: "http",
-    via: "in the core",
-    note: "The http adapter ships inside typefetch — nothing extra to install.",
+    tab: 'REST',
+    transport: 'http',
+    via: 'in the core',
+    note: 'The http adapter ships inside typefetch — nothing extra to install.',
     code: `const client = createClient({ contracts, transport: "http" });
 
 const user = await client.modules.user.getUser({
@@ -34,10 +36,10 @@ const user = await client.modules.user.getUser({
 // GET /users/123 — validated against response`,
   },
   {
-    tab: "GraphQL",
-    transport: "graphql",
-    via: "typefetch-graphql",
-    note: "The selection set is generated from the Zod response schema, so it cannot drift.",
+    tab: 'GraphQL',
+    transport: 'graphql',
+    via: 'typefetch-graphql',
+    note: 'The selection set is generated from the Zod response schema, so it cannot drift.',
     code: `const client = createClient({
   contracts,
   transport: graphqlTransport({ url: "/graphql" }),
@@ -48,10 +50,10 @@ const user = await client.modules.user.getUser({
 });`,
   },
   {
-    tab: "gRPC",
-    transport: "grpc",
-    via: "typefetch-grpc",
-    note: "Connect unary JSON by default — curl-able, and no protobuf runtime.",
+    tab: 'gRPC',
+    transport: 'grpc',
+    via: 'typefetch-grpc',
+    note: 'Connect unary JSON by default — curl-able, and no protobuf runtime.',
     code: `const client = createClient({
   contracts,
   transport: grpcTransport({ baseUrl: "/connect" }),
@@ -62,10 +64,10 @@ const user = await client.modules.user.getUser({
 });`,
   },
   {
-    tab: "WebSocket",
-    transport: "ws",
-    via: "typesocket",
-    note: "Direction-tagged events, and the ack is validated before the promise resolves.",
+    tab: 'WebSocket',
+    transport: 'ws',
+    via: 'typesocket',
+    note: 'Direction-tagged events, and the ack is validated before the promise resolves.',
     code: `const socket = createSocket({ contracts: socketContracts });
 
 const ack = await socket.modules.chat.sendMessage({
@@ -73,31 +75,31 @@ const ack = await socket.modules.chat.sendMessage({
 });
 // ack validated before it resolves`,
   },
-];
+]
 
 const ZOD_SIDE = `response: z.object({
   id: z.string(),
   name: z.string(),
-})`;
+})`
 
 const GQL_SIDE = `query getUser($id: ID!) {
   user(id: $id) {
     id
     name
   }
-}`;
+}`
 
 export async function Transports() {
   const [wires, zod, gql] = await Promise.all([
     Promise.all(
       WIRES.map(async ({ code, ...wire }): Promise<Wire> => ({
         ...wire,
-        html: await highlight(code, "ts"),
-      })),
+        html: await highlight(code, 'ts'),
+      }))
     ),
-    highlight(ZOD_SIDE, "ts"),
-    highlight(GQL_SIDE, "graphql"),
-  ]);
+    highlight(ZOD_SIDE, 'ts'),
+    highlight(GQL_SIDE, 'graphql'),
+  ])
 
   return (
     <Section
@@ -109,7 +111,13 @@ export async function Transports() {
     >
       <TransportTabs
         wires={wires}
-        contract={<CodeBlock code={CONTRACT} filename="contracts.ts" className="h-full" />}
+        contract={
+          <CodeBlock
+            code={CONTRACT}
+            filename="contracts.ts"
+            className="h-full"
+          />
+        }
       />
 
       <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-[1.15fr_1fr]">
@@ -118,8 +126,8 @@ export async function Transports() {
             The GraphQL document is generated from the Zod schema
           </h3>
           <p className="pb-5 text-sm text-muted-foreground">
-            So the selection set cannot drift from the response type — the one thing no other GraphQL
-            client can do.
+            So the selection set cannot drift from the response type — the one
+            thing no other GraphQL client can do.
           </p>
           <div className="grid grid-cols-[1fr_44px_1fr] items-center gap-2">
             <pre className="code-surface min-w-0 overflow-x-auto rounded-lg border border-hair p-3 font-mono text-[11.5px] leading-relaxed">
@@ -134,16 +142,17 @@ export async function Transports() {
 
         <Panel>
           <h3 className="pb-1 text-lg font-bold text-fg">
-            Three failure shapes, one <code className="text-cyan">error.kind</code>
+            Three failure shapes, one{' '}
+            <code className="text-cyan">error.kind</code>
           </h3>
           <p className="pb-5 text-sm text-muted-foreground">
             Handle failures once, whatever the wire produced.
           </p>
           <ul className="space-y-2">
             {[
-              ["HTTP", "AbortError: signal timed out", "var(--wire-http)"],
-              ["gRPC", "code: DEADLINE_EXCEEDED", "var(--wire-grpc)"],
-              ["GQL", "errors[0].extensions.code", "var(--wire-graphql)"],
+              ['HTTP', 'AbortError: signal timed out', 'var(--wire-http)'],
+              ['gRPC', 'code: DEADLINE_EXCEEDED', 'var(--wire-grpc)'],
+              ['GQL', 'errors[0].extensions.code', 'var(--wire-graphql)'],
             ].map(([label, detail, tone]) => (
               <li
                 key={label}
@@ -165,5 +174,5 @@ export async function Transports() {
         </Panel>
       </div>
     </Section>
-  );
+  )
 }

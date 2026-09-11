@@ -1,104 +1,96 @@
-import { NODES } from "./data/nodes";
+import { NODES } from './data/nodes'
 
-export type NodeKey = keyof typeof NODES;
+export type NodeKey = keyof typeof NODES
 
 export type NodeVariant =
-  | "primary"
-  | "secondary"
-  | "package"
-  | "group"
-  | "integration";
+  'primary' | 'secondary' | 'package' | 'group' | 'integration'
 
 export type NodeSpec = {
-  x: number;
-  y: number;
+  x: number
+  y: number
 
-  label: string;
-  description?: string;
+  label: string
+  description?: string
 
-  color: string;
-  section: string;
+  color: string
+  section: string
 
-  variant?: NodeVariant;
+  variant?: NodeVariant
 
-  width?: number;
-  height?: number;
-  radius?: number;
+  width?: number
+  height?: number
+  radius?: number
 
-  muted?: boolean;
-};
+  muted?: boolean
+}
 export type SectionStyle = {
-  background?: string;
-  border?: string;
-  borderWidth?: number;
-  radius?: number;
-  opacity?: number;
+  background?: string
+  border?: string
+  borderWidth?: number
+  radius?: number
+  opacity?: number
 
-  hoverBackground?: string;
-  hoverBorder?: string;
-  hoverBorderWidth?: number;
-  hoverOpacity?: number;
+  hoverBackground?: string
+  hoverBorder?: string
+  hoverBorderWidth?: number
+  hoverOpacity?: number
 
-  padding?: number;
+  padding?: number
 
-  titleColor?: string;
-  hoverTitleColor?: string;
+  titleColor?: string
+  hoverTitleColor?: string
 
-  descColor?: string;
-  hoverDescColor?: string;
+  descColor?: string
+  hoverDescColor?: string
 
-  titleSize?: number;
-  descSize?: number;
-};
+  titleSize?: number
+  descSize?: number
+}
 
 export interface SectionSpec {
-  id: string;
-  start: [number, number];
-  end: [number, number];
+  id: string
+  start: [number, number]
+  end: [number, number]
 
-  title: string;
-  desc?: string;
+  title: string
+  desc?: string
 
-  style?: SectionStyle;
+  style?: SectionStyle
 }
 
 export type EdgeKind =
-  | "dependency"
-  | "transport"
-  | "integration"
-  | "optional"
-  | "runtime";
+  'dependency' | 'transport' | 'integration' | 'optional' | 'runtime'
 
 export interface EdgeSpec {
-  from: NodeKey;
-  to: NodeKey;
+  from: NodeKey
+  to: NodeKey
 
-  kind?: EdgeKind;
+  kind?: EdgeKind
 
-  color?: string;
-  width?: number;
+  color?: string
+  width?: number
 
-  dashed?: boolean;
+  dashed?: boolean
 
-  pulse?: boolean;
-  dur?: number;
+  pulse?: boolean
+  dur?: number
 
-  opacity?: number;
+  opacity?: number
 }
 
 export interface SplitEdgeSpec {
-  from: NodeKey;
-  to: NodeKey[];
+  from: NodeKey
+  to: NodeKey[]
 
-  kind?: EdgeKind;
+  kind?: EdgeKind
 
-  color?: string;
-  width?: number;
+  color?: string
+  width?: number
 
-  dashed?: boolean;
+  dashed?: boolean
 
-  pulse?: boolean;
-  dur?: number;
+  pulse?: boolean
+  dur?: number
 
-  opacity?: number;
+  opacity?: number
 }

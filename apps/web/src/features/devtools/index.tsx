@@ -1,9 +1,9 @@
-"use client";
+'use client'
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useDevtools, type WireName } from "@/features/devtools/store";
-import { TRANSPORT_LABEL, type Transport } from "@/lib/registry";
-import { cn } from "@/utils";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useDevtools, type WireName } from '@/features/devtools/store'
+import { TRANSPORT_LABEL, type Transport } from '@/lib/registry'
+import { cn } from '@/utils'
 
 /**
  * The inspector, as the design draws it: one timeline for every wire, each row
@@ -16,70 +16,146 @@ import { cn } from "@/utils";
  */
 
 interface Row {
-  wire: Transport;
-  method: string;
-  id: string;
-  duration: string;
-  pct: number;
-  status: string;
-  ok: "ok" | "fail" | "warn";
+  wire: Transport
+  method: string
+  id: string
+  duration: string
+  pct: number
+  status: string
+  ok: 'ok' | 'fail' | 'warn'
 }
 
 const ROWS: Row[] = [
-  { wire: "http", method: "GET", id: "user.getUser", duration: "142ms", pct: 34, status: "200", ok: "ok" },
-  { wire: "graphql", method: "QUERY", id: "user.listUsers", duration: "268ms", pct: 64, status: "200", ok: "ok" },
-  { wire: "grpc", method: "UNARY", id: "billing.getPlan", duration: "1.8s", pct: 96, status: "timeout", ok: "fail" },
-  { wire: "ws", method: "EMIT", id: "chat.sendMessage", duration: "18ms", pct: 8, status: "ack ok", ok: "ok" },
-  { wire: "http", method: "POST", id: "user.updateUser", duration: "312ms", pct: 72, status: "validation", ok: "fail" },
-  { wire: "graphql", method: "QUERY", id: "search.query", duration: "204ms", pct: 52, status: "http_4xx", ok: "warn" },
-  { wire: "ws", method: "ON", id: "chat.messageAdded", duration: "6ms", pct: 5, status: "network", ok: "fail" },
-];
+  {
+    wire: 'http',
+    method: 'GET',
+    id: 'user.getUser',
+    duration: '142ms',
+    pct: 34,
+    status: '200',
+    ok: 'ok',
+  },
+  {
+    wire: 'graphql',
+    method: 'QUERY',
+    id: 'user.listUsers',
+    duration: '268ms',
+    pct: 64,
+    status: '200',
+    ok: 'ok',
+  },
+  {
+    wire: 'grpc',
+    method: 'UNARY',
+    id: 'billing.getPlan',
+    duration: '1.8s',
+    pct: 96,
+    status: 'timeout',
+    ok: 'fail',
+  },
+  {
+    wire: 'ws',
+    method: 'EMIT',
+    id: 'chat.sendMessage',
+    duration: '18ms',
+    pct: 8,
+    status: 'ack ok',
+    ok: 'ok',
+  },
+  {
+    wire: 'http',
+    method: 'POST',
+    id: 'user.updateUser',
+    duration: '312ms',
+    pct: 72,
+    status: 'validation',
+    ok: 'fail',
+  },
+  {
+    wire: 'graphql',
+    method: 'QUERY',
+    id: 'search.query',
+    duration: '204ms',
+    pct: 52,
+    status: 'http_4xx',
+    ok: 'warn',
+  },
+  {
+    wire: 'ws',
+    method: 'ON',
+    id: 'chat.messageAdded',
+    duration: '6ms',
+    pct: 5,
+    status: 'network',
+    ok: 'fail',
+  },
+]
 
 const CACHE = [
-  { key: "user.getUser({ id: 123 })", age: "12s", state: "fresh", tone: "var(--green)" },
-  { key: "user.listUsers({ page: 1 })", age: "1m 40s", state: "stale", tone: "var(--amber)" },
-  { key: "chat.history({ room: a })", age: "4s", state: "fetching", tone: "var(--cyan)" },
-  { key: "billing.getPlan()", age: "6m 02s", state: "invalidated", tone: "var(--muted-foreground)" },
-];
+  {
+    key: 'user.getUser({ id: 123 })',
+    age: '12s',
+    state: 'fresh',
+    tone: 'var(--green)',
+  },
+  {
+    key: 'user.listUsers({ page: 1 })',
+    age: '1m 40s',
+    state: 'stale',
+    tone: 'var(--amber)',
+  },
+  {
+    key: 'chat.history({ room: a })',
+    age: '4s',
+    state: 'fetching',
+    tone: 'var(--cyan)',
+  },
+  {
+    key: 'billing.getPlan()',
+    age: '6m 02s',
+    state: 'invalidated',
+    tone: 'var(--muted-foreground)',
+  },
+]
 
 const LEGEND: Array<{ wire: Transport; name: WireName; count: number }> = [
-  { wire: "http", name: "HTTP", count: 412 },
-  { wire: "graphql", name: "GraphQL", count: 168 },
-  { wire: "grpc", name: "gRPC", count: 96 },
-  { wire: "ws", name: "WebSocket", count: 214 },
-];
+  { wire: 'http', name: 'HTTP', count: 412 },
+  { wire: 'graphql', name: 'GraphQL', count: 168 },
+  { wire: 'grpc', name: 'gRPC', count: 96 },
+  { wire: 'ws', name: 'WebSocket', count: 214 },
+]
 
 const TONE: Record<Transport, string> = {
-  http: "var(--wire-http)",
-  graphql: "var(--wire-graphql)",
-  grpc: "var(--wire-grpc)",
-  ws: "var(--wire-ws)",
-};
+  http: 'var(--wire-http)',
+  graphql: 'var(--wire-graphql)',
+  grpc: 'var(--wire-grpc)',
+  ws: 'var(--wire-ws)',
+}
 
 const BADGE: Record<Transport, string> = {
-  http: "HTTP",
-  graphql: "GQL",
-  grpc: "gRPC",
-  ws: "WS",
-};
+  http: 'HTTP',
+  graphql: 'GQL',
+  grpc: 'gRPC',
+  ws: 'WS',
+}
 
 const STATUS_TONE = {
-  ok: "var(--green)",
-  fail: "var(--red)",
-  warn: "var(--amber)",
-} as const;
+  ok: 'var(--green)',
+  fail: 'var(--red)',
+  warn: 'var(--amber)',
+} as const
 
 export function DevtoolsPanel() {
-  const wireFocus = useDevtools((s) => s.wireFocus);
-  const setWireFocus = useDevtools((s) => s.setWireFocus);
-  const total = LEGEND.reduce((sum, l) => sum + l.count, 0);
+  const wireFocus = useDevtools((s) => s.wireFocus)
+  const setWireFocus = useDevtools((s) => s.setWireFocus)
+  const total = LEGEND.reduce((sum, l) => sum + l.count, 0)
 
   return (
     <div>
       {/* Legend: hovering a wire dims the rest, everywhere at once. */}
       <div className="mb-3 flex flex-wrap gap-2">
         {LEGEND.map((item) => {
-          const active = !wireFocus || wireFocus === item.name;
+          const active = !wireFocus || wireFocus === item.name
           return (
             <button
               key={item.name}
@@ -89,10 +165,13 @@ export function DevtoolsPanel() {
               onFocus={() => setWireFocus(item.name)}
               onBlur={() => setWireFocus(null)}
               className={cn(
-                "flex items-center gap-2 rounded-full border px-3 py-1.5 transition-opacity",
-                active ? "opacity-100" : "opacity-35",
+                'flex items-center gap-2 rounded-full border px-3 py-1.5 transition-opacity',
+                active ? 'opacity-100' : 'opacity-35'
               )}
-              style={{ borderColor: wireFocus === item.name ? TONE[item.wire] : "var(--hair)" }}
+              style={{
+                borderColor:
+                  wireFocus === item.name ? TONE[item.wire] : 'var(--hair)',
+              }}
             >
               <span
                 aria-hidden
@@ -102,12 +181,14 @@ export function DevtoolsPanel() {
               <span className="font-mono text-[11px] text-foreground">
                 {TRANSPORT_LABEL[item.wire]}
               </span>
-              <span className="font-mono text-[11px] text-muted-foreground">{item.count}</span>
+              <span className="font-mono text-[11px] text-muted-foreground">
+                {item.count}
+              </span>
               <span className="font-mono text-[10px] text-dim">
                 {Math.round((item.count / total) * 100)}%
               </span>
             </button>
-          );
+          )
         })}
       </div>
 
@@ -121,7 +202,9 @@ export function DevtoolsPanel() {
             <span
               aria-hidden
               className="size-1.5 rounded-full bg-wire-ws"
-              style={{ animation: "wire-pulse var(--motion-wire) ease-in-out infinite" }}
+              style={{
+                animation: 'wire-pulse var(--motion-wire) ease-in-out infinite',
+              }}
             />
             LIVE · 4 WIRES
           </span>
@@ -137,13 +220,14 @@ export function DevtoolsPanel() {
             </div>
 
             {ROWS.map((row) => {
-              const dimmed = wireFocus && wireFocus !== TRANSPORT_LABEL[row.wire];
+              const dimmed =
+                wireFocus && wireFocus !== TRANSPORT_LABEL[row.wire]
               return (
                 <div
                   key={`${row.wire}-${row.id}`}
                   className={cn(
-                    "grid grid-cols-[64px_1fr_86px_92px] items-center gap-3 border-b border-hair/60 px-3.5 py-2.5 transition-opacity",
-                    dimmed ? "opacity-25" : "opacity-100",
+                    'grid grid-cols-[64px_1fr_86px_92px] items-center gap-3 border-b border-hair/60 px-3.5 py-2.5 transition-opacity',
+                    dimmed ? 'opacity-25' : 'opacity-100'
                   )}
                 >
                   <span
@@ -165,7 +249,10 @@ export function DevtoolsPanel() {
                     <span className="h-1 flex-1 overflow-hidden rounded-full bg-hair-strong">
                       <span
                         className="block h-1 rounded-full"
-                        style={{ width: `${row.pct}%`, background: TONE[row.wire] }}
+                        style={{
+                          width: `${row.pct}%`,
+                          background: TONE[row.wire],
+                        }}
                       />
                     </span>
                     <span className="font-mono text-[10px] text-muted-foreground">
@@ -183,7 +270,7 @@ export function DevtoolsPanel() {
                     {row.status}
                   </span>
                 </div>
-              );
+              )
             })}
 
             <div className="flex items-center gap-3 px-3.5 py-2.5">
@@ -191,10 +278,15 @@ export function DevtoolsPanel() {
               <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-hair-strong">
                 <span
                   className="block h-1.5 w-[64%] rounded-full bg-linear-to-r from-blue-strong to-cyan"
-                  style={{ animation: "wire-pulse var(--motion-wire) ease-in-out infinite" }}
+                  style={{
+                    animation:
+                      'wire-pulse var(--motion-wire) ease-in-out infinite',
+                  }}
                 />
               </span>
-              <span className="font-mono text-[10px] text-muted-foreground">1.4 / 2.2 MB</span>
+              <span className="font-mono text-[10px] text-muted-foreground">
+                1.4 / 2.2 MB
+              </span>
             </div>
           </TabsContent>
 
@@ -204,8 +296,12 @@ export function DevtoolsPanel() {
                 key={entry.key}
                 className="grid grid-cols-[1fr_86px_92px] items-center gap-3 border-b border-hair/60 px-3.5 py-2.5"
               >
-                <span className="truncate font-mono text-[11.5px] text-fg">{entry.key}</span>
-                <span className="font-mono text-[10px] text-muted-foreground">{entry.age}</span>
+                <span className="truncate font-mono text-[11.5px] text-fg">
+                  {entry.key}
+                </span>
+                <span className="font-mono text-[10px] text-muted-foreground">
+                  {entry.age}
+                </span>
                 <span
                   className="justify-self-start rounded border px-1.5 py-0.5 font-mono text-[10px]"
                   style={{
@@ -225,9 +321,9 @@ export function DevtoolsPanel() {
       </Tabs>
 
       <p className="mt-3 font-mono text-[11px] text-dim">
-        overrides: force mock · force error · add latency · swap schema — without touching the
-        contract
+        overrides: force mock · force error · add latency · swap schema —
+        without touching the contract
       </p>
     </div>
-  );
+  )
 }

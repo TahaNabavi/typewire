@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod'
 
 /**
  * The playground's contract — and the whole point of the playground.
@@ -20,29 +20,29 @@ export const User = z.object({
   id: z.string(),
   name: z.string(),
   email: z.string(),
-  role: z.enum(["admin", "member"]),
-});
+  role: z.enum(['admin', 'member']),
+})
 
 export const contracts = {
   user: {
     getUser: {
-      method: "GET",
-      path: "/users/:id",
+      method: 'GET',
+      path: '/users/:id',
       request: z.object({
         path: z.object({ id: z.string().min(1) }),
       }),
       response: User,
       errors: {
-        404: z.object({ code: z.literal("not_found"), id: z.string() }),
+        404: z.object({ code: z.literal('not_found'), id: z.string() }),
       },
     },
 
     listUsers: {
-      method: "GET",
-      path: "/users",
+      method: 'GET',
+      path: '/users',
       request: z.object({
         query: z.object({
-          role: z.enum(["admin", "member"]).optional(),
+          role: z.enum(['admin', 'member']).optional(),
           limit: z.coerce.number().int().min(1).max(50).default(10),
         }),
       }),
@@ -53,22 +53,22 @@ export const contracts = {
     },
 
     createUser: {
-      method: "POST",
-      path: "/users",
+      method: 'POST',
+      path: '/users',
       request: z.object({
         body: z.object({
-          name: z.string().min(2, "name must be at least 2 characters"),
-          email: z.email("must be a valid email address"),
-          role: z.enum(["admin", "member"]).default("member"),
+          name: z.string().min(2, 'name must be at least 2 characters'),
+          email: z.email('must be a valid email address'),
+          role: z.enum(['admin', 'member']).default('member'),
         }),
       }),
       response: User,
       errors: {
-        409: z.object({ code: z.literal("email_taken"), email: z.string() }),
+        409: z.object({ code: z.literal('email_taken'), email: z.string() }),
       },
     },
   },
-} as const;
+} as const
 
 /** The literal source, shown beside the console so the two cannot drift. */
 export const CONTRACT_SOURCE = `// src/features/playground/contracts.ts
@@ -111,7 +111,7 @@ export const contracts = {
       errors:   { 409: z.object({ code: z.literal("email_taken"), email: z.string() }) },
     },
   },
-} as const;`;
+} as const;`
 
 /** How the server implements the same object. */
 export const SERVER_SOURCE = `// src/app/api/playground/[...path]/route.ts
@@ -122,4 +122,4 @@ import { contracts } from "@/features/playground/contracts";
 // holds it to.
 const parsed = contracts.user.getUser.response.safeParse(record);
 if (!parsed.success) return badImplementation(parsed.error);
-return Response.json(parsed.data);`;
+return Response.json(parsed.data);`

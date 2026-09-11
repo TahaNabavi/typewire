@@ -1,6 +1,6 @@
-import { zFile } from "@tahanabavi/typefetch";
-import { defineSocketContracts } from "@tahanabavi/typesocket";
-import { z } from "zod";
+import { zFile } from '@tahanabavi/typefetch'
+import { defineSocketContracts } from '@tahanabavi/typesocket'
+import { z } from 'zod'
 
 /**
  * One HTTP contract and one WS contract. Nothing in either mentions caching,
@@ -10,14 +10,18 @@ import { z } from "zod";
 export const httpContracts = {
   user: {
     getUser: {
-      method: "GET",
-      path: "/users/:id",
+      method: 'GET',
+      path: '/users/:id',
       request: z.object({ path: z.object({ id: z.string() }) }),
-      response: z.object({ id: z.string(), name: z.string(), version: z.number() }),
+      response: z.object({
+        id: z.string(),
+        name: z.string(),
+        version: z.number(),
+      }),
     },
     updateUser: {
-      method: "POST",
-      path: "/users/:id",
+      method: 'POST',
+      path: '/users/:id',
       request: z.object({
         path: z.object({ id: z.string() }),
         body: z.object({ name: z.string() }),
@@ -35,11 +39,14 @@ export const httpContracts = {
   media: {
     /** Multipart upload. The call site opts into progress, not the contract. */
     upload: {
-      method: "POST",
-      path: "/media",
-      bodyType: "form-data",
+      method: 'POST',
+      path: '/media',
+      bodyType: 'form-data',
       request: z.object({
-        body: z.object({ file: z.instanceof(Blob), note: z.string().optional() }),
+        body: z.object({
+          file: z.instanceof(Blob),
+          note: z.string().optional(),
+        }),
       }),
       response: z.object({ id: z.string(), bytes: z.number() }),
     },
@@ -50,22 +57,22 @@ export const httpContracts = {
      * download call site otherwise re-derives by hand.
      */
     download: {
-      method: "GET",
-      path: "/media/:id",
-      responseType: "file",
+      method: 'GET',
+      path: '/media/:id',
+      responseType: 'file',
       request: z.object({ path: z.object({ id: z.string() }) }),
       response: zFile(),
     },
   },
-} as const;
+} as const
 
 export const wsContracts = defineSocketContracts({
   chat: {
     /** Acked, so it is request/response shaped — the query engine can cache it. */
     sendMessage: {
-      direction: "client->server",
+      direction: 'client->server',
       request: z.object({ text: z.string() }),
       ack: z.object({ id: z.string(), text: z.string() }),
     },
   },
-});
+})

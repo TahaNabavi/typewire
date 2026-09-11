@@ -1,4 +1,4 @@
-import { definePermissions } from "@tahanabavi/type-permission";
+import { definePermissions } from '@tahanabavi/type-permission'
 
 /**
  * The one bit map both ends import.
@@ -12,28 +12,32 @@ import { definePermissions } from "@tahanabavi/type-permission";
  */
 export const P = definePermissions({
   chat: {
-    VIEW_ROOM: { bit: 0, label: "View room" },
-    SEND_MESSAGES: { bit: 1, label: "Send messages", requires: ["chat.VIEW_ROOM"] },
+    VIEW_ROOM: { bit: 0, label: 'View room' },
+    SEND_MESSAGES: {
+      bit: 1,
+      label: 'Send messages',
+      requires: ['chat.VIEW_ROOM'],
+    },
     // A moderator can delete; deleting implies you could also send.
     MANAGE_MESSAGES: {
       bit: 2,
-      label: "Delete messages",
-      implies: ["chat.SEND_MESSAGES"],
+      label: 'Delete messages',
+      implies: ['chat.SEND_MESSAGES'],
     },
   },
   server: {
-    ADMINISTRATOR: { bit: 8, label: "Administrator", grantsAll: true },
+    ADMINISTRATOR: { bit: 8, label: 'Administrator', grantsAll: true },
   },
-});
+})
 
 /** A role is just a named set of flag names. */
 const ROLE_FLAGS = {
-  admin: ["server.ADMINISTRATOR"],
-  moderator: ["chat.VIEW_ROOM", "chat.MANAGE_MESSAGES"],
-  member: ["chat.VIEW_ROOM", "chat.SEND_MESSAGES"],
-} as const;
+  admin: ['server.ADMINISTRATOR'],
+  moderator: ['chat.VIEW_ROOM', 'chat.MANAGE_MESSAGES'],
+  member: ['chat.VIEW_ROOM', 'chat.SEND_MESSAGES'],
+} as const
 
-export type Role = keyof typeof ROLE_FLAGS;
+export type Role = keyof typeof ROLE_FLAGS
 
 /**
  * A deliberately silly demo heuristic: your role comes from your name. Join as
@@ -41,10 +45,10 @@ export type Role = keyof typeof ROLE_FLAGS;
  * this is a database lookup, not a string match.
  */
 export function roleForUser(user: string): Role {
-  const u = user.toLowerCase();
-  if (u.includes("admin")) return "admin";
-  if (u.startsWith("mod")) return "moderator";
-  return "member";
+  const u = user.toLowerCase()
+  if (u.includes('admin')) return 'admin'
+  if (u.startsWith('mod')) return 'moderator'
+  return 'member'
 }
 
 /**
@@ -53,5 +57,5 @@ export function roleForUser(user: string): Role {
  * (via `implies`) also gains `SEND_MESSAGES` — without listing them.
  */
 export function permsForUser(user: string): bigint {
-  return P.from(ROLE_FLAGS[roleForUser(user)]);
+  return P.from(ROLE_FLAGS[roleForUser(user)])
 }

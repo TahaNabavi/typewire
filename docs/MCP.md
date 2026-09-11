@@ -18,7 +18,7 @@ wrong.
 The CLI is a devDependency and stays one ([`ARCHITECTURE.md`](./ARCHITECTURE.md)),
 so nothing here ships an MCP server at runtime. The command writes a small
 TypeScript file into the user's project; `@modelcontextprotocol/sdk` becomes
-*their* dependency, imported by *their* file, versioned on *their* schedule.
+_their_ dependency, imported by _their_ file, versioned on _their_ schedule.
 
 That is the same rule as everything else: anything that needs a dependency ships
 separately, and here "separately" means "in the consuming project", because an
@@ -31,15 +31,15 @@ once, and re-running the command with `--check` reports what has drifted.
 
 ## 2. The mapping
 
-| Contract | MCP tool | Note |
-| --- | --- | --- |
-| `"user.getUser"` | `name: "user_getUser"` | MCP names allow `[A-Za-z0-9_-]{1,64}`; the dot is the only illegal character, so the mapping is total and reversible |
-| `request` schema | `inputSchema` | via `jsonSchemaOf(…, "draft-2020-12", "input")` — [`SCHEMA.md`](./SCHEMA.md) §6 |
-| `response` schema | `outputSchema` | same ladder, `"output"` |
-| `describe()` | `description` (fallback) | `"GET /users/:id"` is a poor description, which is why §3 exists |
-| `method` (http) | `annotations.readOnlyHint` / `destructiveHint` / `idempotentHint` | `GET`/`HEAD` read-only; `DELETE`/`PUT` destructive; `GET`/`PUT`/`DELETE` idempotent |
-| `permission` | tool filtering | §5 |
-| `errors` map | the tool's documented failure list | agents retry better when the failure is named |
+| Contract          | MCP tool                                                          | Note                                                                                                                 |
+| ----------------- | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `"user.getUser"`  | `name: "user_getUser"`                                            | MCP names allow `[A-Za-z0-9_-]{1,64}`; the dot is the only illegal character, so the mapping is total and reversible |
+| `request` schema  | `inputSchema`                                                     | via `jsonSchemaOf(…, "draft-2020-12", "input")` — [`SCHEMA.md`](./SCHEMA.md) §6                                      |
+| `response` schema | `outputSchema`                                                    | same ladder, `"output"`                                                                                              |
+| `describe()`      | `description` (fallback)                                          | `"GET /users/:id"` is a poor description, which is why §3 exists                                                     |
+| `method` (http)   | `annotations.readOnlyHint` / `destructiveHint` / `idempotentHint` | `GET`/`HEAD` read-only; `DELETE`/`PUT` destructive; `GET`/`PUT`/`DELETE` idempotent                                  |
+| `permission`      | tool filtering                                                    | §5                                                                                                                   |
+| `errors` map      | the tool's documented failure list                                | agents retry better when the failure is named                                                                        |
 
 The reason this is a small feature rather than a project: `"module.member"` is
 already the family's stable identifier, so the tool name is not a new naming
@@ -62,21 +62,21 @@ So it goes in `typewire.config.ts`, keyed by endpoint id, exactly the way
 export default defineConfig({
   typefetch: { contracts },
   mcp: {
-    out: "./mcp/server.ts",
-    include: ["catalog.*", "order.get*"],
+    out: './mcp/server.ts',
+    include: ['catalog.*', 'order.get*'],
     tools: {
-      "order.list": {
-        title: "List orders",
+      'order.list': {
+        title: 'List orders',
         description:
-          "Orders for the signed-in customer, newest first. Page with `cursor` " +
-          "from the previous response; omit it for the first page. Use " +
-          "`order.get` when you already have an id.",
+          'Orders for the signed-in customer, newest first. Page with `cursor` ' +
+          'from the previous response; omit it for the first page. Use ' +
+          '`order.get` when you already have an id.',
         examples: [{ input: { query: { limit: 20 } } }],
       },
-      "order.cancel": { destructive: true, confirm: true },
+      'order.cancel': { destructive: true, confirm: true },
     },
   },
-});
+})
 ```
 
 Anything without an entry falls back to the schema's own descriptions
@@ -98,7 +98,7 @@ nesting levels for what is conceptually one argument object.
   a silent overwrite would be a data bug.
 - `flatten: false` emits the contract shape verbatim, for anyone who prefers it.
 
-Whatever the shape, the *runtime* call goes through the generated client, so the
+Whatever the shape, the _runtime_ call goes through the generated client, so the
 request is validated by the endpoint's own schema before it goes anywhere. An
 agent that hallucinates an argument gets a validation error naming the field, not
 a 400 from production.
@@ -146,30 +146,30 @@ reachable, so it runs in CI against a repo with no backend running.
 
 ```ts
 // typewire generate mcp · @tahanabavi/typewire-cli 0.2.0 · 14 tools · read-only
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { ApiClient } from "@tahanabavi/typefetch";
-import { contracts } from "../src/contracts";
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
+import { ApiClient } from '@tahanabavi/typefetch'
+import { contracts } from '../src/contracts'
 
 const api = new ApiClient(
   { baseUrl: process.env.API_URL!, tokenProvider: () => process.env.API_TOKEN },
-  contracts,
-);
+  contracts
+)
 
-const server = new McpServer({ name: "acme-api", version: "1.4.2" });
+const server = new McpServer({ name: 'acme-api', version: '1.4.2' })
 
 server.registerTool(
-  "order_list",
+  'order_list',
   {
-    title: "List orders",
-    description: "Orders for the signed-in customer, newest first. …",
-    inputSchema: { /* generated from contracts.order.list.request */ },
+    title: 'List orders',
+    description: 'Orders for the signed-in customer, newest first. …',
+    inputSchema: {/* generated from contracts.order.list.request */},
     annotations: { readOnlyHint: true, idempotentHint: true },
   },
-  async (args) => toolResult(() => api.modules.order.list(unflatten(args))),
-);
+  async (args) => toolResult(() => api.modules.order.list(unflatten(args)))
+)
 
-await server.connect(new StdioServerTransport());
+await server.connect(new StdioServerTransport())
 ```
 
 `toolResult` is emitted alongside: it catches the client's `RichError` and
@@ -179,42 +179,42 @@ can back off; one seeing `"Request failed"` retries immediately, three times.
 
 ## 8. Failure modes, named
 
-| Mode | Behaviour |
-| --- | --- |
-| Endpoint id is not a legal tool name | substitution is total; a post-substitution collision fails the command, naming both ids |
-| Schema cannot become JSON Schema | the endpoint is skipped with a named warning, not emitted half-formed |
-| Two parts declare the same key under `flatten` | generate-time error naming the endpoint and the key |
-| Contract adds an endpoint after generation | `--check` fails in CI; that is the whole point of `--check` |
-| Agent sends an invalid argument | the endpoint's own request schema rejects it, before the network |
-| Tool the caller lacks permission for | never listed (§5) |
-| Streaming endpoint (`transport: "sse"`) | skipped with a warning — MCP tools return a value, not a stream ([`SSE.md`](./SSE.md)) |
+| Mode                                           | Behaviour                                                                               |
+| ---------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Endpoint id is not a legal tool name           | substitution is total; a post-substitution collision fails the command, naming both ids |
+| Schema cannot become JSON Schema               | the endpoint is skipped with a named warning, not emitted half-formed                   |
+| Two parts declare the same key under `flatten` | generate-time error naming the endpoint and the key                                     |
+| Contract adds an endpoint after generation     | `--check` fails in CI; that is the whole point of `--check`                             |
+| Agent sends an invalid argument                | the endpoint's own request schema rejects it, before the network                        |
+| Tool the caller lacks permission for           | never listed (§5)                                                                       |
+| Streaming endpoint (`transport: "sse"`)        | skipped with a warning — MCP tools return a value, not a stream ([`SSE.md`](./SSE.md))  |
 
 ## 9. Test matrix
 
-| Test | Asserts |
-| --- | --- |
-| `an endpoint id becomes a legal mcp tool name` | §2 |
-| `two ids that collide after substitution fail the command` | §8 |
-| `a described zod field becomes the argument description` | §3 |
-| `a config tools entry overrides the mechanical description` | §3 |
-| `flatten refuses when path and query share a key` | §4 |
-| `headers are never emitted as an argument` | §4 |
-| `writes are absent without --allow-writes` | §5 |
-| `an endpoint with a permission requirement is filtered for a caller without the bit` | §5 |
-| `--check fails after a contract gains an endpoint` | §8 |
-| `a generated tool call validates its input against the contract` | §4 |
-| `an ErrorKind survives into the mcp error payload` | §7 |
-| `generate runs with contracts only and no client` | §6 |
+| Test                                                                                 | Asserts |
+| ------------------------------------------------------------------------------------ | ------- |
+| `an endpoint id becomes a legal mcp tool name`                                       | §2      |
+| `two ids that collide after substitution fail the command`                           | §8      |
+| `a described zod field becomes the argument description`                             | §3      |
+| `a config tools entry overrides the mechanical description`                          | §3      |
+| `flatten refuses when path and query share a key`                                    | §4      |
+| `headers are never emitted as an argument`                                           | §4      |
+| `writes are absent without --allow-writes`                                           | §5      |
+| `an endpoint with a permission requirement is filtered for a caller without the bit` | §5      |
+| `--check fails after a contract gains an endpoint`                                   | §8      |
+| `a generated tool call validates its input against the contract`                     | §4      |
+| `an ErrorKind survives into the mcp error payload`                                   | §7      |
+| `generate runs with contracts only and no client`                                    | §6      |
 
 ## 10. Milestones
 
-| # | Milestone | Contains |
-| --- | --- | --- |
-| C1 | `generate` command scaffold | config loading, `--project`, the emitter seam shared with `openapi` |
-| C2 | The mapping | names, input/output schemas, annotations, `toolResult` |
-| C3 | Descriptions | config `tools` block, schema-description fallback, `--audit` |
-| C4 | Safety | `--read-only` default, permission filtering, header stripping |
-| C5 | `--check` | drift detection, and the CI recipe in the docs |
+| #   | Milestone                   | Contains                                                            |
+| --- | --------------------------- | ------------------------------------------------------------------- |
+| C1  | `generate` command scaffold | config loading, `--project`, the emitter seam shared with `openapi` |
+| C2  | The mapping                 | names, input/output schemas, annotations, `toolResult`              |
+| C3  | Descriptions                | config `tools` block, schema-description fallback, `--audit`        |
+| C4  | Safety                      | `--read-only` default, permission filtering, header stripping       |
+| C5  | `--check`                   | drift detection, and the CI recipe in the docs                      |
 
 C1 is shared with `generate openapi`, so whichever ships first pays for it.
 

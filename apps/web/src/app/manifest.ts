@@ -1,6 +1,6 @@
-import type { MetadataRoute } from "next";
+import type { MetadataRoute } from 'next'
 
-import { site } from "@/config/site";
+import { site } from '@/config/site'
 
 /**
  * Not a PWA — there is no offline story here and no reason to invent one for a
@@ -17,16 +17,16 @@ export default function manifest(): MetadataRoute.Manifest {
     name: `${site.name} — ${site.tagline}`,
     short_name: site.name,
     description: site.description,
-    id: "/",
-    start_url: "/",
-    scope: "/",
-    display: "standalone",
-    orientation: "portrait-primary",
-    background_color: "#f7f9fc",
-    theme_color: "#f7f9fc",
-    categories: ["developer", "productivity", "utilities"],
-    lang: "en",
-    dir: "ltr",
+    id: '/',
+    start_url: '/',
+    scope: '/',
+    display: 'standalone',
+    orientation: 'portrait-primary',
+    background_color: '#f7f9fc',
+    theme_color: '#f7f9fc',
+    categories: ['developer', 'productivity', 'utilities'],
+    lang: 'en',
+    dir: 'ltr',
     // The mark is vector, and every browser that reads a manifest has read SVG
     // icons for years — so there is one drawing here rather than a ladder of
     // rasterised sizes that would each have to be regenerated when it changes.
@@ -34,14 +34,24 @@ export default function manifest(): MetadataRoute.Manifest {
     // all; it reads the <link rel="apple-touch-icon"> that app/apple-icon.tsx
     // emits, and that one has to be a PNG.
     icons: [
-      { src: "/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any" },
-      { src: "/icon-maskable.svg", sizes: "any", type: "image/svg+xml", purpose: "maskable" },
-      { src: "/apple-icon", sizes: "180x180", type: "image/png", purpose: "any" },
+      { src: '/icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
+      {
+        src: '/icon-maskable.svg',
+        sizes: 'any',
+        type: 'image/svg+xml',
+        purpose: 'maskable',
+      },
+      {
+        src: '/apple-icon',
+        sizes: '180x180',
+        type: 'image/png',
+        purpose: 'any',
+      },
     ],
     shortcuts: [
-      { name: "Docs", short_name: "Docs", url: "/docs" },
-      { name: "Packages", short_name: "Packages", url: "/packages" },
-      { name: "Playground", short_name: "Playground", url: "/playground" },
+      { name: 'Docs', short_name: 'Docs', url: '/docs' },
+      { name: 'Packages', short_name: 'Packages', url: '/packages' },
+      { name: 'Playground', short_name: 'Playground', url: '/playground' },
     ],
-  };
+  }
 }

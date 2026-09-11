@@ -8,37 +8,34 @@ import {
   Logger,
   NestInterceptor,
   Optional,
-} from "@nestjs/common";
-import { Reflector } from "@nestjs/core";
-import type { AnyEndpointDefZ } from "@tahanabavi/typefetch";
-import { from, Observable } from "rxjs";
-import { mergeMap } from "rxjs/operators";
+} from '@nestjs/common'
+import { Reflector } from '@nestjs/core'
+import type { AnyEndpointDefZ } from '@tahanabavi/typefetch'
+import { from, Observable } from 'rxjs'
+import { mergeMap } from 'rxjs/operators'
 import {
   PARSED_REQUEST_KEY,
   TYPEFETCH_ENDPOINT_METADATA,
   TYPEFETCH_MODULE_OPTIONS,
   TYPEFETCH_OPTIONS_METADATA,
-} from "../constants";
+} from '../constants'
 import {
   decryptRequestBody,
   encryptResponseData,
-} from "../encryption/encryption";
+} from '../encryption/encryption'
 import {
   ContractResponseViolationException,
   formatZodIssues,
-} from "../exceptions";
-import {
-  shapeContractResponse,
-  validatesResponse,
-} from "../http/response-type";
+} from '../exceptions'
+import { shapeContractResponse, validatesResponse } from '../http/response-type'
 import type {
   ContractEndpointOptions,
   ParsedContractRequest,
   ResolvedContractOptions,
   TypeFetchModuleOptions,
-} from "../types";
-import { describeContractRoute, isHttpEndpoint } from "../transport";
-import { validateRequest } from "../validation/request-validator";
+} from '../types'
+import { describeContractRoute, isHttpEndpoint } from '../transport'
+import { validateRequest } from '../validation/request-validator'
 
 /**
  * Validates the request against the contract's `request` schema before the
@@ -51,7 +48,7 @@ import { validateRequest } from "../validation/request-validator";
  */
 @Injectable()
 export class ContractValidationInterceptor implements NestInterceptor {
-  private readonly logger = new Logger("TypeFetchContract");
+  private readonly logger = new Logger('TypeFetchContract')
 
   // Explicit injection tokens: the published build (esbuild) does not emit
   // `design:paramtypes` metadata, so by-type injection would break there.
@@ -59,30 +56,30 @@ export class ContractValidationInterceptor implements NestInterceptor {
     @Inject(Reflector) private readonly reflector: Reflector,
     @Optional()
     @Inject(TYPEFETCH_MODULE_OPTIONS)
-    private readonly moduleOptions?: TypeFetchModuleOptions,
+    private readonly moduleOptions?: TypeFetchModuleOptions
   ) {}
 
   async intercept(
     context: ExecutionContext,
-    next: CallHandler,
+    next: CallHandler
   ): Promise<Observable<any>> {
     const endpoint = this.reflector.get<AnyEndpointDefZ | undefined>(
       TYPEFETCH_ENDPOINT_METADATA,
-      context.getHandler(),
-    );
-    if (!endpoint) return next.handle();
+      context.getHandler()
+    )
+    if (!endpoint) return next.handle()
 
-    const options = this.resolveOptions(context);
-    const request = context.switchToHttp().getRequest();
-    const response = context.switchToHttp().getResponse();
+    const options = this.resolveOptions(context)
+    const request = context.switchToHttp().getRequest()
+    const response = context.switchToHttp().getResponse()
 
     // Decrypt request fields first, so validation (and the handler) see
     // plaintext — the inverse of what the client encrypted before sending.
-    let body = request.body;
+    let body = request.body
     if (endpoint.encryption?.request) {
-      body = await this.decryptBody(endpoint, body);
+      body = await this.decryptBody(endpoint, body)
       try {
-        request.body = body;
+        request.body = body
       } catch {
         /* frozen request — parsed value still flows through validation */
       }
@@ -98,38 +95,40 @@ export class ContractValidationInterceptor implements NestInterceptor {
           headers: request.headers ?? {},
           files: collectFiles(request),
         },
-        { coerce: options.coerce },
-      );
+        { coerce: options.coerce }
+      )
 
-      request[PARSED_REQUEST_KEY] = parsed;
-      this.syncRequest(request, parsed);
+      request[PARSED_REQUEST_KEY] = parsed
+      this.syncRequest(request, parsed)
     }
 
-    const encryptResponse = Boolean(endpoint.encryption?.response);
+    const encryptResponse = Boolean(endpoint.encryption?.response)
 
     // A non-JSON `responseType` still needs the outbound pass even when nothing
     // is validated: a `Buffer` handed to Nest is JSON-serialised, and a
     // `responseType: "file"` download has no filename unless a header carries
     // one. @see http/response-type.ts
-    const shapes = isHttpEndpoint(endpoint) && !validatesResponse(endpoint);
+    const shapes = isHttpEndpoint(endpoint) && !validatesResponse(endpoint)
 
     if (!options.validateResponse && !encryptResponse && !shapes) {
-      return next.handle();
+      return next.handle()
     }
 
-    return next.handle().pipe(
-      mergeMap((data) =>
-        from(
-          this.handleResponse(
-            endpoint,
-            data,
-            options,
-            encryptResponse,
-            response,
-          ),
-        ),
-      ),
-    );
+    return next
+      .handle()
+      .pipe(
+        mergeMap((data) =>
+          from(
+            this.handleResponse(
+              endpoint,
+              data,
+              options,
+              encryptResponse,
+              response
+            )
+          )
+        )
+      )
   }
 
   private async handleResponse(
@@ -137,118 +136,118 @@ export class ContractValidationInterceptor implements NestInterceptor {
     data: unknown,
     options: ResolvedContractOptions,
     encryptResponse: boolean,
-    response: unknown,
+    response: unknown
   ): Promise<unknown> {
-    let result = data;
+    let result = data
 
     // `validateResponse` asks whether the *contract* should be enforced;
     // `validatesResponse` whether it can be. `zBlob()` matches a browser `Blob`
     // — a value that only exists after the client decodes the body, so there is
     // nothing here to check it against.
-    const checkable = !isHttpEndpoint(endpoint) || validatesResponse(endpoint);
+    const checkable = !isHttpEndpoint(endpoint) || validatesResponse(endpoint)
 
     if (options.validateResponse && checkable) {
-      const parsed = endpoint.response.safeParse(data);
+      const parsed = endpoint.response.safeParse(data)
       if (!parsed.success) {
-        const errors = formatZodIssues(parsed.error);
+        const errors = formatZodIssues(parsed.error)
         this.logger.error(
-          `Response contract violation on ${describeContractRoute(endpoint)}: ${JSON.stringify(errors)}`,
-        );
+          `Response contract violation on ${describeContractRoute(endpoint)}: ${JSON.stringify(errors)}`
+        )
         throw new ContractResponseViolationException(
           errors,
-          options.exposeResponseErrors,
-        );
+          options.exposeResponseErrors
+        )
       }
-      result = parsed.data;
+      result = parsed.data
     }
 
     if (encryptResponse) {
-      result = await this.encryptResponse(endpoint, result);
+      result = await this.encryptResponse(endpoint, result)
     }
 
     if (isHttpEndpoint(endpoint)) {
-      result = shapeContractResponse(endpoint, result, response);
+      result = shapeContractResponse(endpoint, result, response)
     }
 
-    return result;
+    return result
   }
 
   private async decryptBody(
     endpoint: AnyEndpointDefZ,
-    body: unknown,
+    body: unknown
   ): Promise<unknown> {
-    const encryption = this.moduleOptions?.encryption;
-    const failClosed = encryption?.failClosed ?? true;
+    const encryption = this.moduleOptions?.encryption
+    const failClosed = encryption?.failClosed ?? true
 
     if (!encryption?.keyProvider) {
       if (failClosed) {
         throw new InternalServerErrorException({
           message: `Endpoint ${describeContractRoute(endpoint)} requires request decryption but no encryption keyProvider is configured`,
-          code: "ENCRYPTION_NOT_CONFIGURED",
-        });
+          code: 'ENCRYPTION_NOT_CONFIGURED',
+        })
       }
-      return body;
+      return body
     }
 
     try {
-      const keyMaterial = await encryption.keyProvider();
+      const keyMaterial = await encryption.keyProvider()
       return await decryptRequestBody(
         endpoint.encryption!,
         body,
         keyMaterial,
-        encryption.customHandlers,
-      );
+        encryption.customHandlers
+      )
     } catch (error) {
       if (failClosed) {
         throw new BadRequestException({
-          message: "Failed to decrypt request payload",
-          code: "DECRYPTION_ERROR",
-        });
+          message: 'Failed to decrypt request payload',
+          code: 'DECRYPTION_ERROR',
+        })
       }
       this.logger.error(
-        `Request decryption failed on ${describeContractRoute(endpoint)}: ${String(error)}`,
-      );
-      return body;
+        `Request decryption failed on ${describeContractRoute(endpoint)}: ${String(error)}`
+      )
+      return body
     }
   }
 
   private async encryptResponse(
     endpoint: AnyEndpointDefZ,
-    data: unknown,
+    data: unknown
   ): Promise<unknown> {
-    const encryption = this.moduleOptions?.encryption;
-    const failClosed = encryption?.failClosed ?? true;
+    const encryption = this.moduleOptions?.encryption
+    const failClosed = encryption?.failClosed ?? true
 
     if (!encryption?.keyProvider) {
       if (failClosed) {
         throw new InternalServerErrorException({
           message: `Endpoint ${describeContractRoute(endpoint)} requires response encryption but no encryption keyProvider is configured`,
-          code: "ENCRYPTION_NOT_CONFIGURED",
-        });
+          code: 'ENCRYPTION_NOT_CONFIGURED',
+        })
       }
-      return data;
+      return data
     }
 
     try {
-      const keyMaterial = await encryption.keyProvider();
+      const keyMaterial = await encryption.keyProvider()
       return await encryptResponseData(
         endpoint.encryption!,
         data,
         keyMaterial,
-        encryption.customHandlers,
-      );
+        encryption.customHandlers
+      )
     } catch (error) {
       // Fail closed by default: never return plaintext that should be encrypted.
       this.logger.error(
-        `Response encryption failed on ${describeContractRoute(endpoint)}: ${String(error)}`,
-      );
+        `Response encryption failed on ${describeContractRoute(endpoint)}: ${String(error)}`
+      )
       if (failClosed) {
         throw new InternalServerErrorException({
-          message: "Failed to encrypt response payload",
-          code: "ENCRYPTION_ERROR",
-        });
+          message: 'Failed to encrypt response payload',
+          code: 'ENCRYPTION_ERROR',
+        })
       }
-      return data;
+      return data
     }
   }
 
@@ -256,8 +255,8 @@ export class ContractValidationInterceptor implements NestInterceptor {
     const endpointOptions =
       this.reflector.get<ContractEndpointOptions | undefined>(
         TYPEFETCH_OPTIONS_METADATA,
-        context.getHandler(),
-      ) ?? {};
+        context.getHandler()
+      ) ?? {}
 
     return {
       validateRequest: true,
@@ -266,7 +265,7 @@ export class ContractValidationInterceptor implements NestInterceptor {
       exposeResponseErrors: false,
       ...this.moduleOptions,
       ...endpointOptions,
-    };
+    }
   }
 
   /**
@@ -284,18 +283,18 @@ export class ContractValidationInterceptor implements NestInterceptor {
           writable: true,
           configurable: true,
           enumerable: true,
-        });
+        })
       } catch {
         /* frozen platform request — decorators still serve parsed data */
       }
-    };
+    }
 
     if (parsed.isStructured) {
-      if (parsed.path) assign("params", parsed.path);
-      if (parsed.query) assign("query", parsed.query);
-      if (parsed.body !== undefined) assign("body", parsed.body);
+      if (parsed.path) assign('params', parsed.path)
+      if (parsed.query) assign('query', parsed.query)
+      if (parsed.body !== undefined) assign('body', parsed.body)
     } else {
-      assign("body", parsed.body);
+      assign('body', parsed.body)
     }
   }
 }
@@ -313,27 +312,26 @@ export class ContractValidationInterceptor implements NestInterceptor {
  * lone object — the form-data validator adapts either way to the contract.
  */
 function collectFiles(request: any): Record<string, unknown> {
-  const out: Record<string, unknown> = {};
+  const out: Record<string, unknown> = {}
 
-  const single = request?.file;
-  if (single && typeof single === "object") {
-    out[single.fieldname ?? "file"] = single;
+  const single = request?.file
+  if (single && typeof single === 'object') {
+    out[single.fieldname ?? 'file'] = single
   }
 
-  const many = request?.files;
+  const many = request?.files
   if (Array.isArray(many)) {
     for (const file of many) {
-      const name = file?.fieldname ?? "file";
-      if (out[name] === undefined) out[name] = file;
-      else if (Array.isArray(out[name])) (out[name] as unknown[]).push(file);
-      else out[name] = [out[name], file];
+      const name = file?.fieldname ?? 'file'
+      if (out[name] === undefined) out[name] = file
+      else if (Array.isArray(out[name])) (out[name] as unknown[]).push(file)
+      else out[name] = [out[name], file]
     }
-  } else if (many && typeof many === "object") {
+  } else if (many && typeof many === 'object') {
     for (const [name, group] of Object.entries(many)) {
-      out[name] =
-        Array.isArray(group) && group.length === 1 ? group[0] : group;
+      out[name] = Array.isArray(group) && group.length === 1 ? group[0] : group
     }
   }
 
-  return out;
+  return out
 }

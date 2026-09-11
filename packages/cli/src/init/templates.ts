@@ -1,29 +1,30 @@
-import { PACKAGES, type FeatureId } from "./features";
-import { envAccessor, type ProjectInfo } from "./detect";
+import { PACKAGES, type FeatureId } from './features'
+import { envAccessor, type ProjectInfo } from './detect'
 
 export type TemplateContext = {
-  project: ProjectInfo;
-  features: Set<FeatureId>;
+  project: ProjectInfo
+  features: Set<FeatureId>
   /** Module specifier the config uses to reach the contracts. */
-  contractsModule: string;
+  contractsModule: string
   /** Module specifier the config uses to reach the client factory. */
-  clientModule: string;
+  clientModule: string
   /** True when the wizard is generating the contracts file itself. */
-  ownsContracts: boolean;
-  ts: boolean;
-};
+  ownsContracts: boolean
+  ts: boolean
+}
 
 /** Extra transport adapters, in the order they are registered. */
 function transportCalls(context: TemplateContext): string[] {
-  const calls: string[] = [];
+  const calls: string[] = []
   // No `url` for graphql: it defaults to `${baseUrl}/graphql`, so the adapter
   // needs no configuration and stays a module-level constant.
-  if (has(context, "graphql")) calls.push("graphqlTransport()");
-  if (has(context, "grpc")) calls.push("grpcTransport()");
-  return calls;
+  if (has(context, 'graphql')) calls.push('graphqlTransport()')
+  if (has(context, 'grpc')) calls.push('grpcTransport()')
+  return calls
 }
 
-const has = (context: TemplateContext, id: FeatureId) => context.features.has(id);
+const has = (context: TemplateContext, id: FeatureId) =>
+  context.features.has(id)
 
 /**
  * Next.js App Router renders every module on the server unless told otherwise.
@@ -32,15 +33,15 @@ const has = (context: TemplateContext, id: FeatureId) => context.features.has(id
  * detected here.
  */
 function clientDirective(context: TemplateContext): string {
-  return context.project.framework === "next" ? `"use client";\n\n` : "";
+  return context.project.framework === 'next' ? `"use client";\n\n` : ''
 }
 
 /* ── typewire.config ───────────────────────────────────────────────────────── */
 
 export function configTemplate(context: TemplateContext): string {
-  const { project } = context;
-  const env = envAccessor(project);
-  const hasTransports = transportCalls(context).length > 0;
+  const { project } = context
+  const env = envAccessor(project)
+  const hasTransports = transportCalls(context).length > 0
 
   const transportsEntry = hasTransports
     ? `
@@ -49,7 +50,7 @@ export function configTemplate(context: TemplateContext): string {
     // \`diff\` and \`explain\` — need them to describe a route, and none of
     // those build a client, so they are declared separately from it.
     transports,`
-    : "";
+    : ''
 
   const sections = [
     `  typefetch: {
@@ -72,31 +73,31 @@ export function configTemplate(context: TemplateContext): string {
       },
     },
   },`,
-  ];
+  ]
 
-  if (has(context, "typesocket")) {
+  if (has(context, 'typesocket')) {
     sections.push(`  typesocket: {
     events: socketContracts,
-  },`);
+  },`)
   }
 
-  if (has(context, "permission")) {
+  if (has(context, 'permission')) {
     sections.push(`  permission: {
     flags: permissions,
-  },`);
+  },`)
   }
 
   const imports = [
     `import { defineConfig } from "${PACKAGES.cli}";`,
-    `import { createClient${hasTransports ? ", transports" : ""} } from "${context.clientModule}";`,
-    `import { contracts${has(context, "typesocket") ? ", socketContracts" : ""} } from "${context.contractsModule}";`,
-  ];
+    `import { createClient${hasTransports ? ', transports' : ''} } from "${context.clientModule}";`,
+    `import { contracts${has(context, 'typesocket') ? ', socketContracts' : ''} } from "${context.contractsModule}";`,
+  ]
 
-  if (has(context, "permission")) {
-    imports.push(`import { permissions } from "${permissionsModule(context)}";`);
+  if (has(context, 'permission')) {
+    imports.push(`import { permissions } from "${permissionsModule(context)}";`)
   }
 
-  return `${imports.join("\n")}
+  return `${imports.join('\n')}
 
 /**
  * One config for every TypeWire package.
@@ -104,7 +105,7 @@ export function configTemplate(context: TemplateContext): string {
  * Discovery walks up from the working directory, so a package inside a
  * monorepo inherits this file without a --config flag in every script.
  *${
-   env.variable === "API_BASE_URL"
+   env.variable === 'API_BASE_URL'
      ? `
  * The CLI passes --base-url (or API_BASE_URL) into \`createClient\`, so one
  * definition of the client serves local, staging and CI.`
@@ -115,19 +116,19 @@ export function configTemplate(context: TemplateContext): string {
  }
  */
 export default defineConfig({
-${sections.join("\n\n")}
+${sections.join('\n\n')}
 });
-`;
+`
 }
 
 /* ── contracts ─────────────────────────────────────────────────────────────── */
 
 export function contractsTemplate(context: TemplateContext): string {
-  const socket = has(context, "typesocket");
-  const graphql = has(context, "graphql");
-  const grpc = has(context, "grpc");
+  const socket = has(context, 'typesocket')
+  const graphql = has(context, 'graphql')
+  const grpc = has(context, 'grpc')
 
-  const extras: string[] = [];
+  const extras: string[] = []
 
   if (graphql) {
     extras.push(`
@@ -143,7 +144,7 @@ export function contractsTemplate(context: TemplateContext): string {
     root: "user",
     request: z.object({ id: z.string() }),
     response: z.object({ id: z.string(), name: z.string() }),
-  },`);
+  },`)
   }
 
   if (grpc) {
@@ -155,7 +156,7 @@ export function contractsTemplate(context: TemplateContext): string {
     rpc: "SyncUser",
     request: z.object({ id: z.string() }),
     response: z.object({ id: z.string(), name: z.string() }),
-  },`);
+  },`)
   }
 
   const socketBlock = socket
@@ -178,10 +179,12 @@ export const socketContracts = defineSocketContracts({
     },
   },
 });`
-    : "";
+    : ''
 
   return `import { z } from "zod";${
-    socket ? `\nimport { defineSocketContracts } from "${PACKAGES.typesocket}";` : ""
+    socket
+      ? `\nimport { defineSocketContracts } from "${PACKAGES.typesocket}";`
+      : ''
   }
 
 /**
@@ -216,29 +219,31 @@ export const contracts = {
         body: z.object({ name: z.string().min(1) }),
       }),
       response: z.object({ ok: z.boolean() }),
-    },${extras.join("")}
+    },${extras.join('')}
   },
-}${context.ts ? " as const" : ""};${socketBlock}
-`;
+}${context.ts ? ' as const' : ''};${socketBlock}
+`
 }
 
 /* ── client ────────────────────────────────────────────────────────────────── */
 
 export function clientTemplate(context: TemplateContext): string {
-  const { ts } = context;
-  const calls = transportCalls(context);
+  const { ts } = context
+  const calls = transportCalls(context)
 
-  const imports = [`import { ApiClient } from "${PACKAGES.typefetch}";`];
-  if (has(context, "graphql")) {
-    imports.push(`import { graphqlTransport } from "${PACKAGES.graphql}";`);
+  const imports = [`import { ApiClient } from "${PACKAGES.typefetch}";`]
+  if (has(context, 'graphql')) {
+    imports.push(`import { graphqlTransport } from "${PACKAGES.graphql}";`)
   }
-  if (has(context, "grpc")) {
-    imports.push(`import { grpcTransport } from "${PACKAGES.grpc}";`);
+  if (has(context, 'grpc')) {
+    imports.push(`import { grpcTransport } from "${PACKAGES.grpc}";`)
   }
-  if (has(context, "encryption")) {
-    imports.push(`import { encryptionMiddleware } from "${PACKAGES.encryption}";`);
+  if (has(context, 'encryption')) {
+    imports.push(
+      `import { encryptionMiddleware } from "${PACKAGES.encryption}";`
+    )
   }
-  imports.push(`import { contracts } from "${relativeContracts(context)}";`);
+  imports.push(`import { contracts } from "${relativeContracts(context)}";`)
 
   const transportsExport = calls.length
     ? `
@@ -246,22 +251,22 @@ export function clientTemplate(context: TemplateContext): string {
  * Registered here and imported by \`typewire.config.ts\`, so the CLI describes
  * routes with the same adapters the app talks through.
  */
-export const transports = [${calls.join(", ")}];
+export const transports = [${calls.join(', ')}];
 `
-    : "";
+    : ''
 
-  const encryptionNote = has(context, "encryption")
+  const encryptionNote = has(context, 'encryption')
     ? `
   // Encrypts only the fields you name, in both directions.
   // client.use(encryptionMiddleware({ method: "aes", secret: "…" }));
 `
-    : "";
+    : ''
 
   const options = ts
     ? `options: { baseUrl?: string; token?: string } = {}`
-    : `options = {}`;
+    : `options = {}`
 
-  return `${imports.join("\n")}
+  return `${imports.join('\n')}
 ${transportsExport}
 /**
  * One definition of the client.
@@ -278,7 +283,7 @@ export function createClient(${options}) {
   const client = new ApiClient(
     {
       baseUrl: options.baseUrl ?? envBaseUrl() ?? "http://localhost:3000",${
-        calls.length ? `\n      transports,` : ""
+        calls.length ? `\n      transports,` : ''
       }
       ...(options.token ? { token: options.token } : {}),
     },
@@ -302,7 +307,7 @@ export const { user } = api.modules;
 // is — re-export the modules you use, e.g. \`export const { user } = api.modules;\`
 `
 }
-${envBaseUrlFn(context)}`;
+${envBaseUrlFn(context)}`
 }
 
 /**
@@ -314,14 +319,18 @@ ${envBaseUrlFn(context)}`;
  * client, which is exactly the file it needs most.
  */
 function envBaseUrlFn(context: TemplateContext): string {
-  const { ts, project } = context;
-  const env = envAccessor(project);
-  const signature = `function envBaseUrl()${ts ? ": string | undefined" : ""} {`;
+  const { ts, project } = context
+  const env = envAccessor(project)
+  const signature = `function envBaseUrl()${ts ? ': string | undefined' : ''} {`
 
-  if (project.vite && project.framework !== "next" && project.framework !== "nuxt") {
+  if (
+    project.vite &&
+    project.framework !== 'next' &&
+    project.framework !== 'nuxt'
+  ) {
     const cast = ts
       ? `(import.meta as { env?: Record<string, string | undefined> }).env`
-      : `import.meta.env`;
+      : `import.meta.env`
 
     return `${signature}
   // Vite injects \`import.meta.env\`; Node does not, and typewire.config.ts
@@ -329,18 +338,18 @@ function envBaseUrlFn(context: TemplateContext): string {
   // explicitly, so the guard is all that is needed here.
   return ${cast}?.${env.variable};
 }
-`;
+`
   }
 
   return `${signature}
   return ${env.expression};
 }
-`;
+`
 }
 
 /* ── query layer ───────────────────────────────────────────────────────────── */
 
-export function queryTemplate(context: TemplateContext): string {
+export function queryTemplate(_context: TemplateContext): string {
   return `import { QueryClient } from "${PACKAGES.queryCore}";
 
 /**
@@ -355,13 +364,13 @@ export const queryClient = new QueryClient({
     "user.updateUser": ["user.getUser"],
   },
 });
-`;
+`
 }
 
 /* ── socket ────────────────────────────────────────────────────────────────── */
 
 export function socketTemplate(context: TemplateContext): string {
-  const env = envAccessor(context.project);
+  const env = envAccessor(context.project)
 
   return `import { createSocketClient } from "${PACKAGES.typesocket}";
 import { socketContracts } from "${relativeContracts(context)}";
@@ -373,30 +382,30 @@ export const socket = createSocketClient(
   },
   socketContracts,
 );
-`;
+`
 }
 
 /* ── devtools ──────────────────────────────────────────────────────────────── */
 
 export function devtoolsTemplate(context: TemplateContext): string {
-  const withQuery = has(context, "query");
-  const withSocket = has(context, "typesocket");
+  const withQuery = has(context, 'query')
+  const withSocket = has(context, 'typesocket')
 
-  const connects = [`connectTypeFetch(api, bridge);`];
-  if (withSocket) connects.push(`connectTypeSocket(socket, bridge);`);
+  const connects = [`connectTypeFetch(api, bridge);`]
+  if (withSocket) connects.push(`connectTypeSocket(socket, bridge);`)
 
   const imports = [
     `import {\n  InspectorBridge,\n  connectTypeFetch,${
-      withSocket ? "\n  connectTypeSocket," : ""
-    }${withQuery ? "\n  connectQueryClient," : ""}\n} from "${PACKAGES.devtoolsCore}";`,
+      withSocket ? '\n  connectTypeSocket,' : ''
+    }${withQuery ? '\n  connectQueryClient,' : ''}\n} from "${PACKAGES.devtoolsCore}";`,
     `import { TypeDevtools } from "${PACKAGES.devtools}";`,
     `import { api } from "./client";`,
-  ];
+  ]
 
-  if (withSocket) imports.push(`import { socket } from "./socket";`);
-  if (withQuery) imports.push(`import { queryClient } from "./query";`);
+  if (withSocket) imports.push(`import { socket } from "./socket";`)
+  if (withQuery) imports.push(`import { queryClient } from "./query";`)
 
-  return `${clientDirective(context)}${imports.join("\n")}
+  return `${clientDirective(context)}${imports.join('\n')}
 
 /**
  * One bridge, every transport.
@@ -406,12 +415,12 @@ export function devtoolsTemplate(context: TemplateContext): string {
  * the root, and only outside production.
  */
 const bridge = new InspectorBridge();
-${connects.join("\n")}
-${withQuery ? "const queries = connectQueryClient(queryClient);\n" : ""}
+${connects.join('\n')}
+${withQuery ? 'const queries = connectQueryClient(queryClient);\n' : ''}
 export function AppDevtools() {
-  return <TypeDevtools bridge={bridge}${withQuery ? " queries={queries}" : ""} />;
+  return <TypeDevtools bridge={bridge}${withQuery ? ' queries={queries}' : ''} />;
 }
-`;
+`
 }
 
 /* ── React provider ────────────────────────────────────────────────────────── */
@@ -419,10 +428,10 @@ export function AppDevtools() {
 export function providerTemplate(context: TemplateContext): string {
   const signature = context.ts
     ? `{ children }: { children: ReactNode }`
-    : `{ children }`;
+    : `{ children }`
 
   return `${clientDirective(context)}import { TypeFetchProvider } from "${PACKAGES.react}";${
-    context.ts ? `\nimport type { ReactNode } from "react";` : ""
+    context.ts ? `\nimport type { ReactNode } from "react";` : ''
   }
 import { queryClient } from "./query";
 
@@ -434,31 +443,34 @@ import { queryClient } from "./query";
 export function TypeWireProvider(${signature}) {
   return <TypeFetchProvider client={queryClient}>{children}</TypeFetchProvider>;
 }
-`;
+`
 }
 
 /* ── barrel ────────────────────────────────────────────────────────────────── */
 
 export function indexTemplate(context: TemplateContext): string {
-  const lines = [`export { api, user } from "./client";`];
+  const lines = [`export { api, user } from "./client";`]
 
   if (context.ownsContracts) {
     lines.push(
-      `export { contracts${has(context, "typesocket") ? ", socketContracts" : ""} } from "./contracts";`,
-    );
+      `export { contracts${has(context, 'typesocket') ? ', socketContracts' : ''} } from "./contracts";`
+    )
   }
 
-  if (has(context, "query")) lines.push(`export { queryClient } from "./query";`);
-  if (has(context, "query") && context.project.react) {
-    lines.push(`export { TypeWireProvider } from "./provider";`);
+  if (has(context, 'query'))
+    lines.push(`export { queryClient } from "./query";`)
+  if (has(context, 'query') && context.project.react) {
+    lines.push(`export { TypeWireProvider } from "./provider";`)
   }
-  if (has(context, "typesocket")) lines.push(`export { socket } from "./socket";`);
-  if (has(context, "permission")) {
-    lines.push(`export { permissions } from "./permissions";`);
+  if (has(context, 'typesocket'))
+    lines.push(`export { socket } from "./socket";`)
+  if (has(context, 'permission')) {
+    lines.push(`export { permissions } from "./permissions";`)
   }
-  if (has(context, "devtools")) lines.push(`export { AppDevtools } from "./devtools";`);
+  if (has(context, 'devtools'))
+    lines.push(`export { AppDevtools } from "./devtools";`)
 
-  return `${lines.join("\n")}\n`;
+  return `${lines.join('\n')}\n`
 }
 
 /* ── permissions ───────────────────────────────────────────────────────────── */
@@ -479,13 +491,13 @@ export const permissions = definePermissions({
     write: { implies: ["user.read"] },
   },
 });
-`;
+`
 }
 
 /* ── env ───────────────────────────────────────────────────────────────────── */
 
 export function envTemplate(context: TemplateContext): string {
-  const env = envAccessor(context.project);
+  const env = envAccessor(context.project)
 
   return `# TypeWire — copy to ${env.file}
 ${env.variable}=http://localhost:3000
@@ -493,18 +505,18 @@ ${env.variable}=http://localhost:3000
 # Used by \`typewire test\`
 API_BASE_URL=http://localhost:3000
 API_TOKEN=
-`;
+`
 }
 
 /* ── helpers ───────────────────────────────────────────────────────────────── */
 
 /** Sibling files inside the generated folder import contracts relatively. */
 function relativeContracts(context: TemplateContext): string {
-  return context.ownsContracts ? "./contracts" : context.contractsModule;
+  return context.ownsContracts ? './contracts' : context.contractsModule
 }
 
 function permissionsModule(context: TemplateContext): string {
   return context.ownsContracts
-    ? context.contractsModule.replace(/contracts$/, "permissions")
-    : "./permissions";
+    ? context.contractsModule.replace(/contracts$/, 'permissions')
+    : './permissions'
 }

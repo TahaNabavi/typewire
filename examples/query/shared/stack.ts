@@ -3,11 +3,11 @@ import {
   connectQueryClient,
   connectTypeFetch,
   connectTypeSocket,
-} from "@tahanabavi/type-devtools-core";
-import { ApiClient } from "@tahanabavi/typefetch";
-import { QueryClient } from "@tahanabavi/typefetch-query-core";
-import { createSocketClient } from "@tahanabavi/typesocket";
-import { httpContracts, wsContracts } from "./contracts.js";
+} from '@tahanabavi/type-devtools-core'
+import { ApiClient } from '@tahanabavi/typefetch'
+import { QueryClient } from '@tahanabavi/typefetch-query-core'
+import { createSocketClient } from '@tahanabavi/typesocket'
+import { httpContracts, wsContracts } from './contracts.js'
 
 /**
  * Wires the whole stack once, so the headless run and the React app demonstrate
@@ -23,73 +23,73 @@ export function createStack(options: { baseUrl?: string } = {}) {
   // answered by the override below, before the network. The browser points it at
   // the Vite dev server and the headless run at its own `node:http` server, so
   // both demonstrate real transfers without a third piece of infrastructure.
-  const baseUrl = options.baseUrl ?? "http://localhost:9310";
+  const baseUrl = options.baseUrl ?? 'http://localhost:9310'
 
   const http = new ApiClient(
     { baseUrl, mockDelay: { min: 0, max: 0 } },
-    httpContracts,
-  );
-  http.init();
+    httpContracts
+  )
+  http.init()
 
   // A tiny in-memory store, so an update is actually visible on the next read.
   // Two records, because one cache entry per input is the thing worth seeing.
   const users: Record<string, { id: string; name: string; version: number }> = {
-    "1": { id: "1", name: "Taha", version: 1 },
-    "2": { id: "2", name: "Ada", version: 1 },
-  };
+    '1': { id: '1', name: 'Taha', version: 1 },
+    '2': { id: '2', name: 'Ada', version: 1 },
+  }
   http.instrument({
     resolveOverride: (endpointId, input) => {
       // Returning `undefined` for anything else is what lets `media.*` fall
       // through to the real transport — an override answers before the network,
       // so an overridden upload could never report progress.
-      if (endpointId !== "user.getUser" && endpointId !== "user.updateUser") {
-        return undefined;
+      if (endpointId !== 'user.getUser' && endpointId !== 'user.updateUser') {
+        return undefined
       }
 
-      const { path } = input as { path?: { id: string } };
-      const record = path ? users[path.id] : undefined;
-      if (!record) return undefined;
+      const { path } = input as { path?: { id: string } }
+      const record = path ? users[path.id] : undefined
+      if (!record) return undefined
 
-      if (endpointId === "user.getUser") return { mock: { ...record } };
+      if (endpointId === 'user.getUser') return { mock: { ...record } }
 
-      const { body } = input as { body: { name: string } };
-      record.name = body.name;
-      record.version += 1;
-      return { mock: { ok: true } };
+      const { body } = input as { body: { name: string } }
+      record.name = body.name
+      record.version += 1
+      return { mock: { ok: true } }
     },
-  });
+  })
 
   const socket = createSocketClient(
-    { url: "http://localhost:9310", autoConnect: false },
-    wsContracts,
-  );
-  let sent = 0;
+    { url: 'http://localhost:9310', autoConnect: false },
+    wsContracts
+  )
+  let sent = 0
   socket.instrument({
     resolveOverride: () => ({
       ack: (input: unknown) => {
-        sent += 1;
-        return { id: `m${sent}`, text: (input as { text: string }).text };
+        sent += 1
+        return { id: `m${sent}`, text: (input as { text: string }).text }
       },
     }),
-  });
+  })
 
   // ── One bridge, two transports ─────────────────────────────────────────────
   // The point of the devtools split: adding the second source is one more line,
   // not a second inspector.
-  const bridge = new InspectorBridge();
-  connectTypeFetch(http, bridge);
-  connectTypeSocket(socket, bridge);
+  const bridge = new InspectorBridge()
+  connectTypeFetch(http, bridge)
+  connectTypeSocket(socket, bridge)
 
   // ── The setup site ─────────────────────────────────────────────────────────
   // Invalidation is declared once, here. Nothing downstream names a cache key.
   const client = new QueryClient({
-    relations: { "user.updateUser": ["user.getUser"] },
-  });
+    relations: { 'user.updateUser': ['user.getUser'] },
+  })
 
   // The cache inspector: the same store the devtools Cache tab renders. It reads
   // the client structurally, so this line is where devtools-core's
   // `QueryClientLike` is proven compatible with the real `QueryClient`.
-  const queries = connectQueryClient(client);
+  const queries = connectQueryClient(client)
 
   return {
     client,
@@ -101,5 +101,5 @@ export function createStack(options: { baseUrl?: string } = {}) {
     sendMessage: socket.modules.chat.sendMessage,
     upload: http.modules.media.upload,
     download: http.modules.media.download,
-  };
+  }
 }

@@ -2,53 +2,49 @@ import type {
   ApiTestRunnerOptions,
   Contracts,
   TransportAdapter,
-} from "@tahanabavi/typefetch";
+} from '@tahanabavi/typefetch'
 import type {
   TypeFetchClientLike,
   TypeFetchCreateClientOptions,
   TypeFetchReportConfig,
-} from "../types";
+} from '../types'
 
 /** Severity for a single lint rule. */
-export type LintSeverity = "off" | "warn" | "error";
+export type LintSeverity = 'off' | 'warn' | 'error'
 
-export const LINT_SEVERITIES: readonly LintSeverity[] = [
-  "off",
-  "warn",
-  "error",
-];
+export const LINT_SEVERITIES: readonly LintSeverity[] = ['off', 'warn', 'error']
 
 /** Shared by every section; a section may override it. */
 export type LintConfig = {
-  rules?: Record<string, LintSeverity>;
-};
+  rules?: Record<string, LintSeverity>
+}
 
-export type DiffFailOn = "none" | "breaking" | "any";
+export type DiffFailOn = 'none' | 'breaking' | 'any'
 
-export const DIFF_FAIL_ON: readonly DiffFailOn[] = ["none", "breaking", "any"];
+export const DIFF_FAIL_ON: readonly DiffFailOn[] = ['none', 'breaking', 'any']
 
 export type DiffConfig = {
   /** Path to the committed API-surface snapshot. */
-  baseline?: string;
-  failOn?: DiffFailOn;
-};
+  baseline?: string
+  failOn?: DiffFailOn
+}
 
 export type GenerateConfig = {
-  openapi?: { out?: string; title?: string; version?: string };
-};
+  openapi?: { out?: string; title?: string; version?: string }
+}
 
 export type MockConfig = {
-  port?: number;
+  port?: number
   /** Makes generated data deterministic, which is what makes it usable in e2e runs. */
-  seed?: number;
-};
+  seed?: number
+}
 
 /** The `test` command's own options — today's config, one level down. */
 export type TestConfig = {
-  options?: ApiTestRunnerOptions;
-  context?: Record<string, unknown>;
-  report?: TypeFetchReportConfig;
-};
+  options?: ApiTestRunnerOptions
+  context?: Record<string, unknown>
+  report?: TypeFetchReportConfig
+}
 
 /**
  * The `typefetch` section.
@@ -60,15 +56,15 @@ export type TestConfig = {
  * one that never gets wired up.
  */
 export type TypeFetchSection<C extends Contracts = Contracts> = {
-  contracts: C;
+  contracts: C
 
   /** Use `client` for simple projects. */
-  client?: TypeFetchClientLike;
+  client?: TypeFetchClientLike
 
   /** Prefer `createClient` so `--base-url` and `--token` reach the client. */
   createClient?: (
-    options: TypeFetchCreateClientOptions,
-  ) => TypeFetchClientLike | Promise<TypeFetchClientLike>;
+    options: TypeFetchCreateClientOptions
+  ) => TypeFetchClientLike | Promise<TypeFetchClientLike>
 
   /**
    * Transport adapters, for the commands that never build a client.
@@ -81,13 +77,13 @@ export type TypeFetchSection<C extends Contracts = Contracts> = {
    *
    * The built-in http adapter is always present; only add the extras.
    */
-  transports?: TransportAdapter[];
+  transports?: TransportAdapter[]
 
-  test?: TestConfig;
-  generate?: GenerateConfig;
-  mock?: MockConfig;
-  lint?: LintConfig;
-  diff?: DiffConfig;
+  test?: TestConfig
+  generate?: GenerateConfig
+  mock?: MockConfig
+  lint?: LintConfig
+  diff?: DiffConfig
 
   /**
    * Accepted at the section level for the pre-`test:{}` shape. Normalised into
@@ -95,26 +91,26 @@ export type TypeFetchSection<C extends Contracts = Contracts> = {
    *
    * @deprecated Move these under `test`.
    */
-  options?: ApiTestRunnerOptions;
+  options?: ApiTestRunnerOptions
   /** @deprecated Move this under `test`. */
-  context?: Record<string, unknown>;
+  context?: Record<string, unknown>
   /** @deprecated Move this under `test`. */
-  report?: TypeFetchReportConfig;
-};
+  report?: TypeFetchReportConfig
+}
 
 /** Placeholder shapes: the sections exist so the file never needs renaming. */
 export type TypeSocketSection = {
-  events?: unknown;
-  lint?: LintConfig;
-  diff?: DiffConfig;
-};
+  events?: unknown
+  lint?: LintConfig
+  diff?: DiffConfig
+}
 
 export type PermissionSection = {
   /** A flag map, or a path to the module exporting one. */
-  flags?: unknown;
-  lint?: LintConfig;
-  diff?: DiffConfig;
-};
+  flags?: unknown
+  lint?: LintConfig
+  diff?: DiffConfig
+}
 
 /**
  * One API surface: its sections, plus any shared settings it overrides.
@@ -124,13 +120,13 @@ export type PermissionSection = {
  * flatten it anyway.
  */
 export type ProjectConfig<C extends Contracts = Contracts> = {
-  lint?: LintConfig;
-  diff?: DiffConfig;
+  lint?: LintConfig
+  diff?: DiffConfig
 
-  typefetch?: TypeFetchSection<C>;
-  typesocket?: TypeSocketSection;
-  permission?: PermissionSection;
-};
+  typefetch?: TypeFetchSection<C>
+  typesocket?: TypeSocketSection
+  permission?: PermissionSection
+}
 
 /** What the user writes in `typewire.config.ts`. */
 export type TypeWireConfig<C extends Contracts = Contracts> =
@@ -140,7 +136,7 @@ export type TypeWireConfig<C extends Contracts = Contracts> =
      * this file. Large orgs are monorepos; a shared base with per-package
      * overrides is table stakes.
      */
-    extends?: string | string[];
+    extends?: string | string[]
 
     /**
      * Several API surfaces in one project — `dashboard`, `admin`, `landing` —
@@ -154,8 +150,8 @@ export type TypeWireConfig<C extends Contracts = Contracts> =
      * Omit it entirely for the single-API case: nothing about one API should
      * cost the ceremony of naming it.
      */
-    projects?: Record<string, ProjectConfig>;
-  };
+    projects?: Record<string, ProjectConfig>
+  }
 
 /** What a function config receives, so one file can cover several environments. */
 export type ConfigEnv = {
@@ -163,24 +159,24 @@ export type ConfigEnv = {
    * `--mode`, verbatim. For `test` this is also the runner's mode
    * (`schema|mock|live|full`); for every other command it is yours to name.
    */
-  mode: string | undefined;
+  mode: string | undefined
   /** The command being run, e.g. `test`. */
-  command: string | undefined;
-  cwd: string;
+  command: string | undefined
+  cwd: string
   /** `CI` is set in the environment — usually what `--mode ci` was standing in for. */
-  ci: boolean;
-};
+  ci: boolean
+}
 
 /** A config file may export the object, or a function returning it. */
 export type TypeWireConfigInput<C extends Contracts = Contracts> =
   | TypeWireConfig<C>
-  | ((env: ConfigEnv) => TypeWireConfig<C> | Promise<TypeWireConfig<C>>);
+  | ((env: ConfigEnv) => TypeWireConfig<C> | Promise<TypeWireConfig<C>>)
 
 /** The `typefetch` section after normalisation — `test` is always present. */
 export type ResolvedTypeFetchSection = Omit<
   TypeFetchSection,
-  "options" | "context" | "report" | "test"
-> & { test: TestConfig };
+  'options' | 'context' | 'report' | 'test'
+> & { test: TestConfig }
 
 /** One resolved API surface. */
 export type ResolvedProject = {
@@ -188,17 +184,17 @@ export type ResolvedProject = {
    * The project's key, or `"default"` for a config that declares no `projects`.
    * Commands print it, so it is always a real name.
    */
-  name: string;
+  name: string
   /** True when the config never declared `projects` — used to keep output quiet. */
-  implicit: boolean;
+  implicit: boolean
 
-  lint: LintConfig;
-  diff: DiffConfig;
+  lint: LintConfig
+  diff: DiffConfig
 
-  typefetch?: ResolvedTypeFetchSection;
-  typesocket?: TypeSocketSection;
-  permission?: PermissionSection;
-};
+  typefetch?: ResolvedTypeFetchSection
+  typesocket?: TypeSocketSection
+  permission?: PermissionSection
+}
 
 /**
  * What every command consumes. The loader owns all back-compat, so a command
@@ -206,14 +202,14 @@ export type ResolvedProject = {
  */
 export type ResolvedTypeWireConfig = {
   /** Absolute path of the file the config was loaded from. */
-  path: string;
+  path: string
   /** Every file that contributed, base-most first — the `extends` chain, then this file. */
-  sources: string[];
+  sources: string[]
   /** True when loaded from a legacy `typefetch.test.config.*` filename. */
-  legacy: boolean;
+  legacy: boolean
 
-  lint: LintConfig;
-  diff: DiffConfig;
+  lint: LintConfig
+  diff: DiffConfig
 
   /**
    * Always at least one entry.
@@ -222,7 +218,7 @@ export type ResolvedTypeWireConfig = {
    * branch on whether `projects` was used — the multi-API case is the only
    * shape, and the single one is a length-1 instance of it.
    */
-  projects: ResolvedProject[];
+  projects: ResolvedProject[]
 
   /**
    * The sole project's typefetch section, when there is exactly one project.
@@ -231,7 +227,7 @@ export type ResolvedTypeWireConfig = {
    * `undefined` when several projects exist rather than silently picking the
    * first: guessing which API the user meant is how the wrong one gets tested.
    */
-  typefetch?: ResolvedTypeFetchSection;
-  typesocket?: TypeSocketSection;
-  permission?: PermissionSection;
-};
+  typefetch?: ResolvedTypeFetchSection
+  typesocket?: TypeSocketSection
+  permission?: PermissionSection
+}

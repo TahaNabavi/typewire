@@ -1,8 +1,8 @@
 import {
   BadRequestException,
   InternalServerErrorException,
-} from "@nestjs/common";
-import type { z } from "zod";
+} from '@nestjs/common'
+import type { z } from 'zod'
 
 /**
  * Flatten a ZodError into `{ "part.field.path": ["message", ...] }`.
@@ -13,20 +13,20 @@ import type { z } from "zod";
  */
 export function formatZodIssues(
   error: z.ZodError,
-  prefix?: string,
+  prefix?: string
 ): Record<string, string[]> {
-  const errors: Record<string, string[]> = {};
+  const errors: Record<string, string[]> = {}
 
   for (const issue of error.issues) {
     const segments = [
       ...(prefix ? [prefix] : []),
       ...issue.path.map((p) => String(p)),
-    ];
-    const key = segments.length > 0 ? segments.join(".") : "_root";
-    (errors[key] ??= []).push(issue.message);
+    ]
+    const key = segments.length > 0 ? segments.join('.') : '_root'
+    ;(errors[key] ??= []).push(issue.message)
   }
 
-  return errors;
+  return errors
 }
 
 /**
@@ -46,10 +46,10 @@ export class ContractValidationException extends BadRequestException {
   constructor(public readonly errors: Record<string, string[]>) {
     super({
       statusCode: 400,
-      message: "Request validation failed",
-      code: "VALIDATION_ERROR",
+      message: 'Request validation failed',
+      code: 'VALIDATION_ERROR',
       errors,
-    });
+    })
   }
 }
 
@@ -62,13 +62,13 @@ export class ContractValidationException extends BadRequestException {
 export class ContractResponseViolationException extends InternalServerErrorException {
   constructor(
     public readonly errors: Record<string, string[]>,
-    expose = false,
+    expose = false
   ) {
     super({
       statusCode: 500,
-      message: "Response contract violation",
-      code: "RESPONSE_CONTRACT_VIOLATION",
+      message: 'Response contract violation',
+      code: 'RESPONSE_CONTRACT_VIOLATION',
       ...(expose ? { errors } : {}),
-    });
+    })
   }
 }

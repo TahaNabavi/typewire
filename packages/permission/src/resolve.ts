@@ -1,13 +1,13 @@
-import type { Compiled } from "./compile";
-import type { Layer } from "./types";
+import type { Compiled } from './compile'
+import type { Layer } from './types'
 
 /** Union a `bigint | bigint[] | undefined` into a single mask. */
 function fold(masks: bigint | bigint[] | undefined): bigint {
-  if (masks === undefined) return 0n;
-  if (typeof masks === "bigint") return masks;
-  let out = 0n;
-  for (const m of masks) out |= m;
-  return out;
+  if (masks === undefined) return 0n
+  if (typeof masks === 'bigint') return masks
+  let out = 0n
+  for (const m of masks) out |= m
+  return out
 }
 
 /**
@@ -24,37 +24,40 @@ function fold(masks: bigint | bigint[] | undefined): bigint {
  * Only known bits are ever cleared; unknown bits pass through untouched.
  */
 export function postpass(compiled: Compiled, input: bigint): bigint {
-  let perms = input;
+  let perms = input
 
   // 1. grantsAll
-  if (compiled.grantsAllMask !== 0n && (perms & compiled.grantsAllMask) !== 0n) {
-    perms |= compiled.fullMask;
+  if (
+    compiled.grantsAllMask !== 0n &&
+    (perms & compiled.grantsAllMask) !== 0n
+  ) {
+    perms |= compiled.fullMask
   }
 
   // 2. implies
   for (const [flagMask, closure] of compiled.impliesList) {
-    if ((perms & flagMask) !== 0n) perms |= closure;
+    if ((perms & flagMask) !== 0n) perms |= closure
   }
 
   // 3. requires — fixpoint. Each iteration only clears bits (monotonic), so it
   // converges in at most `requiresList.length` rounds.
   if (compiled.requiresList.length > 0) {
     for (let guard = 0; guard <= compiled.requiresList.length; guard++) {
-      let changed = false;
+      let changed = false
       for (const [flagMask, requiredMask] of compiled.requiresList) {
         if (
           (perms & flagMask) !== 0n &&
           (perms & requiredMask) !== requiredMask
         ) {
-          perms &= ~flagMask;
-          changed = true;
+          perms &= ~flagMask
+          changed = true
         }
       }
-      if (!changed) break;
+      if (!changed) break
     }
   }
 
-  return perms;
+  return perms
 }
 
 /**
@@ -65,13 +68,13 @@ export function postpass(compiled: Compiled, input: bigint): bigint {
  * earlier one. The post-passes run once at the end.
  */
 export function resolveWith(compiled: Compiled, layers: Layer[]): bigint {
-  let perms = 0n;
+  let perms = 0n
   for (const layer of layers) {
-    const allow = fold(layer.allow);
-    const deny = fold(layer.deny);
-    perms = (perms & ~deny) | allow;
+    const allow = fold(layer.allow)
+    const deny = fold(layer.deny)
+    perms = (perms & ~deny) | allow
   }
-  return postpass(compiled, perms);
+  return postpass(compiled, perms)
 }
 
 /**
@@ -82,13 +85,13 @@ export function resolveWith(compiled: Compiled, layers: Layer[]): bigint {
  * *different* layer.
  */
 export function packWith(compiled: Compiled, names: string[]): bigint {
-  let perms = 0n;
+  let perms = 0n
   for (const name of names) {
-    const flag = compiled.byName.get(name);
-    if (!flag) throw new Error(`[type-permission] unknown flag "${name}"`);
-    perms |= flag.mask;
+    const flag = compiled.byName.get(name)
+    if (!flag) throw new Error(`[type-permission] unknown flag "${name}"`)
+    perms |= flag.mask
   }
-  return perms;
+  return perms
 }
 
 /**
@@ -97,5 +100,5 @@ export function packWith(compiled: Compiled, names: string[]): bigint {
  * is applied, and `has()` behaves as expected without any layer ceremony.
  */
 export function fromWith(compiled: Compiled, names: string[]): bigint {
-  return postpass(compiled, packWith(compiled, names));
+  return postpass(compiled, packWith(compiled, names))
 }

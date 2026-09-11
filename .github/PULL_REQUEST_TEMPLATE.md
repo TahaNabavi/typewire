@@ -24,7 +24,7 @@
 
 ## Checklist
 
-- [ ] `pnpm -r build && pnpm -r typecheck && pnpm -r test` passes locally
+- [ ] `pnpm verify` passes locally
 - [ ] Added or updated tests for the change
 - [ ] Ran `pnpm changeset` and committed the file **(required if package source changed)**
 - [ ] Public API stays minimal; contracts remain untouched

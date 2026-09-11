@@ -8,10 +8,10 @@
  * the code a gate is allowed to expect.
  */
 export class UsageError extends Error {
-  readonly exitCode = 2;
+  readonly exitCode = 2
 
   constructor(message: string) {
-    super(message);
-    this.name = "UsageError";
+    super(message)
+    this.name = 'UsageError'
   }
 }

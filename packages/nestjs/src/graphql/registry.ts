@@ -1,25 +1,28 @@
-import { Inject, Injectable, Logger, OnModuleInit } from "@nestjs/common";
+import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common'
 import {
   DiscoveryService,
   ExternalContextCreator,
   MetadataScanner,
-} from "@nestjs/core";
-import type { ParamsFactory } from "@nestjs/core/helpers/external-context-creator";
-import type { AnyEndpointDefZ } from "@tahanabavi/typefetch";
-import { operationNameFrom, operationNameOf } from "@tahanabavi/typefetch-graphql";
-import { transportOf } from "../transport";
-import { rootFieldIn } from "./document";
+} from '@nestjs/core'
+import type { ParamsFactory } from '@nestjs/core/helpers/external-context-creator'
+import type { AnyEndpointDefZ } from '@tahanabavi/typefetch'
+import {
+  operationNameFrom,
+  operationNameOf,
+} from '@tahanabavi/typefetch-graphql'
+import { transportOf } from '../transport'
+import { rootFieldIn } from './document'
 import {
   CUSTOM_ROUTE_ARGS_METADATA,
   GRAPHQL_ENDPOINT_METADATA,
   GRAPHQL_MODULE_OPTIONS,
   ROUTE_ARGS_METADATA,
-} from "./constants";
+} from './constants'
 import type {
   ContractGraphQLOptions,
   GraphqlContractEndpoint,
   GraphqlOperation,
-} from "./types";
+} from './types'
 
 /**
  * Only `@Req()` and `@Res()` mean anything in a resolver.
@@ -32,13 +35,13 @@ import type {
  * refused at bootstrap instead. `@ContractInput()` is the one that answers what
  * they were reaching for.
  */
-const ALLOWED_BUILTIN_PARAMS = new Set([0, 1]);
+const ALLOWED_BUILTIN_PARAMS = new Set([0, 1])
 
 const PARAMS_FACTORY: ParamsFactory = {
   exchangeKeyForValue(type: number, _data: unknown, args: unknown[]) {
-    return type === 0 ? args[0] : args[1];
+    return type === 0 ? args[0] : args[1]
   },
-};
+}
 
 /**
  * The operation index
@@ -53,11 +56,11 @@ const PARAMS_FACTORY: ParamsFactory = {
  */
 @Injectable()
 export class ContractGraphQLRegistry implements OnModuleInit {
-  private readonly logger = new Logger("TypeWireGraphQL");
-  private readonly scanner = new MetadataScanner();
+  private readonly logger = new Logger('TypeWireGraphQL')
+  private readonly scanner = new MetadataScanner()
 
-  private readonly byName = new Map<string, GraphqlOperation>();
-  private readonly byRoot = new Map<string, GraphqlOperation>();
+  private readonly byName = new Map<string, GraphqlOperation>()
+  private readonly byRoot = new Map<string, GraphqlOperation>()
 
   // Explicit tokens: the published build does not emit `design:paramtypes`, so
   // by-type injection would resolve to `Object` there.
@@ -66,33 +69,33 @@ export class ContractGraphQLRegistry implements OnModuleInit {
     private readonly options: ContractGraphQLOptions,
     @Inject(DiscoveryService) private readonly discovery: DiscoveryService,
     @Inject(ExternalContextCreator)
-    private readonly externalContextCreator: ExternalContextCreator,
+    private readonly externalContextCreator: ExternalContextCreator
   ) {}
 
   onModuleInit(): void {
-    const declared = this.declaredOperations();
+    const declared = this.declaredOperations()
 
     for (const wrapper of [
       ...this.discovery.getProviders(),
       ...this.discovery.getControllers(),
     ]) {
-      const instance = wrapper.instance as Record<string, unknown> | undefined;
-      if (!instance || typeof instance !== "object") continue;
+      const instance = wrapper.instance as Record<string, unknown> | undefined
+      if (!instance || typeof instance !== 'object') continue
 
-      const prototype = Object.getPrototypeOf(instance);
-      if (!prototype) continue;
+      const prototype = Object.getPrototypeOf(instance)
+      if (!prototype) continue
 
       for (const methodName of this.scanner.getAllMethodNames(prototype)) {
-        const callback = prototype[methodName];
+        const callback = prototype[methodName]
         const endpoint: GraphqlContractEndpoint | undefined =
-          Reflect.getMetadata(GRAPHQL_ENDPOINT_METADATA, callback);
-        if (!endpoint) continue;
+          Reflect.getMetadata(GRAPHQL_ENDPOINT_METADATA, callback)
+        if (!endpoint) continue
 
-        this.register(instance, callback, methodName, endpoint, declared);
+        this.register(instance, callback, methodName, endpoint, declared)
       }
     }
 
-    this.reportUnbound(declared);
+    this.reportUnbound(declared)
   }
 
   /** Every GraphQL operation the contracts declare, keyed by endpoint object. */
@@ -103,15 +106,14 @@ export class ContractGraphQLRegistry implements OnModuleInit {
     const declared = new Map<
       object,
       { endpointId: string; operationName: string }
-    >();
+    >()
 
     for (const [module, endpoints] of Object.entries(this.options.contracts)) {
       for (const [name, endpoint] of Object.entries(endpoints)) {
-        if (transportOf(endpoint as AnyEndpointDefZ) !== "graphql") continue;
+        if (transportOf(endpoint as AnyEndpointDefZ) !== 'graphql') continue
 
-        const endpointId = `${module}.${name}`;
-        const declaredName = (endpoint as GraphqlContractEndpoint)
-          .operationName;
+        const endpointId = `${module}.${name}`
+        const declaredName = (endpoint as GraphqlContractEndpoint).operationName
 
         declared.set(endpoint as object, {
           endpointId,
@@ -119,11 +121,11 @@ export class ContractGraphQLRegistry implements OnModuleInit {
           // rather than restating it is what keeps the name the server routes on
           // identical to the name the client sends.
           operationName: declaredName ?? operationNameFrom(endpointId),
-        });
+        })
       }
     }
 
-    return declared;
+    return declared
   }
 
   private register(
@@ -131,10 +133,10 @@ export class ContractGraphQLRegistry implements OnModuleInit {
     callback: (...args: unknown[]) => unknown,
     methodName: string,
     endpoint: GraphqlContractEndpoint,
-    declared: Map<object, { endpointId: string; operationName: string }>,
+    declared: Map<object, { endpointId: string; operationName: string }>
   ): void {
-    const where = `${instance.constructor?.name ?? "resolver"}.${methodName}()`;
-    const identity = declared.get(endpoint as object);
+    const where = `${instance.constructor?.name ?? 'resolver'}.${methodName}()`
+    const identity = declared.get(endpoint as object)
 
     if (!identity && !endpoint.operationName) {
       throw new Error(
@@ -142,24 +144,24 @@ export class ContractGraphQLRegistry implements OnModuleInit {
           `the \`contracts\` passed to ContractGraphQLModule.forRoot(), and the ` +
           `endpoint declares no \`operationName\`. The operation name the ` +
           `client sends is derived from the endpoint's "module.endpoint" id, ` +
-          `which only the contracts object knows.`,
-      );
+          `which only the contracts object knows.`
+      )
     }
 
-    this.assertResolverParams(instance.constructor as object, methodName, where);
+    this.assertResolverParams(instance.constructor as object, methodName, where)
 
     const operationName =
-      identity?.operationName ?? endpoint.operationName ?? "";
-    const endpointId = identity?.endpointId ?? operationName;
+      identity?.operationName ?? endpoint.operationName ?? ''
+    const endpointId = identity?.endpointId ?? operationName
 
-    const existing = this.byName.get(operationName);
+    const existing = this.byName.get(operationName)
     if (existing) {
       throw new Error(
         `[typewire-nestjs] Two resolvers claim the GraphQL operation ` +
           `"${operationName}": ${where} and the one already bound to ` +
           `"${existing.endpointId}". An operation name addresses exactly one ` +
-          `endpoint, the way a method and path do over HTTP.`,
-      );
+          `endpoint, the way a method and path do over HTTP.`
+      )
     }
 
     const operation: GraphqlOperation = {
@@ -182,9 +184,9 @@ export class ContractGraphQLRegistry implements OnModuleInit {
         // The underlying context genuinely *is* an HTTP request, and saying so
         // is what makes an existing auth guard — the kind that reads
         // `context.switchToHttp().getRequest().user` — work unchanged.
-        "http",
-      ) as GraphqlOperation["invoke"],
-    };
+        'http'
+      ) as GraphqlOperation['invoke'],
+    }
 
     if (endpoint.encryption) {
       // Named rather than silently skipped: the client's `encryptionMiddleware`
@@ -193,14 +195,14 @@ export class ContractGraphQLRegistry implements OnModuleInit {
       // would look like a validation error on a field nobody touched.
       this.logger.warn(
         `"${endpointId}" declares \`encryption\`, which is not applied on the ` +
-          `GraphQL transport. Its variables reach the resolver as sent.`,
-      );
+          `GraphQL transport. Its variables reach the resolver as sent.`
+      )
     }
 
-    this.byName.set(operationName, operation);
+    this.byName.set(operationName, operation)
 
     if (operation.root && !this.byRoot.has(operation.root)) {
-      this.byRoot.set(operation.root, operation);
+      this.byRoot.set(operation.root, operation)
     }
   }
 
@@ -213,47 +215,48 @@ export class ContractGraphQLRegistry implements OnModuleInit {
   private assertResolverParams(
     target: object,
     methodName: string,
-    where: string,
+    where: string
   ): void {
     const metadata = Reflect.getMetadata(
       ROUTE_ARGS_METADATA,
       target,
-      methodName,
-    ) as Record<string, unknown> | undefined;
+      methodName
+    ) as Record<string, unknown> | undefined
 
-    if (!metadata) return;
+    if (!metadata) return
 
     for (const key of Object.keys(metadata)) {
-      if (key.includes(CUSTOM_ROUTE_ARGS_METADATA)) continue;
+      if (key.includes(CUSTOM_ROUTE_ARGS_METADATA)) continue
 
-      const type = Number(key.split(":")[0]);
-      if (Number.isNaN(type) || ALLOWED_BUILTIN_PARAMS.has(type)) continue;
+      const type = Number(key.split(':')[0])
+      if (Number.isNaN(type) || ALLOWED_BUILTIN_PARAMS.has(type)) continue
 
       throw new Error(
         `[typewire-nestjs] ${where} uses a NestJS route parameter decorator ` +
           `that has no meaning in a GraphQL resolver — the HTTP body is the ` +
           `GraphQL envelope, not the operation's variables. Use ` +
           `@ContractInput() for the validated variables; @Req() and @Res() ` +
-          `still work.`,
-      );
+          `still work.`
+      )
     }
   }
 
   private reportUnbound(
-    declared: Map<object, { endpointId: string; operationName: string }>,
+    declared: Map<object, { endpointId: string; operationName: string }>
   ): void {
     const unbound = [...declared.values()]
       .filter(({ operationName }) => !this.byName.has(operationName))
-      .map(({ endpointId }) => endpointId);
+      .map(({ endpointId }) => endpointId)
 
-    if (!unbound.length) return;
+    if (!unbound.length) return
 
     const message =
       `${unbound.length} GraphQL endpoint(s) have no resolver: ` +
-      unbound.join(", ");
+      unbound.join(', ')
 
-    if (this.options.requireAllResolvers) throw new Error(`[typewire-nestjs] ${message}`);
-    this.logger.warn(message);
+    if (this.options.requireAllResolvers)
+      throw new Error(`[typewire-nestjs] ${message}`)
+    this.logger.warn(message)
   }
 
   /**
@@ -265,20 +268,20 @@ export class ContractGraphQLRegistry implements OnModuleInit {
    */
   resolve(
     operationName: string | undefined,
-    document: string | undefined,
+    document: string | undefined
   ): GraphqlOperation | undefined {
-    if (operationName) return this.byName.get(operationName);
-    if (!document) return undefined;
+    if (operationName) return this.byName.get(operationName)
+    if (!document) return undefined
 
-    const named = operationNameOf(document);
-    if (named) return this.byName.get(named);
+    const named = operationNameOf(document)
+    if (named) return this.byName.get(named)
 
-    const root = rootFieldIn(document);
-    return root ? this.byRoot.get(root) : undefined;
+    const root = rootFieldIn(document)
+    return root ? this.byRoot.get(root) : undefined
   }
 
   /** Every bound operation, for diagnostics. */
   operations(): GraphqlOperation[] {
-    return [...this.byName.values()];
+    return [...this.byName.values()]
   }
 }

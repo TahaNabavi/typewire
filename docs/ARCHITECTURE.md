@@ -65,7 +65,7 @@ Two consequences worth stating, because both are seams rather than conveniences:
   http endpoints — and no contracts-only command has a client to ask.
 - **`projects` is a list of API surfaces**, not of packages. A repo with
   `dashboard`, `admin` and `landing` APIs declares three, each with its own
-  contracts, client and baseline. A single-API config resolves to one *implicit*
+  contracts, client and baseline. A single-API config resolves to one _implicit_
   project, so commands never branch on which shape was written.
 
 ### Upstream seam (`typefetch` v1.7.0 · `typesocket` v2.0.0)
@@ -80,12 +80,12 @@ clients ship, deliberately shaped the same way:
   structured lifecycle events with parsed I/O and resolves per-frame overrides.
   Zero-cost when unused.
 
-| | `typefetch` | `typesocket` |
-| --- | --- | --- |
-| Id | `.endpointId` | `.eventId` |
-| Events | `start` · `success` · `error` | `outbound` · `ack` · `inbound` · `dropped` · `frame_error` (+ connect/disconnect) |
-| Correlation | `requestId` | `frameId` |
-| Overrides | mock · error · latency · schema swap | ack · drop · error · latency · payload · schema swap |
+|             | `typefetch`                          | `typesocket`                                                                      |
+| ----------- | ------------------------------------ | --------------------------------------------------------------------------------- |
+| Id          | `.endpointId`                        | `.eventId`                                                                        |
+| Events      | `start` · `success` · `error`        | `outbound` · `ack` · `inbound` · `dropped` · `frame_error` (+ connect/disconnect) |
+| Correlation | `requestId`                          | `frameId`                                                                         |
+| Overrides   | mock · error · latency · schema swap | ack · drop · error · latency · payload · schema swap                              |
 
 The query engine keys its cache by that id + input. The devtools bridge attaches
 one instrumentation hook per source.
@@ -114,7 +114,7 @@ the client's rules rather than inventing its own:
   `extensions.code`. The client normalizes all three back to one `ErrorKind`.
 - **Two of the wires need no runtime.** Connect's JSON protocol is an HTTP POST,
   so gRPC is served with no protobuf; and because the GraphQL transport
-  *generates* its document from the endpoint's `response` schema, an operation
+  _generates_ its document from the endpoint's `response` schema, an operation
   can be addressed by name and answered from that same schema — with no GraphQL
   engine. The cost is that it serves contracts rather than arbitrary documents;
   `packages/nestjs/README.md` marks the line.
@@ -142,10 +142,10 @@ drop-in second connector — no refactor.
 They were the same thing until typefetch grew a transport registry. Now one
 client speaks REST, GraphQL and gRPC, so:
 
-- **`source`** is which *client* produced the event — `"http"` (typefetch),
+- **`source`** is which _client_ produced the event — `"http"` (typefetch),
   `"ws"` (typesocket). It is the key space for overrides and correlation ids, so
   it must stay stable per client.
-- **`transport`** is which *wire* carried the call — `"http"`, `"graphql"`,
+- **`transport`** is which _wire_ carried the call — `"http"`, `"graphql"`,
   `"grpc"`, or a third-party adapter's `kind`. It is what a UI shows.
 
 Collapsing them would break silently rather than loudly: the connector that
@@ -164,8 +164,8 @@ Everything the UI reads implements one interface:
 
 ```ts
 interface Observable<T> {
-  getSnapshot(): T;
-  subscribe(listener: () => void): () => void;
+  getSnapshot(): T
+  subscribe(listener: () => void): () => void
 }
 ```
 

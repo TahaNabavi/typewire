@@ -1,24 +1,23 @@
-import Link from "next/link";
-import { notFound } from "next/navigation";
+import Link from 'next/link'
+import { notFound } from 'next/navigation'
 
-import { Chip } from "@/components/ui/chip";
-import { CommandBar } from "@/components/ui/command-bar";
-import { Container } from "@/components/ui/container";
-import { Panel } from "@/components/ui/panel";
-import { JsonLd } from "@/components/shared/json-ld";
-import { site } from "@/config/site";
-import { StatusChip } from "@/features/packages/status-chip";
-import { TransportBadge } from "@/features/packages/transport-badge";
-import { getPackage, repoUrls } from "@/lib/registry";
-import { breadcrumbSchema, graph, packageSchema } from "@/lib/seo";
-import { PATHS } from "@/routes/paths";
-import { gzipSize } from "@/utils/format";
+import { Chip } from '@/components/ui/chip'
+import { CommandBar } from '@/components/ui/command-bar'
+import { Container } from '@/components/ui/container'
+import { Panel } from '@/components/ui/panel'
+import { JsonLd } from '@/components/shared/json-ld'
+import { site } from '@/config/site'
+import { StatusChip } from '@/features/packages/status-chip'
+import { TransportBadge } from '@/features/packages/transport-badge'
+import { getPackage, repoUrls } from '@/lib/registry'
+import { breadcrumbSchema, graph, packageSchema } from '@/lib/seo'
+import { gzipSize } from '@/utils/format'
 
 export function PackageDetail({ slug }: { slug: string }) {
-  const pkg = getPackage(slug);
-  if (!pkg) notFound();
+  const pkg = getPackage(slug)
+  if (!pkg) notFound()
 
-  const urls = repoUrls(pkg, site.repo.url, site.repo.branch);
+  const urls = repoUrls(pkg, site.repo.url, site.repo.branch)
 
   return (
     <Container className="py-16">
@@ -26,14 +25,17 @@ export function PackageDetail({ slug }: { slug: string }) {
         data={graph(
           packageSchema(pkg),
           breadcrumbSchema([
-            { name: "TypeWire", path: "/" },
-            { name: "Packages", path: "/packages" },
+            { name: 'TypeWire', path: '/' },
+            { name: 'Packages', path: '/packages' },
             { name: pkg.short, path: `/packages/${pkg.slug}` },
-          ]),
+          ])
         )}
       />
 
-      <Link href="/packages" className="font-mono text-xs text-dim hover:text-fg">
+      <Link
+        href="/packages"
+        className="font-mono text-xs text-dim hover:text-fg"
+      >
         ← all packages
       </Link>
 
@@ -47,9 +49,15 @@ export function PackageDetail({ slug }: { slug: string }) {
             <wbr />
             <span className="text-fg">{pkg.short}</span>
           </h1>
-          <p className="mt-3 max-w-2xl text-lg text-muted-foreground">{pkg.description}</p>
+          <p className="mt-3 max-w-2xl text-lg text-muted-foreground">
+            {pkg.description}
+          </p>
         </div>
-        <StatusChip published={pkg.published} version={pkg.version} pending={pkg.pendingVersion} />
+        <StatusChip
+          published={pkg.published}
+          version={pkg.version}
+          pending={pkg.pendingVersion}
+        />
       </header>
 
       <div className="mt-8 flex flex-wrap gap-2">
@@ -62,14 +70,18 @@ export function PackageDetail({ slug }: { slug: string }) {
         ))}
       </div>
 
-      {pkg.published && <CommandBar command={pkg.install} className="mt-8 max-w-lg" />}
+      {pkg.published && (
+        <CommandBar command={pkg.install} className="mt-8 max-w-lg" />
+      )}
 
       <div className="mt-12 grid grid-cols-1 gap-6 lg:grid-cols-[1.5fr_1fr]">
         <div className="space-y-6">
           {pkg.tagline && (
             <Panel>
               <h2 className="text-sm font-bold text-fg">What it does</h2>
-              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{pkg.tagline}</p>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                {pkg.tagline}
+              </p>
             </Panel>
           )}
 
@@ -78,13 +90,21 @@ export function PackageDetail({ slug }: { slug: string }) {
               <h2 className="text-sm font-bold text-fg">Features</h2>
               <ul className="mt-3 space-y-2">
                 {pkg.features.map((feature) => (
-                  <li key={feature} className="flex gap-3 text-sm leading-relaxed text-muted-foreground">
-                    <span aria-hidden className="mt-1.5 h-1.5 w-1.5 flex-none rounded-full bg-blue" />
+                  <li
+                    key={feature}
+                    className="flex gap-3 text-sm leading-relaxed text-muted-foreground"
+                  >
+                    <span
+                      aria-hidden
+                      className="mt-1.5 h-1.5 w-1.5 flex-none rounded-full bg-blue"
+                    />
                     {feature}
                   </li>
                 ))}
               </ul>
-              <p className="mt-4 font-mono text-[11px] text-dim">read from the package README</p>
+              <p className="mt-4 font-mono text-[11px] text-dim">
+                read from the package README
+              </p>
             </Panel>
           )}
 
@@ -93,8 +113,13 @@ export function PackageDetail({ slug }: { slug: string }) {
               <h2 className="text-sm font-bold text-fg">Release notes</h2>
               <ul className="mt-3 space-y-2">
                 {pkg.releases.map((release) => (
-                  <li key={release.version} className="flex items-baseline gap-3 text-sm">
-                    <span className="font-mono text-xs text-blue">v{release.version}</span>
+                  <li
+                    key={release.version}
+                    className="flex items-baseline gap-3 text-sm"
+                  >
+                    <span className="font-mono text-xs text-blue">
+                      v{release.version}
+                    </span>
                     <a
                       href={urls.release(release)}
                       target="_blank"
@@ -116,7 +141,7 @@ export function PackageDetail({ slug }: { slug: string }) {
             <dl className="mt-3 space-y-2.5 text-xs">
               <div className="flex justify-between gap-3">
                 <dt className="text-dim">npm version</dt>
-                <dd className="font-mono text-fg">{pkg.npmVersion ?? "—"}</dd>
+                <dd className="font-mono text-fg">{pkg.npmVersion ?? '—'}</dd>
               </div>
               <div className="flex justify-between gap-3">
                 <dt className="text-dim">in this repo</dt>
@@ -129,7 +154,7 @@ export function PackageDetail({ slug }: { slug: string }) {
               {pkg.exports.length > 0 && (
                 <div className="flex justify-between gap-3">
                   <dt className="text-dim">entry points</dt>
-                  <dd className="font-mono text-fg">{pkg.exports.join(" ")}</dd>
+                  <dd className="font-mono text-fg">{pkg.exports.join(' ')}</dd>
                 </div>
               )}
             </dl>
@@ -152,18 +177,33 @@ export function PackageDetail({ slug }: { slug: string }) {
             <h2 className="text-sm font-bold text-fg">Links</h2>
             <ul className="mt-3 space-y-2 text-sm">
               <li>
-                <a href={urls.readme} target="_blank" rel="noreferrer" className="text-blue hover:underline">
+                <a
+                  href={urls.readme}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-blue hover:underline"
+                >
                   README ↗
                 </a>
               </li>
               <li>
-                <a href={urls.source} target="_blank" rel="noreferrer" className="text-blue hover:underline">
+                <a
+                  href={urls.source}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-blue hover:underline"
+                >
                   Source ↗
                 </a>
               </li>
               {pkg.published && (
                 <li>
-                  <a href={urls.npm} target="_blank" rel="noreferrer" className="text-blue hover:underline">
+                  <a
+                    href={urls.npm}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-blue hover:underline"
+                  >
                     npm ↗
                   </a>
                 </li>
@@ -173,5 +213,5 @@ export function PackageDetail({ slug }: { slug: string }) {
         </div>
       </div>
     </Container>
-  );
+  )
 }

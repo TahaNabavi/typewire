@@ -8,8 +8,8 @@
  * from a module a client component imports.
  */
 export const env = {
-  NODE_ENV: process.env.NODE_ENV ?? "development",
+  NODE_ENV: process.env.NODE_ENV ?? 'development',
   /** Search Console → add property → "HTML tag" → the content value. */
-  GOOGLE_SITE_VERIFICATION: process.env.GOOGLE_SITE_VERIFICATION ?? "",
-  BING_SITE_VERIFICATION: process.env.BING_SITE_VERIFICATION ?? "",
-} as const;
+  GOOGLE_SITE_VERIFICATION: process.env.GOOGLE_SITE_VERIFICATION ?? '',
+  BING_SITE_VERIFICATION: process.env.BING_SITE_VERIFICATION ?? '',
+} as const

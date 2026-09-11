@@ -1,23 +1,37 @@
-import Link from "next/link";
+import Link from 'next/link'
 
-import { CopyButton } from "@/components/ui/copy-button";
-import { MobileNav } from "@/components/layouts/mobile-nav";
-import { nav, site } from "@/config/site";
-import { ThemeToggle } from "@/components/layouts/theme-toggle";
-import { install } from "@/lib/registry";
+import { CopyButton } from '@/components/ui/copy-button'
+import { MobileNav } from '@/components/layouts/mobile-nav'
+import { nav, site } from '@/config/site'
+import { ThemeToggle } from '@/components/layouts/theme-toggle'
+import { install } from '@/lib/registry'
 
 function Wordmark() {
   return (
     <Link href="/" className="flex items-center gap-2.5">
       <svg viewBox="0 0 512 512" aria-hidden className="h-8 w-8">
         <defs>
-          <linearGradient id="tw-tile" x1="70" y1="52" x2="452" y2="470" gradientUnits="userSpaceOnUse">
+          <linearGradient
+            id="tw-tile"
+            x1="70"
+            y1="52"
+            x2="452"
+            y2="470"
+            gradientUnits="userSpaceOnUse"
+          >
             <stop offset="0" stopColor="#22d3ee" />
             <stop offset="0.5" stopColor="#3b82f6" />
             <stop offset="1" stopColor="#8b5cf6" />
           </linearGradient>
         </defs>
-        <rect x="40" y="40" width="432" height="432" rx="128" fill="url(#tw-tile)" />
+        <rect
+          x="40"
+          y="40"
+          width="432"
+          height="432"
+          rx="128"
+          fill="url(#tw-tile)"
+        />
         <path
           d="M150 316 C 200 210, 236 210, 256 256 C 276 302, 312 302, 362 196"
           stroke="#fff"
@@ -34,10 +48,12 @@ function Wordmark() {
       </svg>
       <span className="text-lg font-extrabold tracking-tight">
         <span className="text-fg">Type</span>
-        <span className="bg-linear-to-r from-blue to-purple bg-clip-text text-transparent">Wire</span>
+        <span className="bg-linear-to-r from-blue to-purple bg-clip-text text-transparent">
+          Wire
+        </span>
       </span>
     </Link>
-  );
+  )
 }
 
 export function SiteHeader() {
@@ -48,7 +64,11 @@ export function SiteHeader() {
 
         <nav className="hidden items-center gap-5 text-sm text-muted-foreground md:flex">
           {nav.map((item) => (
-            <Link key={item.href} href={item.href} className="transition-colors hover:text-fg">
+            <Link
+              key={item.href}
+              href={item.href}
+              className="transition-colors hover:text-fg"
+            >
               {item.label}
             </Link>
           ))}
@@ -56,7 +76,9 @@ export function SiteHeader() {
 
         <div className="ml-auto flex items-center gap-2">
           <span className="hidden items-center gap-2 rounded-lg border border-hair px-3 py-1.5 lg:inline-flex">
-            <code className="font-mono text-xs text-muted-foreground">{install.primary}</code>
+            <code className="font-mono text-xs text-muted-foreground">
+              {install.primary}
+            </code>
             <CopyButton value={install.primary} label="copy" />
           </span>
           <ThemeToggle />
@@ -72,5 +94,5 @@ export function SiteHeader() {
         </div>
       </div>
     </header>
-  );
+  )
 }

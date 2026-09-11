@@ -24,9 +24,9 @@
  * would have done anyway.
  */
 export function rootFieldIn(document: string): string | undefined {
-  const brace = document.indexOf("{");
-  if (brace === -1) return undefined;
+  const brace = document.indexOf('{')
+  if (brace === -1) return undefined
 
-  const rest = document.slice(brace + 1);
-  return /^\s*([A-Za-z_][A-Za-z0-9_]*)/.exec(rest)?.[1];
+  const rest = document.slice(brace + 1)
+  return /^\s*([A-Za-z_][A-Za-z0-9_]*)/.exec(rest)?.[1]
 }

@@ -10,16 +10,16 @@
  */
 export function hashKey(value: unknown): string {
   return JSON.stringify(value, (_key, val) => {
-    if (val && typeof val === "object" && !Array.isArray(val)) {
+    if (val && typeof val === 'object' && !Array.isArray(val)) {
       return Object.keys(val)
         .sort()
         .reduce<Record<string, unknown>>((acc, k) => {
-          acc[k] = (val as Record<string, unknown>)[k];
-          return acc;
-        }, {});
+          acc[k] = (val as Record<string, unknown>)[k]
+          return acc
+        }, {})
     }
-    return val;
-  });
+    return val
+  })
 }
 
 /**
@@ -30,9 +30,9 @@ export function hashKey(value: unknown): string {
  * endpoint-scoped invalidation (`startsWith`-free, see `QueryCache.find`)
  * straightforward.
  */
-export type QueryKey = string;
+export type QueryKey = string
 
 /** Build the canonical key for an endpoint call. */
 export function buildQueryKey(endpointId: string, input: unknown): QueryKey {
-  return `${endpointId}|${hashKey(input)}`;
+  return `${endpointId}|${hashKey(input)}`
 }

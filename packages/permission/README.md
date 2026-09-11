@@ -8,9 +8,9 @@ functions — no adapters, no runtime dependencies (not even Zod), no framework
 imports. It runs in a browser, Node, Bun, Deno, an edge worker, a Discord bot, or
 a CLI, unchanged.
 
-It answers *"does this actor hold capability X?"* from a `bigint` bitfield —
-Discord's model, generalized. It deliberately does **not** answer *"can I edit my
-own post?"*; that needs the resource, which needs a database, which needs a
+It answers _"does this actor hold capability X?"_ from a `bigint` bitfield —
+Discord's model, generalized. It deliberately does **not** answer _"can I edit my
+own post?"_; that needs the resource, which needs a database, which needs a
 framework. Keeping ownership out is what keeps this tiny. Full design rationale in
 [`docs/PERMISSION.md`](../../docs/PERMISSION.md).
 
@@ -21,21 +21,21 @@ pnpm add @tahanabavi/type-permission
 ## Define once — the shared file both ends import
 
 ```ts
-import { definePermissions } from "@tahanabavi/type-permission";
+import { definePermissions } from '@tahanabavi/type-permission'
 
 export const P = definePermissions({
   chat: {
-    VIEW_CHANNEL:    { bit: 0 },
-    SEND_MESSAGES:   { bit: 1, requires: ["chat.VIEW_CHANNEL"] },
-    MANAGE_MESSAGES: { bit: 2, implies: ["chat.SEND_MESSAGES"] },
-    ATTACH_FILES:    { bit: 3, requires: ["chat.SEND_MESSAGES"] },
+    VIEW_CHANNEL: { bit: 0 },
+    SEND_MESSAGES: { bit: 1, requires: ['chat.VIEW_CHANNEL'] },
+    MANAGE_MESSAGES: { bit: 2, implies: ['chat.SEND_MESSAGES'] },
+    ATTACH_FILES: { bit: 3, requires: ['chat.SEND_MESSAGES'] },
   },
   guild: {
-    MANAGE_ROLES:  { bit: 8 },
-    KICK_MEMBERS:  { bit: 9 },
+    MANAGE_ROLES: { bit: 8 },
+    KICK_MEMBERS: { bit: 9 },
     ADMINISTRATOR: { bit: 63, grantsAll: true },
   },
-});
+})
 ```
 
 Nested modules yield the same `"module.member"` id shape as `endpointId`
@@ -45,10 +45,10 @@ duplicate bits throw at load, and a `bigint` means there is no 64-flag ceiling.
 ## Check — typo-proof
 
 ```ts
-P.has(perms, "chat.SEND_MESSAGES");   // a typo is a compile error, not `false`
-P.hasAll(perms, ["chat.SEND_MESSAGES", "chat.ATTACH_FILES"]);
-P.list(perms);                        // typed ("chat.VIEW_CHANNEL" | …)[]
-P.explain(perms, "chat.SEND_MESSAGES");
+P.has(perms, 'chat.SEND_MESSAGES') // a typo is a compile error, not `false`
+P.hasAll(perms, ['chat.SEND_MESSAGES', 'chat.ATTACH_FILES'])
+P.list(perms) // typed ("chat.VIEW_CHANNEL" | …)[]
+P.explain(perms, 'chat.SEND_MESSAGES')
 // { granted: false, reason: "denied-requires",
 //   detail: "chat.SEND_MESSAGES is gated by chat.VIEW_CHANNEL, which was denied." }
 ```
@@ -57,14 +57,14 @@ P.explain(perms, "chat.SEND_MESSAGES");
 
 ```ts
 // simple app: names in, effective bits out
-const perms = P.from(["post.read", "post.write"]);
+const perms = P.from(['post.read', 'post.write'])
 
 // scoped app (Discord's channel-overwrite chain), as data:
 const perms = P.resolve([
-  { allow: everyoneRole,                          source: "@everyone" },
-  { allow: [roleA, roleB],                        source: "roles" },
-  { allow: chOverwrite.allow, deny: chOverwrite.deny, source: "channel" },
-]);
+  { allow: everyoneRole, source: '@everyone' },
+  { allow: [roleA, roleB], source: 'roles' },
+  { allow: chOverwrite.allow, deny: chOverwrite.deny, source: 'channel' },
+])
 ```
 
 Each layer applies `(perms & ~deny) | allow`; allow beats deny within a tier, a
@@ -76,11 +76,11 @@ later tier beats an earlier one. Then three post-passes run in a fixed order:
 
 ```ts
 const roles = P.defineRoles({
-  viewer:    ["chat.VIEW_CHANNEL"],
-  moderator: ["chat.VIEW_CHANNEL", "chat.MANAGE_MESSAGES"],
-});
+  viewer: ['chat.VIEW_CHANNEL'],
+  moderator: ['chat.VIEW_CHANNEL', 'chat.MANAGE_MESSAGES'],
+})
 
-P.canGrant(actorPerms, roles.moderator); // false unless the actor holds every bit
+P.canGrant(actorPerms, roles.moderator) // false unless the actor holds every bit
 ```
 
 `canGrant` closes the classic hole where a moderator mints an `ADMINISTRATOR`
@@ -89,10 +89,10 @@ role and assigns it to themselves.
 ## Framework-less by design — bindings are snippets, not packages
 
 `createStore` implements the repo-wide `Observable<T>`, so every framework binds
-it in a line of *your* code:
+it in a line of _your_ code:
 
 ```ts
-const store = P.createStore({ global: initialBits });
+const store = P.createStore({ global: initialBits })
 
 // React    useSyncExternalStore(store.subscribe, () => store.getSnapshot())
 // Vue      shallowRef + store.subscribe + onScopeDispose
@@ -113,10 +113,10 @@ at once.
 The runtime value is always `bigint`; representations sit at the IO boundary:
 
 ```ts
-P.encode(perms, "base64url"); // JWT claim / cookie — smallest
-P.encode(perms, "decimal");   // Postgres numeric/text; Discord-compatible
-P.encode(perms, "names");     // ["chat.SEND_MESSAGES", …] — the JSON mode
-P.decode(claim, "base64url"); // → bigint, on any runtime
+P.encode(perms, 'base64url') // JWT claim / cookie — smallest
+P.encode(perms, 'decimal') // Postgres numeric/text; Discord-compatible
+P.encode(perms, 'names') // ["chat.SEND_MESSAGES", …] — the JSON mode
+P.decode(claim, 'base64url') // → bigint, on any runtime
 ```
 
 Binary codecs (`decimal` · `hex` · `base64url` · `chunks`) are **lossless** —
@@ -145,9 +145,9 @@ lives in [`@tahanabavi/typewire-nestjs`](../nestjs), never here.
 ## Cross-project & polyglot
 
 ```ts
-P.buildLock();          // permissions.lock.json — a name→bit manifest
-P.diffLock(previous);   // [] when safe; flags bit-reuse / bit-change / removal — fail CI
-P.catalog();            // rows for a role-editor UI (hidden flags omitted)
+P.buildLock() // permissions.lock.json — a name→bit manifest
+P.diffLock(previous) // [] when safe; flags bit-reuse / bit-change / removal — fail CI
+P.catalog() // rows for a role-editor UI (hidden flags omitted)
 ```
 
 The lock file is the interop artifact: a Go or Python service needs only it plus

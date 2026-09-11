@@ -1,3 +1,3 @@
-export * from "./brand";
-export * from "./registry";
-export * from "./seo";
+export * from './brand'
+export * from './registry'
+export * from './seo'

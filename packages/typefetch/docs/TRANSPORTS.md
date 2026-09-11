@@ -27,14 +27,14 @@ with a body**. Neither needs a new socket, a new client, or a second pipeline.
 
 Everything the client already does survives untouched:
 
-| Feature | Survives | Why |
-| --- | --- | --- |
-| Middleware chain | yes | still `(ctx, next) => Promise<Response>` |
-| `auth` + `tokenProvider` | yes | still an `Authorization` header |
-| Retry / backoff, `timeout`, `AbortSignal` | yes | still wraps the terminal send |
-| `instrument()` events + overrides | yes | keyed on `endpointId`, not on HTTP |
-| Mock mode + forced mocks | yes | short-circuits before the wire |
-| `endpointId` → query-core / devtools | yes | **unchanged** — those packages need no change |
+| Feature                                   | Survives | Why                                           |
+| ----------------------------------------- | -------- | --------------------------------------------- |
+| Middleware chain                          | yes      | still `(ctx, next) => Promise<Response>`      |
+| `auth` + `tokenProvider`                  | yes      | still an `Authorization` header               |
+| Retry / backoff, `timeout`, `AbortSignal` | yes      | still wraps the terminal send                 |
+| `instrument()` events + overrides         | yes      | keyed on `endpointId`, not on HTTP            |
+| Mock mode + forced mocks                  | yes      | short-circuits before the wire                |
+| `endpointId` → query-core / devtools      | yes      | **unchanged** — those packages need no change |
 
 Exactly **four** things vary per transport, and they are the adapter's whole job:
 
@@ -59,18 +59,21 @@ site**, so a REST-only app never pays a byte for a transport it does not use —
 `sideEffects: false` is already set, so unregistered adapters tree-shake out.
 
 ```ts
-import { ApiClient } from "@tahanabavi/typefetch";
-import { graphqlTransport } from "@tahanabavi/typefetch-graphql";
-import { grpcTransport } from "@tahanabavi/typefetch-grpc";
+import { ApiClient } from '@tahanabavi/typefetch'
+import { graphqlTransport } from '@tahanabavi/typefetch-graphql'
+import { grpcTransport } from '@tahanabavi/typefetch-grpc'
 
-const client = new ApiClient({
-  baseUrl: "https://api.example.com",
-  transport: "http",                     // global default; omit for "http"
-  transports: [
-    graphqlTransport({ url: "https://api.example.com/graphql" }),
-    grpcTransport({ baseUrl: "https://grpc.example.com" }),
-  ],
-}, contracts);
+const client = new ApiClient(
+  {
+    baseUrl: 'https://api.example.com',
+    transport: 'http', // global default; omit for "http"
+    transports: [
+      graphqlTransport({ url: 'https://api.example.com/graphql' }),
+      grpcTransport({ baseUrl: 'https://grpc.example.com' }),
+    ],
+  },
+  contracts
+)
 ```
 
 ---
@@ -88,37 +91,42 @@ Fastify, Vitest and tRPC use for exactly this problem.
 // core
 export interface TransportRegistry {
   http: {
-    method: Method;
-    path: string;
-    bodyType?: "json" | "form-data";
-    responseType?: ResponseType;
-    driver?: "auto" | "fetch" | "xhr";
-  };
+    method: Method
+    path: string
+    bodyType?: 'json' | 'form-data'
+    responseType?: ResponseType
+    driver?: 'auto' | 'fetch' | 'xhr'
+  }
 }
 
-export type TransportKind = keyof TransportRegistry & string;
+export type TransportKind = keyof TransportRegistry & string
 
-export type EndpointFor<K extends TransportKind, TReq, TRes, TErr> =
-  & EndpointBase<TReq, TRes, TErr>      // auth, permission, request, response,
-  & TransportRegistry[K]                // errors, mockData, headers, test
-  & (K extends "http" ? { transport?: "http" } : { transport: K });
+export type EndpointFor<
+  K extends TransportKind,
+  TReq,
+  TRes,
+  TErr,
+> = EndpointBase<TReq, TRes, TErr> & // auth, permission, request, response,
+  TransportRegistry[K] & // errors, mockData, headers, test
+  (K extends 'http' ? { transport?: 'http' } : { transport: K })
 
-export type AnyEndpointDef<TReq, TRes, TErr> =
-  { [K in TransportKind]: EndpointFor<K, TReq, TRes, TErr> }[TransportKind];
+export type AnyEndpointDef<TReq, TRes, TErr> = {
+  [K in TransportKind]: EndpointFor<K, TReq, TRes, TErr>
+}[TransportKind]
 ```
 
 An adapter package adds its variant by declaration merging:
 
 ```ts
 // @tahanabavi/typefetch-grpc
-declare module "@tahanabavi/typefetch" {
+declare module '@tahanabavi/typefetch' {
   interface TransportRegistry {
     grpc: {
-      service: string;
-      rpc: string;
-      deadlineMs?: number;
-      codec?: GrpcCodec<unknown, unknown>;
-    };
+      service: string
+      rpc: string
+      deadlineMs?: number
+      codec?: GrpcCodec<unknown, unknown>
+    }
   }
 }
 ```
@@ -155,40 +163,44 @@ For gRPC and GraphQL the whole parsed input is the message/variables — the
 
 ```ts
 export interface TransportAdapter<K extends TransportKind = TransportKind> {
-  readonly kind: K;
+  readonly kind: K
 
   /** Seam version this adapter compiled against. Core refuses a mismatch loudly. */
-  readonly apiVersion: 1;
+  readonly apiVersion: 1
 
   /** What this wire can and cannot do. Core warns instead of silently no-op'ing. */
-  readonly capabilities?: TransportCapabilities;
+  readonly capabilities?: TransportCapabilities
 
   /** Run once per endpoint at `init()`. Throw with the endpointId on a bad contract. */
-  validate?(endpoint: AnyEndpointDef, endpointId: string): void;
+  validate?(endpoint: AnyEndpointDef, endpointId: string): void
 
   /** Identify a route for CLI output, devtools rows and audit logs. */
   describe(endpoint: AnyEndpointDef): {
-    protocol: string;    // "HTTP" | "gRPC" | "GraphQL"
-    operation: string;   // "GET" | "unary" | "query"
-    target: string;      // "/users/:id" | "user.v1.UserService/GetUser"
-  };
+    protocol: string // "HTTP" | "gRPC" | "GraphQL"
+    operation: string // "GET" | "unary" | "query"
+    target: string // "/users/:id" | "user.v1.UserService/GetUser"
+  }
 
-  build(ctx: TransportContext): { url: string; init: RequestInit };
-  decode(res: Response, ctx: TransportContext): Promise<unknown>;
-  fail(res: Response, body: unknown, ctx: TransportContext): NormalizedFailure | undefined;
+  build(ctx: TransportContext): { url: string; init: RequestInit }
+  decode(res: Response, ctx: TransportContext): Promise<unknown>
+  fail(
+    res: Response,
+    body: unknown,
+    ctx: TransportContext
+  ): NormalizedFailure | undefined
 
   /** Optional terminal sender. Defaults to the core fetch/XHR one. */
-  send?(url: string, init: RequestInit, opts: SendOptions): Promise<Response>;
+  send?(url: string, init: RequestInit, opts: SendOptions): Promise<Response>
 }
 
 export type TransportCapabilities = {
-  uploadProgress?: boolean;
-  downloadProgress?: boolean;
+  uploadProgress?: boolean
+  downloadProgress?: boolean
   /** Whether the protocol makes a call safe to cache. */
-  cacheable?: boolean;
+  cacheable?: boolean
   /** Which `responseType` values mean anything here. */
-  responseTypes?: readonly ResponseType[];
-};
+  responseTypes?: readonly ResponseType[]
+}
 ```
 
 Two members earn their place beyond the obvious three:
@@ -219,11 +231,24 @@ GraphQL `extensions.code` both map into it cleanly.
 
 ```ts
 export type ErrorKind =
-  | "cancelled" | "invalid_argument" | "deadline_exceeded" | "not_found"
-  | "already_exists" | "permission_denied" | "unauthenticated"
-  | "resource_exhausted" | "failed_precondition" | "aborted"
-  | "out_of_range" | "unimplemented" | "internal" | "unavailable" | "data_loss"
-  | "network" | "validation" | "unknown";
+  | 'cancelled'
+  | 'invalid_argument'
+  | 'deadline_exceeded'
+  | 'not_found'
+  | 'already_exists'
+  | 'permission_denied'
+  | 'unauthenticated'
+  | 'resource_exhausted'
+  | 'failed_precondition'
+  | 'aborted'
+  | 'out_of_range'
+  | 'unimplemented'
+  | 'internal'
+  | 'unavailable'
+  | 'data_loss'
+  | 'network'
+  | 'validation'
+  | 'unknown'
 ```
 
 A global "redirect on `unauthenticated`" handler then works across every
@@ -232,10 +257,10 @@ transport — which is the actual product.
 The **typed** error body stays transport-specific, because that is the part that
 must match the server exactly. Unambiguous, since a route has one transport:
 
-| Transport | `errors` key | `status` | Extra |
-| --- | --- | --- | --- |
-| `http` | HTTP status (`404`) | HTTP status | — |
-| `grpc` | gRPC code (`5`) | mapped HTTP status | `grpcCode` |
+| Transport | `errors` key                            | `status`             | Extra           |
+| --------- | --------------------------------------- | -------------------- | --------------- |
+| `http`    | HTTP status (`404`)                     | HTTP status          | —               |
+| `grpc`    | gRPC code (`5`)                         | mapped HTTP status   | `grpcCode`      |
 | `graphql` | `extensions.code` (`"UNAUTHENTICATED"`) | `200` or real status | `graphqlErrors` |
 
 One widening makes string keys legal:
@@ -277,10 +302,10 @@ generator the team already runs.
 
 ```ts
 export type GrpcCodec<TIn, TOut> = {
-  contentType?: string;   // default "application/grpc-web+proto"
-  encode(message: TIn): Uint8Array;
-  decode(bytes: Uint8Array): TOut;
-};
+  contentType?: string // default "application/grpc-web+proto"
+  encode(message: TIn): Uint8Array
+  decode(bytes: Uint8Array): TOut
+}
 ```
 
 > A grpc-gateway server that transcodes to real REST paths needs no adapter at
@@ -318,11 +343,11 @@ unions and nested arguments.
 
 `@tahanabavi/typefetch` currently ships three runtime dependencies:
 
-| Dep | Used by | Fix |
-| --- | --- | --- |
-| `crypto-js` | `middlewares/encryption.ts` | move to `@tahanabavi/typefetch-encryption` |
-| `node-forge` | `middlewares/encryption.ts` (RSA) | same |
-| `jiti` | CLI config loading | CLI-only, but installs for everyone — split the bin or make it optional |
+| Dep          | Used by                           | Fix                                                                     |
+| ------------ | --------------------------------- | ----------------------------------------------------------------------- |
+| `crypto-js`  | `middlewares/encryption.ts`       | move to `@tahanabavi/typefetch-encryption`                              |
+| `node-forge` | `middlewares/encryption.ts` (RSA) | same                                                                    |
+| `jiti`       | CLI config loading                | CLI-only, but installs for everyone — split the bin or make it optional |
 
 Encryption is a middleware, so it moves out without needing the transport seam
 at all — it is already plugin-shaped. That makes it a good forcing function:

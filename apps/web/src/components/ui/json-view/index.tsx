@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment } from 'react'
 
 /**
  * Colouring for the one place on the site where code is not known at build
@@ -15,24 +15,32 @@ import { Fragment } from "react";
  */
 
 const TOKEN =
-  /("(?:\\.|[^"\\])*")(\s*:)?|\b(true|false|null)\b|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)/g;
+  /("(?:\\.|[^"\\])*")(\s*:)?|\b(true|false|null)\b|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)/g
 
-export function JsonView({ text, className }: { text: string; className?: string }) {
+export function JsonView({
+  text,
+  className,
+}: {
+  text: string
+  className?: string
+}) {
   // Not JSON — an error message, or a plain string payload. Leave it alone.
-  if (!text.trimStart().startsWith("{") && !text.trimStart().startsWith("[")) {
-    return <span className={className}>{text}</span>;
+  if (!text.trimStart().startsWith('{') && !text.trimStart().startsWith('[')) {
+    return <span className={className}>{text}</span>
   }
 
-  const parts: React.ReactNode[] = [];
-  let last = 0;
-  let match: RegExpExecArray | null;
+  const parts: React.ReactNode[] = []
+  let last = 0
+  let match: RegExpExecArray | null
 
-  TOKEN.lastIndex = 0;
+  TOKEN.lastIndex = 0
   while ((match = TOKEN.exec(text)) !== null) {
-    const [raw, string, colon, literal, number] = match;
+    const [raw, string, colon, literal, number] = match
 
     if (match.index > last) {
-      parts.push(<Fragment key={`t${last}`}>{text.slice(last, match.index)}</Fragment>);
+      parts.push(
+        <Fragment key={`t${last}`}>{text.slice(last, match.index)}</Fragment>
+      )
     }
 
     if (string !== undefined && colon !== undefined) {
@@ -41,26 +49,27 @@ export function JsonView({ text, className }: { text: string; className?: string
         <Fragment key={match.index}>
           <span className="text-[#cbd5e1]">{string}</span>
           <span className="text-dim">{colon}</span>
-        </Fragment>,
-      );
+        </Fragment>
+      )
     } else if (string !== undefined) {
       parts.push(
         <span key={match.index} className="text-green">
           {string}
-        </span>,
-      );
+        </span>
+      )
     } else {
       parts.push(
         <span key={match.index} className="text-amber">
           {literal ?? number}
-        </span>,
-      );
+        </span>
+      )
     }
 
-    last = match.index + raw.length;
+    last = match.index + raw.length
   }
 
-  if (last < text.length) parts.push(<Fragment key="tail">{text.slice(last)}</Fragment>);
+  if (last < text.length)
+    parts.push(<Fragment key="tail">{text.slice(last)}</Fragment>)
 
-  return <span className={className}>{parts}</span>;
+  return <span className={className}>{parts}</span>
 }

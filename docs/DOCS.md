@@ -38,7 +38,7 @@ packages/<pkg>/
 A page is **either**:
 
 - `"readme": true` — renders the package's own `README.md`. For most packages
-  here the README *is* the documentation, and copying it into `docs/` would
+  here the README _is_ the documentation, and copying it into `docs/` would
   guarantee the two drift.
 - `"file": "SOMETHING.md"` — a markdown file relative to `docs/`.
 
@@ -59,12 +59,29 @@ So a page can name the `sections` it renders:
 ```json
 {
   "pages": [
-    { "slug": "overview",    "title": "Overview",     "readme": true, "intro": true,
-      "sections": ["Features"] },
-    { "slug": "quick-start", "title": "Quick start",  "readme": true,
-      "sections": ["Installation", "Quick Start"] },
-    { "slug": "middleware",  "title": "Middleware",   "readme": true,
-      "sections": ["Middleware System", "Built-in Middlewares", "Custom Middleware"] }
+    {
+      "slug": "overview",
+      "title": "Overview",
+      "readme": true,
+      "intro": true,
+      "sections": ["Features"]
+    },
+    {
+      "slug": "quick-start",
+      "title": "Quick start",
+      "readme": true,
+      "sections": ["Installation", "Quick Start"]
+    },
+    {
+      "slug": "middleware",
+      "title": "Middleware",
+      "readme": true,
+      "sections": [
+        "Middleware System",
+        "Built-in Middlewares",
+        "Custom Middleware"
+      ]
+    }
   ]
 }
 ```
@@ -108,12 +125,12 @@ they were last edited in; the version someone checked them against.
 
 `scripts/check-docs.mjs` compares it to `package.json`'s `version`:
 
-| Situation | Result |
-| --- | --- |
-| equal | pass |
-| package moved by a **patch** only | pass, with a note |
-| package moved by a **minor or major** | **fail** |
-| docs claim a version ahead of the package | **fail** |
+| Situation                                 | Result            |
+| ----------------------------------------- | ----------------- |
+| equal                                     | pass              |
+| package moved by a **patch** only         | pass, with a note |
+| package moved by a **minor or major**     | **fail**          |
+| docs claim a version ahead of the package | **fail**          |
 
 ### Why patch bumps are exempt
 
@@ -121,7 +138,7 @@ A patch is by semver's own definition a fix that changes no documented
 behaviour. Failing on patches would force a no-op edit to `docs.json` on every
 bug-fix release, and the thing everyone would learn is to bump the number without
 opening the page — which is the exact failure this gate exists to prevent. Making
-the check *ignorable* is worse than making it narrower.
+the check _ignorable_ is worse than making it narrower.
 
 ### Why "ahead" also fails
 

@@ -8,11 +8,11 @@ the same families through `next/font/google` in `app/layout.tsx`.
 Only the faces the image template actually sets are here; every other weight
 resolves to the nearest of these.
 
-| File                    | Family     | Weight |
-| ----------------------- | ---------- | ------ |
-| Geist-Regular.ttf       | Geist      | 400    |
-| Geist-Bold.ttf          | Geist      | 700    |
-| GeistMono-SemiBold.ttf  | Geist Mono | 600    |
+| File                   | Family     | Weight |
+| ---------------------- | ---------- | ------ |
+| Geist-Regular.ttf      | Geist      | 400    |
+| Geist-Bold.ttf         | Geist      | 700    |
+| GeistMono-SemiBold.ttf | Geist Mono | 600    |
 
 Both families are © 2023 Vercel, licensed under the SIL Open Font License 1.1
 (<https://openfontlicense.org>). The OFL permits redistribution of the font files

@@ -6,9 +6,9 @@ import {
   Req,
   Res,
   type Type,
-} from "@nestjs/common";
-import { SkipEnvelope } from "../envelope/skip-envelope.decorator";
-import { ContractGraphQLDispatcher } from "./dispatcher";
+} from '@nestjs/common'
+import { SkipEnvelope } from '../envelope/skip-envelope.decorator'
+import { ContractGraphQLDispatcher } from './dispatcher'
 
 /**
  * The one route every operation arrives at.
@@ -24,48 +24,51 @@ import { ContractGraphQLDispatcher } from "./dispatcher";
  */
 export function createGraphQLController(
   path: string,
-  allowGet: boolean,
+  allowGet: boolean
 ): Type<unknown> {
   @Controller()
   @SkipEnvelope()
   class ContractGraphQLController {
     constructor(
       @Inject(ContractGraphQLDispatcher)
-      private readonly dispatcher: ContractGraphQLDispatcher,
+      private readonly dispatcher: ContractGraphQLDispatcher
     ) {}
 
     @Post(path)
     post(@Req() request: unknown, @Res({ passthrough: true }) response: any) {
-      return this.dispatch(request, response, "POST");
+      return this.dispatch(request, response, 'POST')
     }
 
     @Get(path)
     get(@Req() request: unknown, @Res({ passthrough: true }) response: any) {
       if (!allowGet) {
-        response.status(405);
+        response.status(405)
         return {
           errors: [
             {
-              message: "GraphQL over GET is disabled on this server",
-              extensions: { code: "BAD_REQUEST", http: { status: 405 } },
+              message: 'GraphQL over GET is disabled on this server',
+              extensions: { code: 'BAD_REQUEST', http: { status: 405 } },
             },
           ],
-        };
+        }
       }
-      return this.dispatch(request, response, "GET");
+      return this.dispatch(request, response, 'GET')
     }
 
     private async dispatch(
       request: unknown,
       response: any,
-      method: "POST" | "GET",
+      method: 'POST' | 'GET'
     ) {
-      const result = await this.dispatcher.execute(request, response, method);
-      response.status(result.status);
-      response.setHeader?.("Content-Type", `${result.contentType}; charset=utf-8`);
-      return result.body;
+      const result = await this.dispatcher.execute(request, response, method)
+      response.status(result.status)
+      response.setHeader?.(
+        'Content-Type',
+        `${result.contentType}; charset=utf-8`
+      )
+      return result.body
     }
   }
 
-  return ContractGraphQLController;
+  return ContractGraphQLController
 }

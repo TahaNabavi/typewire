@@ -1,4 +1,4 @@
-import type { QueryKey } from "./hash-key";
+import type { QueryKey } from './hash-key'
 
 /**
  * One transfer-progress tick. Structurally identical to typefetch's
@@ -10,15 +10,15 @@ import type { QueryKey } from "./hash-key";
  * not expose. Render an indeterminate bar when `lengthComputable` is false.
  */
 export type TransferProgressLike = {
-  phase: "upload" | "download";
-  loaded: number;
-  total?: number;
-  percent?: number;
-  lengthComputable: boolean;
-};
+  phase: 'upload' | 'download'
+  loaded: number
+  total?: number
+  percent?: number
+  lengthComputable: boolean
+}
 
 /** Receives each {@link TransferProgressLike} tick. */
-export type ProgressHandlerLike = (progress: TransferProgressLike) => void;
+export type ProgressHandlerLike = (progress: TransferProgressLike) => void
 
 /**
  * Per-call options forwarded to the transport. Structurally identical to
@@ -26,11 +26,11 @@ export type ProgressHandlerLike = (progress: TransferProgressLike) => void;
  * import from any transport package.
  */
 export type EndpointCallOptions = {
-  signal?: AbortSignal;
-  timeout?: number;
-  onUploadProgress?: ProgressHandlerLike;
-  onDownloadProgress?: ProgressHandlerLike;
-};
+  signal?: AbortSignal
+  timeout?: number
+  onUploadProgress?: ProgressHandlerLike
+  onDownloadProgress?: ProgressHandlerLike
+}
 
 /**
  * The latest progress in each direction for one mutation.
@@ -40,13 +40,13 @@ export type EndpointCallOptions = {
  * them as distinct stages rather than one merged number.
  */
 export interface MutationProgress {
-  upload?: TransferProgressLike;
-  download?: TransferProgressLike;
+  upload?: TransferProgressLike
+  download?: TransferProgressLike
 }
 
 /** The callable half of a source: input in, promise out. */
 export interface CallableContract<TInput = any, TOutput = any> {
-  (input: TInput, options?: EndpointCallOptions): Promise<TOutput>;
+  (input: TInput, options?: EndpointCallOptions): Promise<TOutput>
 }
 
 /**
@@ -57,9 +57,11 @@ export interface CallableContract<TInput = any, TOutput = any> {
  * as-is, so the engine stays a peer of both transports rather than a dependent
  * of either.
  */
-export interface QueryEndpoint<TInput = any, TOutput = any>
-  extends CallableContract<TInput, TOutput> {
-  readonly endpointId: string;
+export interface QueryEndpoint<
+  TInput = any,
+  TOutput = any,
+> extends CallableContract<TInput, TOutput> {
+  readonly endpointId: string
 }
 
 /**
@@ -68,9 +70,11 @@ export interface QueryEndpoint<TInput = any, TOutput = any>
  * fire-and-forget emit returns `void` and a `server->client` listener is push,
  * so neither is a query; they belong on the devtools timeline instead.
  */
-export interface QueryEvent<TInput = any, TOutput = any>
-  extends CallableContract<TInput, TOutput> {
-  readonly eventId: string;
+export interface QueryEvent<
+  TInput = any,
+  TOutput = any,
+> extends CallableContract<TInput, TOutput> {
+  readonly eventId: string
 }
 
 /**
@@ -79,46 +83,45 @@ export interface QueryEvent<TInput = any, TOutput = any>
  * `resolveSourceId`.
  */
 export type QuerySource<TInput = any, TOutput = any> =
-  | QueryEndpoint<TInput, TOutput>
-  | QueryEvent<TInput, TOutput>;
+  QueryEndpoint<TInput, TOutput> | QueryEvent<TInput, TOutput>
 
 /** Any source, for use in generic constraints. */
-export type AnyQuerySource = QuerySource<any, any>;
+export type AnyQuerySource = QuerySource<any, any>
 
 /** The input type a source accepts. */
 export type InferInput<E> = E extends (input: infer I, ...rest: any[]) => any
   ? I
-  : never;
+  : never
 
 /** The data type a source resolves to. */
 export type InferOutput<E> = E extends (...args: any[]) => Promise<infer O>
   ? O
-  : never;
+  : never
 
 /**
  * Whether the query has usable data yet. Orthogonal to `FetchStatus`: a query
  * can be `success` and `fetching` at the same time (a background refetch), and
  * that distinction is the whole reason the two are separate fields.
  */
-export type QueryStatus = "pending" | "success" | "error";
+export type QueryStatus = 'pending' | 'success' | 'error'
 
 /** Whether a request is currently in flight for this query. */
-export type FetchStatus = "idle" | "fetching";
+export type FetchStatus = 'idle' | 'fetching'
 
 /** The cached state of one query. Replaced wholesale on every change. */
 export interface QueryState<TData = unknown, TError = Error> {
-  status: QueryStatus;
-  fetchStatus: FetchStatus;
-  data: TData | undefined;
-  error: TError | undefined;
+  status: QueryStatus
+  fetchStatus: FetchStatus
+  data: TData | undefined
+  error: TError | undefined
   /** When `data` was last written (ms). `0` means never. */
-  dataUpdatedAt: number;
+  dataUpdatedAt: number
   /** When `error` was last written (ms). `0` means never. */
-  errorUpdatedAt: number;
+  errorUpdatedAt: number
   /** Consecutive failures for the in-flight attempt; reset on success. */
-  failureCount: number;
+  failureCount: number
   /** Set by `invalidateQueries`; forces the next read to be treated as stale. */
-  isInvalidated: boolean;
+  isInvalidated: boolean
 }
 
 /**
@@ -127,18 +130,15 @@ export interface QueryState<TData = unknown, TError = Error> {
  * `TData`/`TError` — widening `TError` to `unknown` (rather than leaving it at
  * `Error`) is what lets a query typed with a custom error still publish here.
  */
-export type AnyQueryState = QueryState<unknown, unknown>;
+export type AnyQueryState = QueryState<unknown, unknown>
 
 /** `true`/`false`, a max attempt count, or a per-failure decision. */
 export type RetryValue<TError = Error> =
-  | boolean
-  | number
-  | ((failureCount: number, error: TError) => boolean);
+  boolean | number | ((failureCount: number, error: TError) => boolean)
 
 /** A fixed delay, or one computed from the attempt number (e.g. backoff). */
 export type RetryDelayValue<TError = Error> =
-  | number
-  | ((failureCount: number, error: TError) => number);
+  number | ((failureCount: number, error: TError) => number)
 
 /** Options that belong to the cached query itself, not to one observer. */
 export interface QueryOptions<TError = Error> {
@@ -146,14 +146,14 @@ export interface QueryOptions<TError = Error> {
    * How long data stays fresh (ms). While fresh, mounting an observer will not
    * trigger a refetch. Default `0` — fresh only for the current tick.
    */
-  staleTime?: number;
+  staleTime?: number
   /**
    * How long an observer-less query is kept before removal (ms). Default five
    * minutes. `Infinity` disables collection.
    */
-  gcTime?: number;
-  retry?: RetryValue<TError>;
-  retryDelay?: RetryDelayValue<TError>;
+  gcTime?: number
+  retry?: RetryValue<TError>
+  retryDelay?: RetryDelayValue<TError>
 }
 
 /** Options for a single observer of a query. */
@@ -163,63 +163,67 @@ export interface QueryObserverOptions<
   TSelected = TData,
 > extends QueryOptions<TError> {
   /** When `false`, the observer never triggers a fetch. Default `true`. */
-  enabled?: boolean;
+  enabled?: boolean
   /** Fetch on first subscribe if the data is stale. Default `true`. */
-  refetchOnMount?: boolean;
+  refetchOnMount?: boolean
   /**
    * Derive what the UI reads from the cached data. Re-run only when `data`
    * changes identity, so an expensive projection is not recomputed per render.
    */
-  select?: (data: TData) => TSelected;
+  select?: (data: TData) => TSelected
   /** Seed the cache before the first fetch. Treated as real, cacheable data. */
-  initialData?: TData;
+  initialData?: TData
   /**
    * Shown while `pending`, but never written to the cache — the query still
    * reports `status: "pending"` so the UI can tell placeholder from real.
    */
-  placeholderData?: TData;
+  placeholderData?: TData
 }
 
 /** What an observer exposes to the UI: query state plus derived booleans. */
 export interface QueryObserverResult<TData = unknown, TError = Error> {
-  status: QueryStatus;
-  fetchStatus: FetchStatus;
-  data: TData | undefined;
-  error: TError | undefined;
-  dataUpdatedAt: number;
-  errorUpdatedAt: number;
-  failureCount: number;
-  isPending: boolean;
-  isSuccess: boolean;
-  isError: boolean;
-  isFetching: boolean;
+  status: QueryStatus
+  fetchStatus: FetchStatus
+  data: TData | undefined
+  error: TError | undefined
+  dataUpdatedAt: number
+  errorUpdatedAt: number
+  failureCount: number
+  isPending: boolean
+  isSuccess: boolean
+  isError: boolean
+  isFetching: boolean
   /** First load: no data yet *and* a request is in flight. */
-  isLoading: boolean;
+  isLoading: boolean
   /** A refetch while data is already on screen. */
-  isRefetching: boolean;
-  isStale: boolean;
+  isRefetching: boolean
+  isStale: boolean
   /** `data` is `placeholderData`, not a cached value. */
-  isPlaceholderData: boolean;
-  refetch: () => Promise<QueryObserverResult<TData, TError>>;
+  isPlaceholderData: boolean
+  refetch: () => Promise<QueryObserverResult<TData, TError>>
 }
 
 /** Lifecycle of a single mutation observer. */
-export type MutationStatus = "idle" | "pending" | "success" | "error";
+export type MutationStatus = 'idle' | 'pending' | 'success' | 'error'
 
 /** The state of one mutation observer. */
-export interface MutationState<TData = unknown, TError = Error, TInput = unknown> {
-  status: MutationStatus;
-  data: TData | undefined;
-  error: TError | undefined;
+export interface MutationState<
+  TData = unknown,
+  TError = Error,
+  TInput = unknown,
+> {
+  status: MutationStatus
+  data: TData | undefined
+  error: TError | undefined
   /** The input of the most recent `mutate` call. */
-  variables: TInput | undefined;
-  failureCount: number;
+  variables: TInput | undefined
+  failureCount: number
   /**
    * Latest transfer progress, present only while `trackProgress` is enabled and
    * the transport has reported at least one tick. Cleared when a new `mutate`
    * starts and by `reset`.
    */
-  progress?: MutationProgress;
+  progress?: MutationProgress
 }
 
 /** What a mutation observer exposes to the UI. */
@@ -228,20 +232,20 @@ export interface MutationObserverResult<
   TError = Error,
   TInput = unknown,
 > extends MutationState<TData, TError, TInput> {
-  isIdle: boolean;
-  isPending: boolean;
-  isSuccess: boolean;
-  isError: boolean;
+  isIdle: boolean
+  isPending: boolean
+  isSuccess: boolean
+  isError: boolean
   /**
    * Fire and forget. Deliberately returns `void` and never rejects: the common
    * call site is an event handler (`onClick={() => mutate(input)}`), where a
    * rejected floating promise becomes an unhandled rejection. Read the outcome
    * from `data` / `error`, or use `mutateAsync` when you need to await it.
    */
-  mutate: (input: TInput) => void;
+  mutate: (input: TInput) => void
   /** Same call, but resolves with the data and rejects on failure. */
-  mutateAsync: (input: TInput) => Promise<TData>;
-  reset: () => void;
+  mutateAsync: (input: TInput) => Promise<TData>
+  reset: () => void
 }
 
 /** Options for a mutation observer. */
@@ -250,8 +254,8 @@ export interface MutationObserverOptions<
   TError = Error,
   TInput = unknown,
 > {
-  retry?: RetryValue<TError>;
-  retryDelay?: RetryDelayValue<TError>;
+  retry?: RetryValue<TError>
+  retryDelay?: RetryDelayValue<TError>
   /**
    * Returns `unknown` rather than `void | Promise<void>` on purpose. A union
    * return type defeats TypeScript's rule that a value-returning function is
@@ -259,18 +263,18 @@ export interface MutationObserverOptions<
    * way to write these: `onSettled: () => setOpen(false)`. A returned promise
    * is still awaited before `mutateAsync` resolves.
    */
-  onSuccess?: (data: TData, variables: TInput) => unknown;
-  onError?: (error: TError, variables: TInput) => unknown;
+  onSuccess?: (data: TData, variables: TInput) => unknown
+  onError?: (error: TError, variables: TInput) => unknown
   onSettled?: (
     data: TData | undefined,
     error: TError | undefined,
-    variables: TInput,
-  ) => unknown;
+    variables: TInput
+  ) => unknown
   /**
    * Endpoint ids to invalidate after this mutation succeeds, on top of whatever
    * the client-level `relations` map declares.
    */
-  invalidates?: string[];
+  invalidates?: string[]
 
   /**
    * Mirror transfer progress into `result.progress` so a component can render a
@@ -282,7 +286,7 @@ export interface MutationObserverOptions<
    * the response body. Neither is free, and neither is wanted by the mutations
    * that just post a JSON form.
    */
-  trackProgress?: boolean | "upload" | "download";
+  trackProgress?: boolean | 'upload' | 'download'
 
   /**
    * Raw progress ticks, if you would rather drive an imperative UI than read
@@ -292,8 +296,8 @@ export interface MutationObserverOptions<
    * Only the most recent `mutate` reports progress — a superseded call goes
    * quiet, matching how `data` and `error` already ignore stale calls.
    */
-  onUploadProgress?: ProgressHandlerLike;
-  onDownloadProgress?: ProgressHandlerLike;
+  onUploadProgress?: ProgressHandlerLike
+  onDownloadProgress?: ProgressHandlerLike
 }
 
 /**
@@ -302,18 +306,18 @@ export interface MutationObserverOptions<
  */
 export interface QueryFilters {
   /** One id or several, e.g. `"user.getUser"`. */
-  endpointId?: string | string[];
+  endpointId?: string | string[]
   /**
    * Restrict to one exact input. Requires `endpointId` to be a single id —
    * an input alone does not identify a query.
    */
-  input?: unknown;
+  input?: unknown
   predicate?: (query: {
-    key: QueryKey;
-    endpointId: string;
-    input: unknown;
-    state: AnyQueryState;
-  }) => boolean;
+    key: QueryKey
+    endpointId: string
+    input: unknown
+    state: AnyQueryState
+  }) => boolean
 }
 
 /**
@@ -322,12 +326,12 @@ export interface QueryFilters {
  * subscribe here rather than forking the engine.
  */
 export type QueryCacheEvent =
-  | { type: "added"; key: QueryKey; endpointId: string; state: AnyQueryState }
-  | { type: "updated"; key: QueryKey; endpointId: string; state: AnyQueryState }
+  | { type: 'added'; key: QueryKey; endpointId: string; state: AnyQueryState }
+  | { type: 'updated'; key: QueryKey; endpointId: string; state: AnyQueryState }
   | {
-      type: "removed";
-      key: QueryKey;
-      endpointId: string;
+      type: 'removed'
+      key: QueryKey
+      endpointId: string
       /**
        * Why the entry left the cache. `"gc"` is an observer-less eviction after
        * `gcTime`; `"explicit"` is `removeQueries` / `clear`. Nothing downstream
@@ -335,16 +339,16 @@ export type QueryCacheEvent =
        * a GC eviction is local bookkeeping, an explicit removal is intent to
        * propagate.
        */
-      reason: "gc" | "explicit";
+      reason: 'gc' | 'explicit'
     }
   | {
-      type: "mutation";
-      endpointId: string;
-      status: MutationStatus;
-      variables: unknown;
-      data: unknown;
-      error: unknown;
-    };
+      type: 'mutation'
+      endpointId: string
+      status: MutationStatus
+      variables: unknown
+      data: unknown
+      error: unknown
+    }
 
 /**
  * Which queries a successful mutation should invalidate, declared once at the
@@ -353,9 +357,8 @@ export type QueryCacheEvent =
  */
 export type RelationsConfig = Record<
   string,
-  | string[]
-  | ((ctx: { variables: unknown; data: unknown }) => string[])
->;
+  string[] | ((ctx: { variables: unknown; data: unknown }) => string[])
+>
 
 /**
  * Identifies the call a {@link FetchGate} wraps. `key` is the cache key
@@ -363,10 +366,10 @@ export type RelationsConfig = Record<
  * a gate can single-flight or lock the two independently.
  */
 export interface GateContext {
-  key: QueryKey;
-  endpointId: string;
-  input: unknown;
-  kind: "query" | "mutation";
+  key: QueryKey
+  endpointId: string
+  input: unknown
+  kind: 'query' | 'mutation'
 }
 
 /**
@@ -382,8 +385,8 @@ export interface GateContext {
  */
 export type FetchGate = (
   ctx: GateContext,
-  run: () => Promise<unknown>,
-) => Promise<unknown>;
+  run: () => Promise<unknown>
+) => Promise<unknown>
 
 /**
  * Resolve a cross-package id back to the source carrying it — either a function
@@ -397,4 +400,4 @@ export type FetchGate = (
  */
 export type SourceResolver =
   | ((endpointId: string) => AnyQuerySource | undefined)
-  | Record<string, AnyQuerySource>;
+  | Record<string, AnyQuerySource>

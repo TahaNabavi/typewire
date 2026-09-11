@@ -7,21 +7,21 @@ import {
   type TransportDecoded,
   type TransportFailure,
   type TransportRequest,
-} from "@tahanabavi/typefetch";
+} from '@tahanabavi/typefetch'
 import {
   DocumentGenerationError,
   generateDocument,
   operationNameFrom,
   operationNameOf,
-} from "./document";
-import { graphqlFailureFields } from "./errors";
+} from './document'
+import { graphqlFailureFields } from './errors'
 import type {
   GraphqlEndpointFields,
   GraphqlResponseBody,
   GraphqlTransportConfig,
-} from "./types";
+} from './types'
 
-type GraphqlEndpoint = AnyEndpointDefZ & GraphqlEndpointFields;
+type GraphqlEndpoint = AnyEndpointDefZ & GraphqlEndpointFields
 
 /**
  * The two media types a GraphQL server may answer with.
@@ -31,7 +31,7 @@ type GraphqlEndpoint = AnyEndpointDefZ & GraphqlEndpointFields;
  * legacy one answers 200 with the errors inside the body, which is why `decode`
  * has to be able to fail too.
  */
-const ACCEPT = "application/graphql-response+json, application/json";
+const ACCEPT = 'application/graphql-response+json, application/json'
 
 /**
  * Documents are generated once per endpoint, not once per request.
@@ -39,17 +39,17 @@ const ACCEPT = "application/graphql-response+json, application/json";
  * Keyed on the contract object, which is stable for the client's lifetime, and
  * weak so a discarded contract does not pin its document.
  */
-const documentCache = new WeakMap<object, { query: string; name: string }>();
+const documentCache = new WeakMap<object, { query: string; name: string }>()
 
 function resolveDocument(
   endpoint: GraphqlEndpoint,
-  endpointId: string,
+  endpointId: string
 ): { query: string; name: string } {
-  const cached = documentCache.get(endpoint);
-  if (cached) return cached;
+  const cached = documentCache.get(endpoint)
+  if (cached) return cached
 
   const fallbackName =
-    endpoint.operationName ?? operationNameFrom(endpointId || "Anonymous");
+    endpoint.operationName ?? operationNameFrom(endpointId || 'Anonymous')
 
   const resolved = endpoint.document
     ? {
@@ -69,35 +69,35 @@ function resolveDocument(
           variableTypes: endpoint.variableTypes,
         }),
         name: fallbackName,
-      };
+      }
 
-  documentCache.set(endpoint, resolved);
-  return resolved;
+  documentCache.set(endpoint, resolved)
+  return resolved
 }
 
 /** `data`, or `data[root]` when the endpoint declared one. */
 function unwrap(body: GraphqlResponseBody, root: string | undefined): unknown {
-  if (!root) return body.data;
-  return (body.data as Record<string, unknown> | null | undefined)?.[root];
+  if (!root) return body.data
+  return (body.data as Record<string, unknown> | null | undefined)?.[root]
 }
 
 async function readBody(res: Response): Promise<GraphqlResponseBody> {
   try {
-    const text = await res.text();
-    if (!text.trim()) return {};
-    return JSON.parse(text) as GraphqlResponseBody;
+    const text = await res.text()
+    if (!text.trim()) return {}
+    return JSON.parse(text) as GraphqlResponseBody
   } catch {
     // A gateway's HTML error page is not a GraphQL response; report the status
     // rather than a SyntaxError over it.
-    return {};
+    return {}
   }
 }
 
 export function graphqlTransport(
-  config: GraphqlTransportConfig = {},
-): TransportAdapter<"graphql"> {
+  config: GraphqlTransportConfig = {}
+): TransportAdapter<'graphql'> {
   return {
-    kind: "graphql",
+    kind: 'graphql',
     apiVersion: TRANSPORT_API_VERSION,
 
     capabilities: {
@@ -105,7 +105,7 @@ export function graphqlTransport(
       // the response is consumed whole rather than streamed.
       uploadProgress: false,
       downloadProgress: false,
-      responseTypes: ["json"],
+      responseTypes: ['json'],
     },
 
     /**
@@ -117,78 +117,78 @@ export function graphqlTransport(
      * production much later.
      */
     validate(endpoint, endpointId) {
-      const gql = endpoint as GraphqlEndpoint;
+      const gql = endpoint as GraphqlEndpoint
 
-      if (gql.operation !== "query" && gql.operation !== "mutation") {
+      if (gql.operation !== 'query' && gql.operation !== 'mutation') {
         throw new Error(
           `[typefetch-graphql] Endpoint "${endpointId}" must declare ` +
-            `operation: "query" | "mutation".`,
-        );
+            `operation: "query" | "mutation".`
+        )
       }
 
       try {
-        resolveDocument(gql, endpointId);
+        resolveDocument(gql, endpointId)
       } catch (error) {
         if (error instanceof DocumentGenerationError) {
           throw new Error(
             `[typefetch-graphql] Could not generate a document for ` +
-              `"${endpointId}": ${error.message}`,
-          );
+              `"${endpointId}": ${error.message}`
+          )
         }
-        throw error;
+        throw error
       }
     },
 
     describe(endpoint) {
-      const gql = endpoint as GraphqlEndpoint;
+      const gql = endpoint as GraphqlEndpoint
       return {
-        protocol: "GraphQL",
+        protocol: 'GraphQL',
         operation: gql.operation,
         target: gql.root ?? gql.operationName ?? gql.operation,
-      };
+      }
     },
 
     build(ctx: TransportContext): TransportRequest {
-      const endpoint = ctx.endpoint as GraphqlEndpoint;
-      const { query, name } = resolveDocument(endpoint, ctx.endpointId);
-      const variables = (ctx.input ?? {}) as Record<string, unknown>;
+      const endpoint = ctx.endpoint as GraphqlEndpoint
+      const { query, name } = resolveDocument(endpoint, ctx.endpointId)
+      const variables = (ctx.input ?? {}) as Record<string, unknown>
 
-      const url = config.url ?? `${ctx.baseUrl}/graphql`;
+      const url = config.url ?? `${ctx.baseUrl}/graphql`
       const headers: Record<string, string> = {
         Accept: ACCEPT,
         ...config.headers,
-      };
+      }
 
-      if (ctx.token) headers["Authorization"] = `Bearer ${ctx.token}`;
+      if (ctx.token) headers['Authorization'] = `Bearer ${ctx.token}`
 
       // Mutations always POST. A mutation over GET is cacheable by anything
       // between the client and the server, which is a way to lose a write.
-      const useGet = config.method === "GET" && endpoint.operation === "query";
+      const useGet = config.method === 'GET' && endpoint.operation === 'query'
 
       if (useGet) {
-        const params = new URLSearchParams({ query, operationName: name });
+        const params = new URLSearchParams({ query, operationName: name })
         if (Object.keys(variables).length) {
-          params.set("variables", JSON.stringify(variables));
+          params.set('variables', JSON.stringify(variables))
         }
 
         return {
-          url: `${url}${url.includes("?") ? "&" : "?"}${params.toString()}`,
-          init: { method: "GET", headers },
+          url: `${url}${url.includes('?') ? '&' : '?'}${params.toString()}`,
+          init: { method: 'GET', headers },
           parts: { headers: {}, isStructured: false, body: variables },
-        };
+        }
       }
 
-      headers["Content-Type"] = "application/json";
+      headers['Content-Type'] = 'application/json'
 
       return {
         url,
         init: {
-          method: "POST",
+          method: 'POST',
           headers,
           body: JSON.stringify({ query, variables, operationName: name }),
         },
         parts: { headers: {}, isStructured: false, body: variables },
-      };
+      }
     },
 
     /**
@@ -200,19 +200,22 @@ export function graphqlTransport(
      * so `onError`, retries and instrumentation all behave as they would for any
      * other transport.
      */
-    async decode(res: Response, ctx: TransportContext): Promise<TransportDecoded> {
-      const endpoint = ctx.endpoint as GraphqlEndpoint;
-      const body = await readBody(res);
-      const errors = body.errors ?? [];
-      const policy = endpoint.errorPolicy ?? config.errorPolicy ?? "none";
+    async decode(
+      res: Response,
+      ctx: TransportContext
+    ): Promise<TransportDecoded> {
+      const endpoint = ctx.endpoint as GraphqlEndpoint
+      const body = await readBody(res)
+      const errors = body.errors ?? []
+      const policy = endpoint.errorPolicy ?? config.errorPolicy ?? 'none'
 
       if (errors.length) {
-        const partial = body.data != null && policy === "all";
+        const partial = body.data != null && policy === 'all'
 
         if (!partial) {
           throw new RichError(
-            graphqlFailureFields(body, res.status, endpoint.errors) as never,
-          );
+            graphqlFailureFields(body, res.status, endpoint.errors) as never
+          )
         }
 
         // Resolving half a result while dropping the reason for the other half
@@ -220,7 +223,7 @@ export function graphqlTransport(
         config.onPartialErrors?.(errors, {
           endpointId: ctx.endpointId,
           route: this.describe(endpoint),
-        });
+        })
       }
 
       return {
@@ -228,12 +231,15 @@ export function graphqlTransport(
         // GraphQL brings its own envelope; running the client's `responseWrapper`
         // over an already-unwrapped `data` would look for a second one.
         enveloped: false,
-      };
+      }
     },
 
-    async fail(res: Response, ctx: TransportContext): Promise<TransportFailure> {
-      const endpoint = ctx.endpoint as GraphqlEndpoint;
-      const body = await readBody(res);
+    async fail(
+      res: Response,
+      ctx: TransportContext
+    ): Promise<TransportFailure> {
+      const endpoint = ctx.endpoint as GraphqlEndpoint
+      const body = await readBody(res)
 
       // A transport-level failure with no GraphQL error array at all — a 502
       // from a proxy, a 401 from a gateway that never reached the resolver.
@@ -242,14 +248,14 @@ export function graphqlTransport(
           error: {
             message: res.statusText || `HTTP ${res.status}`,
             status: res.status,
-            kind: res.status >= 500 ? "internal" : "invalid_argument",
+            kind: res.status >= 500 ? 'internal' : 'invalid_argument',
             data: body,
             dataParsed: false,
           },
           body,
           wasJson: true,
           enveloped: false,
-        };
+        }
       }
 
       return {
@@ -257,7 +263,7 @@ export function graphqlTransport(
         body,
         wasJson: true,
         enveloped: false,
-      };
+      }
     },
-  };
+  }
 }

@@ -4,7 +4,7 @@ import type {
   SocketContracts,
   SocketEventDef,
   SocketEventMeta,
-} from "./types";
+} from './types'
 
 /**
  * Identity helper that preserves literal types without forcing `as const` at
@@ -26,28 +26,28 @@ import type {
  * });
  */
 export function defineSocketContracts<const C extends SocketContracts>(
-  contracts: C,
+  contracts: C
 ): C {
-  return contracts;
+  return contracts
 }
 
 /** Narrows an event definition to the client→server direction. */
 export function isClientToServer(
-  def: SocketEventDef,
+  def: SocketEventDef
 ): def is ClientToServerDef {
-  return def.direction === "client->server";
+  return def.direction === 'client->server'
 }
 
 /** Narrows an event definition to the server→client direction. */
 export function isServerToClient(
-  def: SocketEventDef,
+  def: SocketEventDef
 ): def is ServerToClientDef {
-  return def.direction === "server->client";
+  return def.direction === 'server->client'
 }
 
 /** Builds the stable cross-package identifier for an event. */
 export function makeEventId(module: string, name: string): string {
-  return `${module}.${name}`;
+  return `${module}.${name}`
 }
 
 /**
@@ -58,9 +58,9 @@ export function makeEventId(module: string, name: string): string {
 export function resolveEventName(
   def: SocketEventDef,
   module: string,
-  name: string,
+  name: string
 ): string {
-  return def.event ?? makeEventId(module, name);
+  return def.event ?? makeEventId(module, name)
 }
 
 /**
@@ -68,9 +68,9 @@ export function resolveEventName(
  * surface, and by server adapters to bind handlers.
  */
 export function listSocketEvents(
-  contracts: SocketContracts,
+  contracts: SocketContracts
 ): SocketEventMeta[] {
-  const out: SocketEventMeta[] = [];
+  const out: SocketEventMeta[] = []
   for (const [module, events] of Object.entries(contracts)) {
     for (const [name, def] of Object.entries(events)) {
       out.push({
@@ -80,10 +80,10 @@ export function listSocketEvents(
         event: resolveEventName(def, module, name),
         direction: def.direction,
         description: def.description,
-      });
+      })
     }
   }
-  return out;
+  return out
 }
 
 /**
@@ -94,40 +94,47 @@ export function listSocketEvents(
  * same wire name (where one would silently shadow the other).
  */
 export function validateSocketContracts(contracts: SocketContracts): string[] {
-  const problems: string[] = [];
-  const seenWireNames = new Map<string, string>();
+  const problems: string[] = []
+  const seenWireNames = new Map<string, string>()
 
   for (const [module, events] of Object.entries(contracts)) {
     for (const [name, def] of Object.entries(events)) {
-      const eventId = makeEventId(module, name);
+      const eventId = makeEventId(module, name)
 
-      if (def.direction !== "client->server" && def.direction !== "server->client") {
+      if (
+        def.direction !== 'client->server' &&
+        def.direction !== 'server->client'
+      ) {
         problems.push(
           `"${eventId}" has an invalid direction ${JSON.stringify(
-            (def as SocketEventDef).direction,
-          )} — expected "client->server" or "server->client".`,
-        );
-        continue;
+            (def as SocketEventDef).direction
+          )} — expected "client->server" or "server->client".`
+        )
+        continue
       }
 
       if (isClientToServer(def) && !def.request) {
-        problems.push(`"${eventId}" is client->server but declares no \`request\` schema.`);
+        problems.push(
+          `"${eventId}" is client->server but declares no \`request\` schema.`
+        )
       }
       if (isServerToClient(def) && !def.payload) {
-        problems.push(`"${eventId}" is server->client but declares no \`payload\` schema.`);
+        problems.push(
+          `"${eventId}" is server->client but declares no \`payload\` schema.`
+        )
       }
 
-      const wire = resolveEventName(def, module, name);
-      const owner = seenWireNames.get(wire);
+      const wire = resolveEventName(def, module, name)
+      const owner = seenWireNames.get(wire)
       if (owner) {
         problems.push(
-          `"${eventId}" and "${owner}" both map to wire event "${wire}".`,
-        );
+          `"${eventId}" and "${owner}" both map to wire event "${wire}".`
+        )
       } else {
-        seenWireNames.set(wire, eventId);
+        seenWireNames.set(wire, eventId)
       }
     }
   }
 
-  return problems;
+  return problems
 }

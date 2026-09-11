@@ -1,12 +1,12 @@
-import { z } from "zod";
-import { isContractError, RichError } from "../client";
+import { z } from 'zod'
+import { isContractError, RichError } from '../client'
 import type {
   AnyEndpointDef,
   Contracts,
   EndpointDef,
   EndpointFor,
   TransportKind,
-} from "../types";
+} from '../types'
 
 /**
  * Contract type guarantees
@@ -23,100 +23,100 @@ import type {
  * is deliberately the test of the seam.
  */
 
-describe("contract types", () => {
-  it("accepts a contract written before transports existed", () => {
+describe('contract types', () => {
+  it('accepts a contract written before transports existed', () => {
     const contracts = {
       user: {
         getUser: {
-          method: "GET",
-          path: "/users/:id",
+          method: 'GET',
+          path: '/users/:id',
           request: z.object({ path: z.object({ id: z.string() }) }),
           response: z.object({ id: z.string() }),
         },
       },
-    } satisfies Contracts;
+    } satisfies Contracts
 
     // Omitting `transport` resolves to the http variant, unchanged — and the
     // same object satisfies both the http-only and the any-transport type.
     const asHttp: EndpointDef<z.ZodTypeAny, z.ZodTypeAny> =
-      contracts.user.getUser;
+      contracts.user.getUser
     const asAny: AnyEndpointDef<z.ZodTypeAny, z.ZodTypeAny> =
-      contracts.user.getUser;
+      contracts.user.getUser
 
-    expect(asHttp.method).toBe("GET");
-    expect(asAny.path).toBe("/users/:id");
-  });
+    expect(asHttp.method).toBe('GET')
+    expect(asAny.path).toBe('/users/:id')
+  })
 
-  it("accepts an explicit transport: \"http\"", () => {
+  it('accepts an explicit transport: "http"', () => {
     const contracts = {
       user: {
         getUser: {
-          transport: "http",
-          method: "GET",
-          path: "/users",
+          transport: 'http',
+          method: 'GET',
+          path: '/users',
           request: z.object({}),
           response: z.object({}),
         },
       },
-    } satisfies Contracts;
+    } satisfies Contracts
 
-    expect(contracts.user.getUser.transport).toBe("http");
-  });
+    expect(contracts.user.getUser.transport).toBe('http')
+  })
 
-  it("rejects a transport whose adapter package is not installed", () => {
+  it('rejects a transport whose adapter package is not installed', () => {
     const contracts = {
       user: {
         getUser: {
           // @ts-expect-error "grpc" is only a valid transport once
           // @tahanabavi/typefetch-grpc augments TransportRegistry.
-          transport: "grpc",
-          service: "user.v1.UserService",
-          rpc: "GetUser",
+          transport: 'grpc',
+          service: 'user.v1.UserService',
+          rpc: 'GetUser',
           request: z.object({}),
           response: z.object({}),
         },
       },
-    } satisfies Contracts;
+    } satisfies Contracts
 
-    expect(contracts.user.getUser).toBeDefined();
-  });
+    expect(contracts.user.getUser).toBeDefined()
+  })
 
-  it("still rejects a misspelled key on an endpoint", () => {
+  it('still rejects a misspelled key on an endpoint', () => {
     const contracts = {
       user: {
         getUser: {
-          method: "GET",
-          path: "/users",
+          method: 'GET',
+          path: '/users',
           request: z.object({}),
           response: z.object({}),
           // @ts-expect-error `responsType` is not a key on any variant; the
           // intersection must not weaken excess-property checking.
-          responsType: "json",
+          responsType: 'json',
         },
       },
-    } satisfies Contracts;
+    } satisfies Contracts
 
-    expect(contracts.user.getUser).toBeDefined();
-  });
+    expect(contracts.user.getUser).toBeDefined()
+  })
 
-  it("exposes http as the only registered transport for now", () => {
-    const kind: TransportKind = "http";
+  it('exposes http as the only registered transport for now', () => {
+    const kind: TransportKind = 'http'
     // @ts-expect-error nothing else is registered in the core package.
-    const missing: TransportKind = "graphql";
+    const missing: TransportKind = 'graphql'
 
-    type HttpDef = EndpointFor<"http", z.ZodTypeAny, z.ZodTypeAny>;
+    type HttpDef = EndpointFor<'http', z.ZodTypeAny, z.ZodTypeAny>
     const def: HttpDef = {
-      method: "POST",
-      path: "/x",
+      method: 'POST',
+      path: '/x',
       request: z.object({}),
       response: z.object({}),
-    };
+    }
 
-    expect(kind).toBe("http");
-    expect(missing).toBe("graphql");
-    expect(def.method).toBe("POST");
-  });
-});
+    expect(kind).toBe('http')
+    expect(missing).toBe('graphql')
+    expect(def.method).toBe('POST')
+  })
+})
 
 /**
  * The `errors` key space belongs to the transport, so it had to widen from
@@ -124,12 +124,12 @@ describe("contract types", () => {
  * `extensions.code`. Numeric keys must keep working exactly as before, and
  * `isContractError` must narrow off either.
  */
-describe("error maps accept both key spaces", () => {
+describe('error maps accept both key spaces', () => {
   const contracts = {
     user: {
       createUser: {
-        method: "POST",
-        path: "/users",
+        method: 'POST',
+        path: '/users',
         request: z.object({}),
         response: z.object({ id: z.string() }),
         errors: {
@@ -138,46 +138,46 @@ describe("error maps accept both key spaces", () => {
         },
       },
     },
-  } satisfies Contracts;
+  } satisfies Contracts
 
-  it("narrows on a numeric key", () => {
+  it('narrows on a numeric key', () => {
     const error = new RichError({
-      message: "conflict",
+      message: 'conflict',
       status: 409,
       errorKey: 409,
-      data: { conflictField: "email" },
+      data: { conflictField: 'email' },
       dataParsed: true,
-    });
+    })
 
     if (isContractError(contracts.user.createUser, error, 409)) {
-      expect(error.data.conflictField).toBe("email");
+      expect(error.data.conflictField).toBe('email')
     } else {
-      throw new Error("expected the 409 to narrow");
+      throw new Error('expected the 409 to narrow')
     }
-  });
+  })
 
-  it("narrows on a string key", () => {
+  it('narrows on a string key', () => {
     const error = new RichError({
-      message: "denied",
+      message: 'denied',
       status: 200,
-      errorKey: "UNAUTHENTICATED",
-      data: { realm: "api" },
+      errorKey: 'UNAUTHENTICATED',
+      data: { realm: 'api' },
       dataParsed: true,
-    });
+    })
 
-    if (isContractError(contracts.user.createUser, error, "UNAUTHENTICATED")) {
-      expect(error.data.realm).toBe("api");
+    if (isContractError(contracts.user.createUser, error, 'UNAUTHENTICATED')) {
+      expect(error.data.realm).toBe('api')
     } else {
-      throw new Error("expected the string key to narrow");
+      throw new Error('expected the string key to narrow')
     }
-  });
+  })
 
-  it("rejects a key the contract never declared", () => {
-    const error = new RichError({ message: "x" });
+  it('rejects a key the contract never declared', () => {
+    const error = new RichError({ message: 'x' })
 
     expect(
       // @ts-expect-error 418 is not a declared error key on this endpoint.
-      isContractError(contracts.user.createUser, error, 418),
-    ).toBe(false);
-  });
-});
+      isContractError(contracts.user.createUser, error, 418)
+    ).toBe(false)
+  })
+})

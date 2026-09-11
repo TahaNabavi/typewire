@@ -1,13 +1,13 @@
-import { buildQueryKey, hashKey, type QueryKey } from "./hash-key";
-import { Query } from "./query";
-import { resolveSourceId } from "./source";
+import { buildQueryKey, hashKey, type QueryKey } from './hash-key'
+import { Query } from './query'
+import { resolveSourceId } from './source'
 import type {
   AnyQuerySource,
   FetchGate,
   QueryCacheEvent,
   QueryFilters,
   QueryOptions,
-} from "./types";
+} from './types'
 
 /**
  * The store of live queries, keyed by `endpointId|hash(input)`.
@@ -17,38 +17,38 @@ import type {
  * than wrapping the engine.
  */
 export class QueryCache {
-  private readonly queries = new Map<QueryKey, Query<any, any>>();
-  private readonly listeners = new Set<(event: QueryCacheEvent) => void>();
-  private readonly gate?: FetchGate;
+  private readonly queries = new Map<QueryKey, Query<any, any>>()
+  private readonly listeners = new Set<(event: QueryCacheEvent) => void>()
+  private readonly gate?: FetchGate
 
   /**
    * @param gate Wraps every query's fetch. Passed straight to each `Query`;
    * `undefined` leaves fetching unchanged.
    */
   constructor(gate?: FetchGate) {
-    this.gate = gate;
+    this.gate = gate
   }
 
   /** Subscribe to every cache event. Returns an unsubscribe function. */
   subscribe(listener: (event: QueryCacheEvent) => void): () => void {
-    this.listeners.add(listener);
+    this.listeners.add(listener)
     return () => {
-      this.listeners.delete(listener);
-    };
+      this.listeners.delete(listener)
+    }
   }
 
   emit(event: QueryCacheEvent): void {
-    for (const listener of [...this.listeners]) listener(event);
+    for (const listener of [...this.listeners]) listener(event)
   }
 
   get<TData = unknown, TError = Error>(
-    key: QueryKey,
+    key: QueryKey
   ): Query<TData, TError> | undefined {
-    return this.queries.get(key);
+    return this.queries.get(key)
   }
 
   getAll(): Query<any, any>[] {
-    return [...this.queries.values()];
+    return [...this.queries.values()]
   }
 
   /**
@@ -60,14 +60,14 @@ export class QueryCache {
     endpoint: AnyQuerySource,
     input: unknown,
     options: QueryOptions<TError> = {},
-    initialData?: TData,
+    initialData?: TData
   ): Query<TData, TError> {
-    const endpointId = resolveSourceId(endpoint);
-    const key = buildQueryKey(endpointId, input);
-    const existing = this.queries.get(key) as Query<TData, TError> | undefined;
+    const endpointId = resolveSourceId(endpoint)
+    const key = buildQueryKey(endpointId, input)
+    const existing = this.queries.get(key) as Query<TData, TError> | undefined
     if (existing) {
-      existing.setOptions(options);
-      return existing;
+      existing.setOptions(options)
+      return existing
     }
 
     const query = new Query<TData, TError>({
@@ -79,23 +79,23 @@ export class QueryCache {
       initialData,
       onStateChange: (q) =>
         this.emit({
-          type: "updated",
+          type: 'updated',
           key: q.key,
           endpointId: q.endpointId,
           state: q.getState(),
         }),
-      onGarbageCollect: (q) => this.remove(q, "gc"),
+      onGarbageCollect: (q) => this.remove(q, 'gc'),
       gate: this.gate,
-    });
+    })
 
-    this.queries.set(key, query);
+    this.queries.set(key, query)
     this.emit({
-      type: "added",
+      type: 'added',
       key,
       endpointId: query.endpointId,
       state: query.getState(),
-    });
-    return query;
+    })
+    return query
   }
 
   /**
@@ -104,19 +104,19 @@ export class QueryCache {
    * `reason` defaults to `"explicit"` — the caller meant to drop it. The GC
    * timer passes `"gc"` so a subscriber can tell an eviction from an intent.
    */
-  remove(query: Query<any, any>, reason: "gc" | "explicit" = "explicit"): void {
-    const existing = this.queries.get(query.key);
+  remove(query: Query<any, any>, reason: 'gc' | 'explicit' = 'explicit'): void {
+    const existing = this.queries.get(query.key)
     // Guard against removing a *replacement* registered under the same key by
     // a late garbage-collection callback from the query it replaced.
-    if (existing !== query) return;
-    this.queries.delete(query.key);
-    query.destroy();
+    if (existing !== query) return
+    this.queries.delete(query.key)
+    query.destroy()
     this.emit({
-      type: "removed",
+      type: 'removed',
       key: query.key,
       endpointId: query.endpointId,
       reason,
-    });
+    })
   }
 
   /** Queries matching the filters. `{}` matches everything. */
@@ -126,14 +126,14 @@ export class QueryCache {
         ? undefined
         : Array.isArray(filters.endpointId)
           ? filters.endpointId
-          : [filters.endpointId];
+          : [filters.endpointId]
     const inputHash =
-      filters.input === undefined ? undefined : hashKey(filters.input);
+      filters.input === undefined ? undefined : hashKey(filters.input)
 
     return this.getAll().filter((query) => {
-      if (ids && !ids.includes(query.endpointId)) return false;
+      if (ids && !ids.includes(query.endpointId)) return false
       if (inputHash !== undefined && hashKey(query.input) !== inputHash) {
-        return false;
+        return false
       }
       if (
         filters.predicate &&
@@ -144,14 +144,14 @@ export class QueryCache {
           state: query.getState(),
         })
       ) {
-        return false;
+        return false
       }
-      return true;
-    });
+      return true
+    })
   }
 
   /** Drop every query. Used on logout and between tests. */
   clear(): void {
-    for (const query of this.getAll()) this.remove(query);
+    for (const query of this.getAll()) this.remove(query)
   }
 }

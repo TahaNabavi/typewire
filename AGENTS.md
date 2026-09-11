@@ -21,7 +21,7 @@ example that can silently rot.
 
 Every one of these, every time:
 
-1. **Code** — matches the surrounding style. Comments explain *why*, not what.
+1. **Code** — matches the surrounding style. Comments explain _why_, not what.
 2. **Tests** — a regression test per fixed bug, named after the old behaviour so
    the reason it exists survives the fix.
 3. **`README.md`** in the package — updated, including a migration table when
@@ -30,7 +30,7 @@ Every one of these, every time:
    minor and major; optional for a patch.
 5. **`docs/assets/<pkg>-banner.html`** + rendered `.png` — the evergreen banner
    the README opens with. Refresh it whenever a release changes what the package
-   *is*: every **major**, and any minor that adds a headline feature.
+   _is_: every **major**, and any minor that adds a headline feature.
 6. **Changeset** — `pnpm changeset`, with the correct bump. CI reports its absence.
 7. **Verify** — `pnpm -r build && pnpm -r typecheck && pnpm -r test` all green.
    Never report a change as done without running these.

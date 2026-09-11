@@ -13,14 +13,14 @@ still undecided. Roadmap row 10 in [`ROADMAP.md`](./ROADMAP.md).
 
 ## 1. Three problems, usually conflated
 
-| # | Problem | What happens today | What it costs |
-| --- | --- | --- | --- |
-| 1 | **Duplicate reads** | Four tabs mount `user.getUser`; four requests leave the browser | 4× the load, 4× the rate limit, four different `dataUpdatedAt` |
-| 2 | **Stale reads** | Tab A mutates and invalidates; tab B still renders the old row | The bug users report as "it didn't save" |
-| 3 | **Duplicate writes** | Two tabs run `cart.checkout` at once | Two charges. Not a rendering bug |
+| #   | Problem              | What happens today                                              | What it costs                                                  |
+| --- | -------------------- | --------------------------------------------------------------- | -------------------------------------------------------------- |
+| 1   | **Duplicate reads**  | Four tabs mount `user.getUser`; four requests leave the browser | 4× the load, 4× the rate limit, four different `dataUpdatedAt` |
+| 2   | **Stale reads**      | Tab A mutates and invalidates; tab B still renders the old row  | The bug users report as "it didn't save"                       |
+| 3   | **Duplicate writes** | Two tabs run `cart.checkout` at once                            | Two charges. Not a rendering bug                               |
 
-They look like one feature ("sync my tabs") and are not: 1 is a *lock*, 2 is a
-*message*, 3 is a *lock with a different answer for the loser*. A package that
+They look like one feature ("sync my tabs") and are not: 1 is a _lock_, 2 is a
+_message_, 3 is a _lock with a different answer for the loser_. A package that
 only broadcasts cache state — the shape everyone reaches for first — solves 2 and
 leaves 1 and 3 exactly where they were.
 
@@ -39,7 +39,7 @@ cases that are per-input. No new identifier enters the family.
 ### Non-goals
 
 - **Not a sync engine.** No CRDTs, no merge semantics, no server component. The
-  server stays the arbiter; this coordinates *one browser's* tabs.
+  server stays the arbiter; this coordinates _one browser's_ tabs.
 - **Not persistence.** A reload empties everything. That is
   [`OFFLINE.md`](./OFFLINE.md), which depends on the leader primitive here.
 - **Not cross-origin, not cross-device, not cross-profile.** The boundary is
@@ -78,12 +78,22 @@ installs only what it uses:
 {
   "name": "@tahanabavi/typewire-sync",
   "exports": {
-    ".":       { "types": "./dist/index.d.ts",  "import": "./dist/index.mjs",  "require": "./dist/index.js" },
-    "./query": { "types": "./dist/query.d.ts",  "import": "./dist/query.mjs",  "require": "./dist/query.js" }
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+    },
+    "./query": {
+      "types": "./dist/query.d.ts",
+      "import": "./dist/query.mjs",
+      "require": "./dist/query.js",
+    },
   },
   "sideEffects": false,
-  "peerDependencies":     { "@tahanabavi/typewire-query-core": "^1.2.0" },
-  "peerDependenciesMeta": { "@tahanabavi/typewire-query-core": { "optional": true } }
+  "peerDependencies": { "@tahanabavi/typewire-query-core": "^1.2.0" },
+  "peerDependenciesMeta": {
+    "@tahanabavi/typewire-query-core": { "optional": true },
+  },
 }
 ```
 
@@ -104,9 +114,9 @@ so the whole thing is testable in Node with no browser.
 
 ```ts
 export interface ChannelAdapter {
-  post(message: SyncMessage): void;
-  subscribe(handler: (message: SyncMessage) => void): () => void;
-  close(): void;
+  post(message: SyncMessage): void
+  subscribe(handler: (message: SyncMessage) => void): () => void
+  close(): void
 }
 
 export interface LockAdapter {
@@ -114,27 +124,27 @@ export interface LockAdapter {
   acquire(
     name: string,
     opts?: {
-      mode?: "exclusive" | "shared";
-      signal?: AbortSignal;
-      ifAvailable?: boolean;
-    },
-  ): Promise<LockHandle | null>;
+      mode?: 'exclusive' | 'shared'
+      signal?: AbortSignal
+      ifAvailable?: boolean
+    }
+  ): Promise<LockHandle | null>
   /** False when the implementation cannot guarantee mutual exclusion. */
-  readonly reliable: boolean;
+  readonly reliable: boolean
 }
 
 export interface LockHandle {
-  release(): void;
-  readonly name: string;
+  release(): void
+  readonly name: string
 }
 ```
 
-| Environment | Channel | Lock | `reliable` |
-| --- | --- | --- | --- |
-| Modern browser, secure context | `BroadcastChannel` | `navigator.locks` | `true` |
-| No `navigator.locks` | `BroadcastChannel` | channel lease + heartbeat | **`false`** |
-| No `BroadcastChannel` | `storage` event on `localStorage` | channel lease | **`false`** |
-| Node / SSR / worker without either | no-op | no-op, always grants | `false` |
+| Environment                        | Channel                           | Lock                      | `reliable`  |
+| ---------------------------------- | --------------------------------- | ------------------------- | ----------- |
+| Modern browser, secure context     | `BroadcastChannel`                | `navigator.locks`         | `true`      |
+| No `navigator.locks`               | `BroadcastChannel`                | channel lease + heartbeat | **`false`** |
+| No `BroadcastChannel`              | `storage` event on `localStorage` | channel lease             | **`false`** |
+| Node / SSR / worker without either | no-op                             | no-op, always grants      | `false`     |
 
 `reliable` is not decoration. A lease built on messages and timers can
 double-grant under clock skew or a frozen background tab, so:
@@ -156,30 +166,30 @@ which it is.
 ## 5. The protocol
 
 ```ts
-export const PROTOCOL_VERSION = 1;
+export const PROTOCOL_VERSION = 1
 
 export type SyncEnvelope = {
-  p: typeof PROTOCOL_VERSION; // protocol; a mismatch is dropped, never adopted
-  app?: string;               // the consumer's own version, same rule
-  tab: string;                // per-tab id, minted once
-  at: number;                 // the origin's Date.now() — see rule 1
-  seq: number;                // per-tab counter; breaks `at` ties
-};
+  p: typeof PROTOCOL_VERSION // protocol; a mismatch is dropped, never adopted
+  app?: string // the consumer's own version, same rule
+  tab: string // per-tab id, minted once
+  at: number // the origin's Date.now() — see rule 1
+  seq: number // per-tab counter; breaks `at` ties
+}
 
 export type SyncBody =
-  | { t: "data";       key: string; id: string; data: unknown }
-  | { t: "hint";       key: string; id: string }
-  | { t: "invalidate"; ids: string[] }
-  | { t: "claim";      lock: string }
-  | { t: "result";     lock: string; ok: boolean; data?: unknown; error?: unknown }
-  | { t: "leader";     state: "claimed" | "released" }
-  | { t: "user";       topic: string; payload: unknown };
+  | { t: 'data'; key: string; id: string; data: unknown }
+  | { t: 'hint'; key: string; id: string }
+  | { t: 'invalidate'; ids: string[] }
+  | { t: 'claim'; lock: string }
+  | { t: 'result'; lock: string; ok: boolean; data?: unknown; error?: unknown }
+  | { t: 'leader'; state: 'claimed' | 'released' }
+  | { t: 'user'; topic: string; payload: unknown }
 
-export type SyncMessage = SyncEnvelope & SyncBody;
+export type SyncMessage = SyncEnvelope & SyncBody
 ```
 
 `hint` is the whole reason this is not merely "broadcast the cache". It says
-*this key changed* without carrying the value — the fallback for payloads over
+_this key changed_ without carrying the value — the fallback for payloads over
 budget, and the only thing ever sent for an endpoint that carries a secret. A tab
 displaying that key refetches; a tab that is not marks it stale and pays nothing.
 
@@ -218,7 +228,7 @@ production: `exclude: ["draft.*", "editor.getSession"]`.
 
 **5. A dead leader must not be able to hang a follower.** Web Locks release
 automatically when the holding tab dies, so a crash resolves in milliseconds. A
-tab that is *alive but wedged* does not, so every wait carries `takeoverAfter`
+tab that is _alive but wedged_ does not, so every wait carries `takeoverAfter`
 (default 5 s), after which the follower stops waiting and does the work itself.
 Slow is a degraded mode; stuck is a bug.
 
@@ -226,22 +236,22 @@ Slow is a degraded mode; stuck is a bug.
 
 ## 7. Policies, per endpoint id
 
-| Policy | Reads | Writes | The loser gets |
-| --- | --- | --- | --- |
-| `mirror` (default for queries) | value broadcast, adopted by rule 1 | — | the data, and no request |
-| `hint` | only the invalidation crosses | — | a stale mark; refetches if displayed |
-| `single-flight` | one request per key across all tabs | — | the holder's result via `result` |
-| `exclusive` | — | one tab may run it | a typed rejection, immediately |
-| `queue` | — | one at a time, in order | its turn, after the holder settles |
-| `adopt` | — | one tab runs, the rest resolve with its result | the same value the runner got |
-| `local` | never crosses | never crosses | nothing — per-tab by design |
+| Policy                         | Reads                               | Writes                                         | The loser gets                       |
+| ------------------------------ | ----------------------------------- | ---------------------------------------------- | ------------------------------------ |
+| `mirror` (default for queries) | value broadcast, adopted by rule 1  | —                                              | the data, and no request             |
+| `hint`                         | only the invalidation crosses       | —                                              | a stale mark; refetches if displayed |
+| `single-flight`                | one request per key across all tabs | —                                              | the holder's result via `result`     |
+| `exclusive`                    | —                                   | one tab may run it                             | a typed rejection, immediately       |
+| `queue`                        | —                                   | one at a time, in order                        | its turn, after the holder settles   |
+| `adopt`                        | —                                   | one tab runs, the rest resolve with its result | the same value the runner got        |
+| `local`                        | never crosses                       | never crosses                                  | nothing — per-tab by design          |
 
 `exclusive`'s rejection is a real error in the family's
 [`ErrorKind`](../packages/typefetch/src/types.ts#L202-L222) vocabulary, not a
 timeout: `{ kind: "conflict"… }` is not in that union, so it is spelled
 `{ kind: "aborted", locked: true, holder: "tab_7f3" }` — `aborted` is the
 taxonomy's word for "a concurrency conflict stopped this". A UI can then say
-*"this checkout is already running in another tab"*, which is the entire point.
+_"this checkout is already running in another tab"_, which is the entire point.
 A spinner that never ends is what a lock with no loser branch produces.
 
 Matching is exact id, then `"module.*"`, then `"*"` — most specific wins, the
@@ -309,15 +319,15 @@ Same gate, on the mutation side:
 ### 8.5 Leader
 
 ```ts
-locks.acquire(name + "/leader", { signal }).then((h) => {
-  if (!h) return;                       // aborted during teardown
-  held = h;                             // never released until close()
-  post({ t: "leader", state: "claimed" });
-  for (const fn of pending) fn();
-});
+locks.acquire(name + '/leader', { signal }).then((h) => {
+  if (!h) return // aborted during teardown
+  held = h // never released until close()
+  post({ t: 'leader', state: 'claimed' })
+  for (const fn of pending) fn()
+})
 ```
 
-Holding a lock forever *is* the election: the browser releases it when the tab
+Holding a lock forever _is_ the election: the browser releases it when the tab
 dies, so the next waiter is promoted with no timeout and no heartbeat. `close()`
 releases and posts `released`. With an unreliable adapter, `whenLeader` still
 fires — in the worst case in two tabs — so anything that must be exactly-once
@@ -330,15 +340,15 @@ merely wasteful when doubled (a poll) proceeds.
 
 All additive. The package is not allowed to fork anyone's pipeline (design law 3).
 
-| Package | Change | Why |
-| --- | --- | --- |
-| `query-core` | `reason: "gc" \| "explicit"` on the `removed` event, at [`query-cache.ts:98`](../packages/query-core/src/query-cache.ts#L98) | Rule 2. Nothing downstream can tell the two apart today |
-| `query-core` | `setQueryData(endpoint, input, updater, { updatedAt })` | An adopted value must keep the origin's timestamp, not be restamped `Date.now()` at [`query.ts:256`](../packages/query-core/src/query.ts#L256) |
-| `query-core` | a `gate` on `QueryClientOptions` | The one seam §8.3–8.4 need. Also what `typewire-offline` needs — one hook, three consumers |
-| `query-core` | `sources` — an `endpointId` → endpoint resolver, defaulting to a map built from a client's `modules` | §8.2 must write a mirrored value through the typed API. [`OFFLINE.md`](./OFFLINE.md) needs the same lookup to hydrate |
-| `typesocket` | `leaderOnly?: boolean` beside `autoConnect` in [`types.ts:336`](../packages/typesocket/src/types.ts#L336) | One socket per browser, inbound frames fanned out over the channel |
-| `devtools-core` | a `tab` axis on `InspectorEvent` | Who leads, which locks wait, which writes were adopted rather than fetched. A new axis exactly as `transport` was in 8a — not a widening of `source` |
-| `cli` | one question in `typewire init` when a query client is scaffolded | Nothing here works if nobody knows it exists |
+| Package         | Change                                                                                                                       | Why                                                                                                                                                  |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `query-core`    | `reason: "gc" \| "explicit"` on the `removed` event, at [`query-cache.ts:98`](../packages/query-core/src/query-cache.ts#L98) | Rule 2. Nothing downstream can tell the two apart today                                                                                              |
+| `query-core`    | `setQueryData(endpoint, input, updater, { updatedAt })`                                                                      | An adopted value must keep the origin's timestamp, not be restamped `Date.now()` at [`query.ts:256`](../packages/query-core/src/query.ts#L256)       |
+| `query-core`    | a `gate` on `QueryClientOptions`                                                                                             | The one seam §8.3–8.4 need. Also what `typewire-offline` needs — one hook, three consumers                                                           |
+| `query-core`    | `sources` — an `endpointId` → endpoint resolver, defaulting to a map built from a client's `modules`                         | §8.2 must write a mirrored value through the typed API. [`OFFLINE.md`](./OFFLINE.md) needs the same lookup to hydrate                                |
+| `typesocket`    | `leaderOnly?: boolean` beside `autoConnect` in [`types.ts:336`](../packages/typesocket/src/types.ts#L336)                    | One socket per browser, inbound frames fanned out over the channel                                                                                   |
+| `devtools-core` | a `tab` axis on `InspectorEvent`                                                                                             | Who leads, which locks wait, which writes were adopted rather than fetched. A new axis exactly as `transport` was in 8a — not a widening of `source` |
+| `cli`           | one question in `typewire init` when a query client is scaffolded                                                            | Nothing here works if nobody knows it exists                                                                                                         |
 
 ```ts
 // query-core: the gate seam
@@ -371,59 +381,61 @@ for landing it separately and ahead of this package.
 **Tier 1 — one line.** Everything above, on defaults:
 
 ```ts
-import { syncQueryClient } from "@tahanabavi/typewire-sync/query";
+import { syncQueryClient } from '@tahanabavi/typewire-sync/query'
 
-syncQueryClient(client);
+syncQueryClient(client)
 ```
 
 **Tier 2 — declared at the setup site**, beside `relations`, because that is
 where this family puts cross-cutting policy. Contracts stay untouched (law 1):
 
 ```ts
-const client = new QueryClient({ relations: { "cart.addItem": ["cart.getCart"] } });
+const client = new QueryClient({
+  relations: { 'cart.addItem': ['cart.getCart'] },
+})
 
 const sync = syncQueryClient(client, {
-  name: "acme-app",
+  name: 'acme-app',
   app: pkg.version,
-  exclude: ["draft.*"],
+  exclude: ['draft.*'],
   policy: {
-    "cart.checkout": "exclusive",
-    "report.export": "single-flight",
-    "auth.*": "hint",           // never put a session on the channel
+    'cart.checkout': 'exclusive',
+    'report.export': 'single-flight',
+    'auth.*': 'hint', // never put a session on the channel
   },
   maxPayloadBytes: 64 * 1024,
   takeoverAfter: 5_000,
-  channel: myChannelAdapter,    // both seams are injectable
+  channel: myChannelAdapter, // both seams are injectable
   locks: myLockAdapter,
-});
+})
 
-sync.close();
+sync.close()
 ```
 
 **Tier 3 — the primitives, with no query engine anywhere.** This is the "full
 access" half: the package stays useful to someone who never installs query-core.
 
 ```ts
-import { createTabSync } from "@tahanabavi/typewire-sync";
+import { createTabSync } from '@tahanabavi/typewire-sync'
 
-const tabs = createTabSync({ name: "acme-app" });
+const tabs = createTabSync({ name: 'acme-app' })
 
-await tabs.lock("checkout", async () => {
+await tabs.lock('checkout', async () => {
   /* exactly one tab is ever in here */
-});
-const ran = await tabs.lock("checkout", fn, { ifAvailable: true }); // null if busy
+})
+const ran = await tabs.lock('checkout', fn, { ifAvailable: true }) // null if busy
 
-tabs.emit("cart:changed", { id: 4 });
-tabs.on("cart:changed", (payload) => {
+tabs.emit('cart:changed', { id: 4 })
+tabs.on('cart:changed', (payload) => {
   /* runs in every other tab */
-});
+})
 
-tabs.leader.whenLeader(() => startPolling()); // runs in exactly one tab
-tabs.leader.subscribe((isLeader) => setBadge(isLeader));
-tabs.leader.isLeader();
+tabs.leader.whenLeader(() => startPolling()) // runs in exactly one tab
+tabs.leader.subscribe((isLeader) => setBadge(isLeader))
+tabs.leader.isLeader()
 
-tabs.reliable; // false ⇒ exclusivity is advisory here. Branch on it if it matters
-tabs.close();
+tabs.reliable // false ⇒ exclusivity is advisory here. Branch on it if it matters
+tabs.close()
 ```
 
 `whenLeader` is the SharedWorker pattern without a SharedWorker: Web Locks elect
@@ -437,22 +449,22 @@ tabs, the last of which is a race that can log everyone out.
 
 ## 11. Failure modes, named
 
-| Mode | Behaviour |
-| --- | --- |
-| Holder tab closed mid-flight | the lock auto-releases; the next waiter fetches. Sub-frame |
-| Holder tab alive but wedged | `takeoverAfter` elapses; the waiter does the work itself |
-| Background tab throttled | timers slow, locks do not; leadership is unaffected |
-| `BroadcastChannel` absent | `storage` fallback; `exclusive` fails closed |
-| Message arrives out of order | rejected by rule 1, not applied |
-| Payload over budget | degrades to `hint`; one refetch in the tabs that display it |
-| Two tabs on different app versions | `p`/`app` mismatch — dropped, never adopted |
-| Private window / partitioned storage | a separate channel namespace. The browser's boundary, not ours |
-| Holder fetch rejects | the error is carried on `result`; waiters reject with it rather than stampeding |
+| Mode                                 | Behaviour                                                                       |
+| ------------------------------------ | ------------------------------------------------------------------------------- |
+| Holder tab closed mid-flight         | the lock auto-releases; the next waiter fetches. Sub-frame                      |
+| Holder tab alive but wedged          | `takeoverAfter` elapses; the waiter does the work itself                        |
+| Background tab throttled             | timers slow, locks do not; leadership is unaffected                             |
+| `BroadcastChannel` absent            | `storage` fallback; `exclusive` fails closed                                    |
+| Message arrives out of order         | rejected by rule 1, not applied                                                 |
+| Payload over budget                  | degrades to `hint`; one refetch in the tabs that display it                     |
+| Two tabs on different app versions   | `p`/`app` mismatch — dropped, never adopted                                     |
+| Private window / partitioned storage | a separate channel namespace. The browser's boundary, not ours                  |
+| Holder fetch rejects                 | the error is carried on `result`; waiters reject with it rather than stampeding |
 
 ## 12. Security boundary
 
 `BroadcastChannel` is same-origin, and so is everything here — nothing crosses
-origins, ever. But *same-origin* includes every script on the page. An endpoint
+origins, ever. But _same-origin_ includes every script on the page. An endpoint
 whose response carries a token or another user's data should be `hint`, so the
 value is refetched under the receiving tab's own credentials rather than copied
 across. `auth.*` defaults to `hint` for exactly this reason.
@@ -463,35 +475,35 @@ across. `auth.*` defaults to `hint` for exactly this reason.
 simulated tabs in one Node process, deterministic ordering, no browser. Named
 after the bug each prevents, per `AGENTS.md`:
 
-| Test | Asserts |
-| --- | --- |
-| `a gc eviction in one tab does not remove the query in another` | rule 2 |
-| `an older message does not overwrite a newer local write` | rule 1 |
-| `an adopted value is not re-broadcast` | §8.1 step 2 |
-| `a payload over budget is sent as a hint` | rule 3 |
-| `an excluded id never leaves the tab` | rule 4 |
-| `a second tab does not fetch while the first holds the key` | §8.3 |
-| `a wedged holder releases the waiter after takeoverAfter` | rule 5 |
-| `a failed holder fetch rejects the waiters with its error` | §8.3 step 3 |
-| `exclusive rejects with the locked error while held` | §8.4 |
-| `exclusive fails closed when the lock adapter is unreliable` | §4 |
-| `queue runs the second mutation after the first settles` | §8.4 |
-| `leadership moves to the next tab when the leader closes` | §8.5 |
-| `a message from another protocol version is ignored` | §5 |
-| `every primitive resolves when neither browser API exists` | §4, SSR |
+| Test                                                            | Asserts     |
+| --------------------------------------------------------------- | ----------- |
+| `a gc eviction in one tab does not remove the query in another` | rule 2      |
+| `an older message does not overwrite a newer local write`       | rule 1      |
+| `an adopted value is not re-broadcast`                          | §8.1 step 2 |
+| `a payload over budget is sent as a hint`                       | rule 3      |
+| `an excluded id never leaves the tab`                           | rule 4      |
+| `a second tab does not fetch while the first holds the key`     | §8.3        |
+| `a wedged holder releases the waiter after takeoverAfter`       | rule 5      |
+| `a failed holder fetch rejects the waiters with its error`      | §8.3 step 3 |
+| `exclusive rejects with the locked error while held`            | §8.4        |
+| `exclusive fails closed when the lock adapter is unreliable`    | §4          |
+| `queue runs the second mutation after the first settles`        | §8.4        |
+| `leadership moves to the next tab when the leader closes`       | §8.5        |
+| `a message from another protocol version is ignored`            | §5          |
+| `every primitive resolves when neither browser API exists`      | §4, SSR     |
 
 ## 14. Milestones
 
 Each is done only when build + typecheck + test are green, the README is
 written, and a changeset exists — `AGENTS.md`'s definition, unchanged.
 
-| # | Milestone | Contains |
-| --- | --- | --- |
-| M1 | query-core seams | `reason`, `updatedAt`, `gate`, `sources` — additive, behaviour unchanged, released on their own. **Done** (query-core 1.2.0) |
-| M2 | Layer 0 | both adapters, all four implementations, the protocol, the memory harness |
-| M3 | `createTabSync` | lock · channel · leader, tier 3 complete and independently useful |
-| M4 | `./query` | mirror, single-flight, the policy map, the write policies |
-| M5 | The rest of the family | `leaderOnly`, the devtools tab axis, the `init` question |
+| #   | Milestone              | Contains                                                                                                                     |
+| --- | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| M1  | query-core seams       | `reason`, `updatedAt`, `gate`, `sources` — additive, behaviour unchanged, released on their own. **Done** (query-core 1.2.0) |
+| M2  | Layer 0                | both adapters, all four implementations, the protocol, the memory harness                                                    |
+| M3  | `createTabSync`        | lock · channel · leader, tier 3 complete and independently useful                                                            |
+| M4  | `./query`              | mirror, single-flight, the policy map, the write policies                                                                    |
+| M5  | The rest of the family | `leaderOnly`, the devtools tab axis, the `init` question                                                                     |
 
 M3 is a shippable package on its own. If M4 slips, nothing that shipped is a
 half-feature.
@@ -504,7 +516,7 @@ half-feature.
 2. **Does the mutation outbox live here or in `typewire-offline`?** A persisted
    queue must be drained by exactly one tab, so it needs the leader — but
    persistence is a different concern with a different dependency profile.
-   Current lean: the outbox lives in `typewire-offline`, which *depends on* the
+   Current lean: the outbox lives in `typewire-offline`, which _depends on_ the
    leader primitive here.
 3. **`shared` lock mode** — is a reader/writer split worth exposing, or does it
    only invite deadlocks in application code?

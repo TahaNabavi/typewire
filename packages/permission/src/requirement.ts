@@ -1,6 +1,6 @@
-import type { Compiled } from "./compile";
-import { hasAny, missing } from "./check";
-import type { AuthorizeDecision, PermissionRequirement } from "./types";
+import type { Compiled } from './compile'
+import { hasAny, missing } from './check'
+import type { AuthorizeDecision, PermissionRequirement } from './types'
 
 /**
  * Evaluate a {@link PermissionRequirement} — the optional `permission` key a
@@ -13,21 +13,21 @@ import type { AuthorizeDecision, PermissionRequirement } from "./types";
 export function authorize<Name extends string = string>(
   compiled: Compiled,
   perms: bigint,
-  requirement: PermissionRequirement<Name>,
+  requirement: PermissionRequirement<Name>
 ): AuthorizeDecision<Name> {
   const missingAll = requirement.require
     ? (missing(compiled, perms, requirement.require) as Name[])
-    : [];
+    : []
 
   const anyOk =
     !requirement.any ||
     requirement.any.length === 0 ||
-    hasAny(compiled, perms, requirement.any);
+    hasAny(compiled, perms, requirement.any)
 
-  const granted = missingAll.length === 0 && anyOk;
+  const granted = missingAll.length === 0 && anyOk
 
-  const decision: AuthorizeDecision<Name> = { granted, missing: missingAll };
-  if (!anyOk && requirement.any) decision.missingAny = [...requirement.any];
-  if (requirement.reason !== undefined) decision.reason = requirement.reason;
-  return decision;
+  const decision: AuthorizeDecision<Name> = { granted, missing: missingAll }
+  if (!anyOk && requirement.any) decision.missingAny = [...requirement.any]
+  if (requirement.reason !== undefined) decision.reason = requirement.reason
+  return decision
 }

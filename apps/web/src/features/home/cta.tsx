@@ -1,8 +1,8 @@
-import { CommandBar } from "@/components/ui/command-bar";
-import { Container } from "@/components/ui/container";
-import { site } from "@/config/site";
-import { SignalField } from "@/features/home/signal-field";
-import { install } from "@/lib/registry";
+import { CommandBar } from '@/components/ui/command-bar'
+import { Container } from '@/components/ui/container'
+import { site } from '@/config/site'
+import { SignalField } from '@/features/home/signal-field'
+import { install } from '@/lib/registry'
 
 export function Cta() {
   return (
@@ -17,7 +17,10 @@ export function Cta() {
             <span>Wire it everywhere.</span>
           </h2>
           <div className="enter-up">
-            <CommandBar command={install.primary} className="mx-auto mt-8 max-w-md" />
+            <CommandBar
+              command={install.primary}
+              className="mx-auto mt-8 max-w-md"
+            />
             <div className="mt-6 flex flex-wrap justify-center gap-3">
               <a
                 href={site.repo.url}
@@ -32,5 +35,5 @@ export function Cta() {
         </div>
       </Container>
     </section>
-  );
+  )
 }

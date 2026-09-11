@@ -1,8 +1,8 @@
 /** Metadata key marking a method as a GraphQL resolver, used for discovery. */
-export const GRAPHQL_ENDPOINT_METADATA = "typewire:graphqlEndpoint";
+export const GRAPHQL_ENDPOINT_METADATA = 'typewire:graphqlEndpoint'
 
 /** Injection token for the options passed to `ContractGraphQLModule.forRoot()`. */
-export const GRAPHQL_MODULE_OPTIONS = "TYPEWIRE_GRAPHQL_OPTIONS";
+export const GRAPHQL_MODULE_OPTIONS = 'TYPEWIRE_GRAPHQL_OPTIONS'
 
 /**
  * NestJS's own key for a handler's parameter metadata.
@@ -12,7 +12,7 @@ export const GRAPHQL_MODULE_OPTIONS = "TYPEWIRE_GRAPHQL_OPTIONS";
  * `@nestjs/graphql` declares the same literal for the same reason. It is stable:
  * every `createParamDecorator` in the ecosystem writes to it.
  */
-export const ROUTE_ARGS_METADATA = "__routeArguments__";
+export const ROUTE_ARGS_METADATA = '__routeArguments__'
 
 /** The marker `createParamDecorator` puts in a custom parameter's metadata key. */
-export const CUSTOM_ROUTE_ARGS_METADATA = "__customRouteArgs__";
+export const CUSTOM_ROUTE_ARGS_METADATA = '__customRouteArgs__'

@@ -89,8 +89,8 @@ capability isn't held (`P.has(perms, "chat.MANAGE_MESSAGES")`), and the
 runs `P.authorize(perms, def.permission)`, never trusting the client's copy:
 
 ```ts
-const need = chatContracts.chat.deleteMessage.permission;
-if (need && !P.authorize(perms, need).granted) return { ok: false };
+const need = chatContracts.chat.deleteMessage.permission
+if (need && !P.authorize(perms, need).granted) return { ok: false }
 ```
 
 Join as **admin** (via `grantsAll`) or **mod-you** (via `MANAGE_MESSAGES`) and the
@@ -114,7 +114,9 @@ Because every subscription returns its own unsubscribe,
 [`hooks.ts`](./client/src/hooks.ts) is little more than `useEffect` plus a ref:
 
 ```ts
-useSocketEvent(socket.modules.chat.message, (m) => setMessages((p) => [...p, m]));
+useSocketEvent(socket.modules.chat.message, (m) =>
+  setMessages((p) => [...p, m])
+)
 //                                            ^? Message — inferred from the contract
 ```
 
@@ -135,8 +137,8 @@ TypeScript flags the server if the shape no longer matches.
 ```ts
 socket.instrument({
   resolveOverride: (eventId) =>
-    eventId === "chat.send" ? { latencyMs: 2000 } : undefined,
-});
+    eventId === 'chat.send' ? { latencyMs: 2000 } : undefined,
+})
 ```
 
 Sends now take two seconds; the inspector shows the delay in the ack row. Swap

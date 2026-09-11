@@ -7,21 +7,21 @@
  * `fetchQuery` can tell "you cancelled this" from "the request failed".
  */
 export class CancelledError extends Error {
-  constructor(message = "Query was cancelled") {
-    super(message);
-    this.name = "CancelledError";
+  constructor(message = 'Query was cancelled') {
+    super(message)
+    this.name = 'CancelledError'
   }
 }
 
 /** Whether a thrown value represents a cancellation rather than a failure. */
 export function isCancelledError(error: unknown): boolean {
-  if (error instanceof CancelledError) return true;
+  if (error instanceof CancelledError) return true
   // `AbortController.abort()` surfaces as a DOMException in browsers and as an
   // Error with the same `name` under Node's undici — match on the name so both
   // runtimes agree, without referencing DOMException (absent in some runtimes).
   return (
-    typeof error === "object" &&
+    typeof error === 'object' &&
     error !== null &&
-    (error as { name?: unknown }).name === "AbortError"
-  );
+    (error as { name?: unknown }).name === 'AbortError'
+  )
 }

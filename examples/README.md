@@ -2,12 +2,12 @@
 
 Runnable demos. All private, none published.
 
-| Example | What it shows |
-| --- | --- |
-| [`basic`](./basic) | typesocket in four files — contract, server, client, run. No UI, prints an annotated frame log and exits. Start here. |
-| [`transports`](./transports) | One client, three wires: REST, GraphQL and gRPC on a single contract. The GraphQL query is generated from the zod response schema, and all three failure shapes normalize to one `error.kind`. Headless and self-asserting; also demonstrates `typewire list`. |
-| [`chat`](./chat) | A real app: multi-room chat with presence, typing, history, and a live frame inspector. socket.io server + React UI on one contract. |
-| [`query`](./query) | The query layer end to end: `useQuery` / `useMutation` over HTTP **and** WebSocket, declared invalidation, and the devtools panel showing both transports in one timeline. Also covers `responseType: "file"` and upload/download progress, against a real endpoint pair. Ships a React app *and* a headless run that asserts, so `pnpm test` covers it. |
+| Example                      | What it shows                                                                                                                                                                                                                                                                                                                                            |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`basic`](./basic)           | typesocket in four files — contract, server, client, run. No UI, prints an annotated frame log and exits. Start here.                                                                                                                                                                                                                                    |
+| [`transports`](./transports) | One client, three wires: REST, GraphQL and gRPC on a single contract. The GraphQL query is generated from the zod response schema, and all three failure shapes normalize to one `error.kind`. Headless and self-asserting; also demonstrates `typewire list`.                                                                                           |
+| [`chat`](./chat)             | A real app: multi-room chat with presence, typing, history, and a live frame inspector. socket.io server + React UI on one contract.                                                                                                                                                                                                                     |
+| [`query`](./query)           | The query layer end to end: `useQuery` / `useMutation` over HTTP **and** WebSocket, declared invalidation, and the devtools panel showing both transports in one timeline. Also covers `responseType: "file"` and upload/download progress, against a real endpoint pair. Ships a React app _and_ a headless run that asserts, so `pnpm test` covers it. |
 
 ```bash
 pnpm install

@@ -9,7 +9,7 @@ export {
   requireTypeFetch,
   resolveTypeFetchClient,
   selectProjects,
-} from "./config";
+} from './config'
 export type {
   ConfigEnv,
   DiffConfig,
@@ -29,14 +29,14 @@ export type {
   TypeSocketSection,
   TypeWireConfig,
   TypeWireConfigInput,
-} from "./config";
-export { UsageError } from "./errors";
-export { runReleaseDocCommand } from "./release-doc";
-export type { ReleaseDocResult } from "./release-doc";
-export { runInit } from "./init";
-export type { InitOptions } from "./init";
-export { runCli } from "./run-cli";
-export { writeReportFiles } from "./node-reporter";
+} from './config'
+export { UsageError } from './errors'
+export { runReleaseDocCommand } from './release-doc'
+export type { ReleaseDocResult } from './release-doc'
+export { runInit } from './init'
+export type { InitOptions } from './init'
+export { runCli } from './run-cli'
+export { writeReportFiles } from './node-reporter'
 export type {
   CliResolvedOptions,
   InitCommandOptions,
@@ -47,4 +47,4 @@ export type {
   TypeFetchClientLike,
   TypeFetchCreateClientOptions,
   TypeFetchReportConfig,
-} from "./types";
+} from './types'

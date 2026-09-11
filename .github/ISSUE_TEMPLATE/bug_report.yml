@@ -1,7 +1,7 @@
 name: 🐛 Bug report
 description: Report something that isn't working as documented.
-title: "bug: "
-labels: ["bug", "needs triage"]
+title: 'bug: '
+labels: ['bug', 'needs triage']
 body:
   - type: markdown
     attributes:
@@ -14,14 +14,14 @@ body:
       label: Affected package
       description: Which package does this bug affect?
       options:
-        - "@tahanabavi/typefetch"
-        - "@tahanabavi/typesocket"
-        - "@tahanabavi/typewire-nestjs"
-        - "@tahanabavi/typefetch-query-core"
-        - "@tahanabavi/typefetch-react"
-        - "@tahanabavi/type-devtools-core"
-        - "@tahanabavi/type-devtools"
-        - "Monorepo tooling / not sure"
+        - '@tahanabavi/typefetch'
+        - '@tahanabavi/typesocket'
+        - '@tahanabavi/typewire-nestjs'
+        - '@tahanabavi/typefetch-query-core'
+        - '@tahanabavi/typefetch-react'
+        - '@tahanabavi/type-devtools-core'
+        - '@tahanabavi/type-devtools'
+        - 'Monorepo tooling / not sure'
     validations:
       required: true
 
@@ -30,7 +30,7 @@ body:
     attributes:
       label: Package version
       description: The version of the affected package (from your lockfile or `package.json`).
-      placeholder: "e.g. 1.7.0"
+      placeholder: 'e.g. 1.7.0'
     validations:
       required: true
 

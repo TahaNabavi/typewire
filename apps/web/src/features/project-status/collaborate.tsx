@@ -1,24 +1,24 @@
-import { Chip } from "@/components/ui/chip";
-import { Panel } from "@/components/ui/panel";
-import { Section } from "@/components/ui/section";
-import { site } from "@/config/site";
-import { getGoodFirstIssues } from "@/features/project-status/github";
+import { Chip } from '@/components/ui/chip'
+import { Panel } from '@/components/ui/panel'
+import { Section } from '@/components/ui/section'
+import { site } from '@/config/site'
+import { getGoodFirstIssues } from '@/features/project-status/github'
 
-const FLOW = ["fork", "branch", "change + test", "changeset", "PR"];
+const FLOW = ['fork', 'branch', 'change + test', 'changeset', 'PR']
 
 const GATES = [
   {
-    title: "Breakage alert",
+    title: 'Breakage alert',
     body: "Every PR runs build → typecheck → test in topological order. Dependents typecheck against their dependency's freshly built types, so a breaking change in one package reddens the check for the packages that use it.",
   },
   {
-    title: "No broken publish",
-    body: "Release re-runs the same gate before changeset publish, and Changesets bumps every internal dependent — so npm consumers always resolve compatible versions.",
+    title: 'No broken publish',
+    body: 'Release re-runs the same gate before changeset publish, and Changesets bumps every internal dependent — so npm consumers always resolve compatible versions.',
   },
-];
+]
 
 export async function Collaborate() {
-  const issues = await getGoodFirstIssues();
+  const issues = await getGoodFirstIssues()
 
   return (
     <Section
@@ -30,7 +30,11 @@ export async function Collaborate() {
       <ol className="enter-group flex flex-wrap items-center gap-2">
         {FLOW.map((step, i) => (
           <li key={step} className="flex items-center gap-2">
-            {i > 0 && <span aria-hidden className="text-dim">→</span>}
+            {i > 0 && (
+              <span aria-hidden className="text-dim">
+                →
+              </span>
+            )}
             <span className="rounded-lg border border-hair bg-panel/60 px-3 py-1.5 font-mono text-xs text-fg">
               {step}
             </span>
@@ -45,7 +49,9 @@ export async function Collaborate() {
         {GATES.map((gate) => (
           <Panel key={gate.title}>
             <h3 className="text-lg font-bold text-fg">{gate.title}</h3>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{gate.body}</p>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              {gate.body}
+            </p>
           </Panel>
         ))}
       </div>
@@ -57,7 +63,9 @@ export async function Collaborate() {
             <ul className="mt-4 space-y-3">
               {issues.data.map((issue) => (
                 <li key={issue.number} className="flex items-start gap-3">
-                  <span className="font-mono text-xs text-dim">#{issue.number}</span>
+                  <span className="font-mono text-xs text-dim">
+                    #{issue.number}
+                  </span>
                   <a
                     href={issue.url}
                     target="_blank"
@@ -76,8 +84,13 @@ export async function Collaborate() {
             </ul>
           ) : (
             <p className="mt-4 text-sm text-dim">
-              None open right now — {" "}
-              <a href={`${site.repo.url}/issues`} target="_blank" rel="noreferrer" className="text-blue hover:underline">
+              None open right now —{' '}
+              <a
+                href={`${site.repo.url}/issues`}
+                target="_blank"
+                rel="noreferrer"
+                className="text-blue hover:underline"
+              >
                 browse all issues ↗
               </a>
             </p>
@@ -98,12 +111,26 @@ export async function Collaborate() {
           </dl>
           <ul className="mt-5 space-y-2 text-sm">
             {[
-              ["Contributing guide", `${site.repo.url}/blob/main/CONTRIBUTING.md`],
-              ["Code of Conduct", `${site.repo.url}/blob/main/CODE_OF_CONDUCT.md`],
-              ["Architecture", `${site.repo.url}/blob/main/docs/ARCHITECTURE.md`],
+              [
+                'Contributing guide',
+                `${site.repo.url}/blob/main/CONTRIBUTING.md`,
+              ],
+              [
+                'Code of Conduct',
+                `${site.repo.url}/blob/main/CODE_OF_CONDUCT.md`,
+              ],
+              [
+                'Architecture',
+                `${site.repo.url}/blob/main/docs/ARCHITECTURE.md`,
+              ],
             ].map(([label, href]) => (
               <li key={label}>
-                <a href={href} target="_blank" rel="noreferrer" className="text-blue hover:underline">
+                <a
+                  href={href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-blue hover:underline"
+                >
                   {label} ↗
                 </a>
               </li>
@@ -112,5 +139,5 @@ export async function Collaborate() {
         </Panel>
       </div>
     </Section>
-  );
+  )
 }

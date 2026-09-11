@@ -1,4 +1,4 @@
-import type { TransportDescription } from "@tahanabavi/typefetch";
+import type { TransportDescription } from '@tahanabavi/typefetch'
 
 /**
  * GraphQL endpoint fields
@@ -16,7 +16,7 @@ export type GraphqlEndpointFields = {
    * transport is configured for it (CDN-cacheable), and what a query engine
    * reads to tell a read from a write.
    */
-  operation: "query" | "mutation";
+  operation: 'query' | 'mutation'
 
   /**
    * The operation document.
@@ -27,14 +27,14 @@ export type GraphqlEndpointFields = {
    * generator refuses — fragments, aliases, unions, directives, or arguments on
    * nested fields.
    */
-  document?: string;
+  document?: string
 
   /**
    * The operation name. Inferred from `document` when it declares one, else from
    * the endpoint id. Sent alongside the query so server logs and APQ keys are
    * meaningful.
    */
-  operationName?: string;
+  operationName?: string
 
   /**
    * The single root field to unwrap before validating.
@@ -44,7 +44,7 @@ export type GraphqlEndpointFields = {
    * outer wrapper key. It is also what lets a generated document know which
    * field to attach the variables to as arguments.
    */
-  root?: string;
+  root?: string
 
   /**
    * GraphQL types for the variables, by name — `{ id: "ID!" }`.
@@ -54,7 +54,7 @@ export type GraphqlEndpointFields = {
    * expecting `ID!` rejects it. Object inputs always need an entry, since a Zod
    * object cannot name a GraphQL input type.
    */
-  variableTypes?: Record<string, string>;
+  variableTypes?: Record<string, string>
 
   /**
    * What to do when the server answers with **both** `data` and `errors`.
@@ -66,46 +66,46 @@ export type GraphqlEndpointFields = {
    *   `onPartialErrors` callback. The return type stays `Promise<T>` rather than
    *   forcing every call site to unpack a result object.
    */
-  errorPolicy?: "none" | "all";
-};
+  errorPolicy?: 'none' | 'all'
+}
 
-declare module "@tahanabavi/typefetch" {
+declare module '@tahanabavi/typefetch' {
   interface TransportRegistry {
-    graphql: GraphqlEndpointFields;
+    graphql: GraphqlEndpointFields
   }
 }
 
 /** One entry of a GraphQL response's `errors` array. */
 export type GraphqlError = {
-  message: string;
-  path?: ReadonlyArray<string | number>;
-  locations?: ReadonlyArray<{ line: number; column: number }>;
-  extensions?: Record<string, unknown> & { code?: string };
-};
+  message: string
+  path?: ReadonlyArray<string | number>
+  locations?: ReadonlyArray<{ line: number; column: number }>
+  extensions?: Record<string, unknown> & { code?: string }
+}
 
 /** The body shape of a GraphQL-over-HTTP response. */
 export type GraphqlResponseBody = {
-  data?: unknown;
-  errors?: GraphqlError[];
-  extensions?: Record<string, unknown>;
-};
+  data?: unknown
+  errors?: GraphqlError[]
+  extensions?: Record<string, unknown>
+}
 
 export type GraphqlTransportConfig = {
   /**
    * The endpoint URL. Defaults to the client's `baseUrl` + `/graphql`, which is
    * the convention often enough to be worth not repeating.
    */
-  url?: string;
+  url?: string
 
   /**
    * Send queries over GET (`?query=…&variables=…`), which makes them
    * CDN-cacheable. Mutations always POST — a mutation over GET is a cache
    * poisoning waiting to happen. Defaults to `"POST"`.
    */
-  method?: "POST" | "GET";
+  method?: 'POST' | 'GET'
 
   /** Default `errorPolicy` for endpoints that do not declare one. */
-  errorPolicy?: "none" | "all";
+  errorPolicy?: 'none' | 'all'
 
   /**
    * Called when `errorPolicy: "all"` resolves data that arrived alongside
@@ -114,9 +114,9 @@ export type GraphqlTransportConfig = {
    */
   onPartialErrors?: (
     errors: readonly GraphqlError[],
-    info: { endpointId: string; route: TransportDescription },
-  ) => void;
+    info: { endpointId: string; route: TransportDescription }
+  ) => void
 
   /** Extra headers on every GraphQL request. */
-  headers?: Record<string, string>;
-};
+  headers?: Record<string, string>
+}

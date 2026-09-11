@@ -1,9 +1,9 @@
-import type { AnyEndpointDefZ, EndpointDefZ } from "@tahanabavi/typefetch";
-import type { z } from "zod";
-import { ContractValidationException, formatZodIssues } from "../exceptions";
-import { isHttpEndpoint } from "../transport";
-import type { ParsedContractRequest } from "../types";
-import { coerceInput } from "./coerce";
+import type { AnyEndpointDefZ } from '@tahanabavi/typefetch'
+import type { z } from 'zod'
+import { ContractValidationException, formatZodIssues } from '../exceptions'
+import { isHttpEndpoint } from '../transport'
+import type { ParsedContractRequest } from '../types'
+import { coerceInput } from './coerce'
 import {
   getDefType,
   getObjectShape,
@@ -12,23 +12,23 @@ import {
   isRecord,
   isStructuredRequestSchema,
   unwrapSchema,
-} from "./zod-utils";
+} from './zod-utils'
 
 /** Raw parts as the HTTP platform (Express/Fastify) hands them to Nest. */
 export type RawRequestParts = {
-  params: Record<string, unknown>;
-  query: Record<string, unknown>;
-  body: unknown;
-  headers: Record<string, unknown>;
+  params: Record<string, unknown>
+  query: Record<string, unknown>
+  body: unknown
+  headers: Record<string, unknown>
   /**
    * Uploaded files keyed by contract field name, normalized from Multer's
    * `req.file` / `req.files`. A single-file field holds the file; a
    * repeated field holds an array. Only relevant for `bodyType: "form-data"`.
    */
-  files?: Record<string, unknown>;
-};
+  files?: Record<string, unknown>
+}
 
-type ValidateOptions = { coerce: boolean };
+type ValidateOptions = { coerce: boolean }
 
 /**
  * Validate an incoming request against a contract endpoint's `request`
@@ -44,126 +44,126 @@ type ValidateOptions = { coerce: boolean };
 export function validateRequest(
   endpoint: AnyEndpointDefZ,
   raw: RawRequestParts,
-  options: ValidateOptions,
+  options: ValidateOptions
 ): ParsedContractRequest {
   // Read before narrowing: `request` is the one schema every transport
   // declares, and with no adapter package installed `AnyEndpointDefZ` *is* the
   // http variant — so the non-http branch narrows to `never` and could not
   // reach a field through it.
-  const requestSchema = endpoint.request;
+  const requestSchema = endpoint.request
 
   if (!isHttpEndpoint(endpoint)) {
     // No `body.` prefix on the issue paths: on a wire with one message there is
     // no body to distinguish from a path or a query, and `body.id` would name a
     // part of the request that does not exist.
-    return validateFlat(requestSchema, raw, options, false);
+    return validateFlat(requestSchema, raw, options, false)
   }
 
-  const formData = endpoint.bodyType === "form-data";
+  const formData = endpoint.bodyType === 'form-data'
   if (isStructuredRequestSchema(endpoint.request)) {
-    return validateStructured(endpoint.request, raw, options, formData);
+    return validateStructured(endpoint.request, raw, options, formData)
   }
-  return validateFlat(endpoint.request, raw, options, formData, "body");
+  return validateFlat(endpoint.request, raw, options, formData, 'body')
 }
 
 function validateStructured(
   requestSchema: z.ZodTypeAny,
   raw: RawRequestParts,
   options: ValidateOptions,
-  formData: boolean,
+  formData: boolean
 ): ParsedContractRequest {
-  const shape = getObjectShape(requestSchema) ?? {};
-  const errors: Record<string, string[]> = {};
-  const parsed: ParsedContractRequest = { isStructured: true, input: {} };
-  const input: Record<string, unknown> = {};
+  const shape = getObjectShape(requestSchema) ?? {}
+  const errors: Record<string, string[]> = {}
+  const parsed: ParsedContractRequest = { isStructured: true, input: {} }
+  const input: Record<string, unknown> = {}
 
   for (const [part, schema] of Object.entries(shape)) {
     switch (part) {
-      case "path": {
+      case 'path': {
         const value = options.coerce
-          ? coerceInput(schema, raw.params, "query")
-          : raw.params;
-        const result = schema.safeParse(value);
+          ? coerceInput(schema, raw.params, 'query')
+          : raw.params
+        const result = schema.safeParse(value)
         if (result.success) {
-          parsed.path = result.data as Record<string, unknown>;
-          input.path = result.data;
+          parsed.path = result.data as Record<string, unknown>
+          input.path = result.data
         } else {
-          Object.assign(errors, formatZodIssues(result.error, "path"));
+          Object.assign(errors, formatZodIssues(result.error, 'path'))
         }
-        break;
+        break
       }
 
-      case "query": {
+      case 'query': {
         const value = options.coerce
-          ? coerceInput(schema, raw.query, "query")
-          : raw.query;
-        const result = schema.safeParse(value);
+          ? coerceInput(schema, raw.query, 'query')
+          : raw.query
+        const result = schema.safeParse(value)
         if (result.success) {
-          parsed.query = result.data as Record<string, unknown>;
-          input.query = result.data;
+          parsed.query = result.data as Record<string, unknown>
+          input.query = result.data
         } else {
-          Object.assign(errors, formatZodIssues(result.error, "query"));
+          Object.assign(errors, formatZodIssues(result.error, 'query'))
         }
-        break;
+        break
       }
 
-      case "body": {
+      case 'body': {
         if (formData) {
           const { data, errors: bodyErrors } = validateFormDataBody(
             schema,
             raw.body,
             raw.files ?? {},
-            options,
-          );
+            options
+          )
           if (Object.keys(bodyErrors).length > 0) {
-            Object.assign(errors, bodyErrors);
+            Object.assign(errors, bodyErrors)
           } else if (data !== undefined) {
-            parsed.body = data;
-            input.body = data;
+            parsed.body = data
+            input.body = data
           }
-          break;
+          break
         }
 
         const value = options.coerce
-          ? coerceInput(schema, raw.body, "json")
-          : raw.body;
-        const result = parseWithEmptyBodyFallback(schema, value);
+          ? coerceInput(schema, raw.body, 'json')
+          : raw.body
+        const result = parseWithEmptyBodyFallback(schema, value)
         if (result.success) {
           if (result.data !== undefined) {
-            parsed.body = result.data;
-            input.body = result.data;
+            parsed.body = result.data
+            input.body = result.data
           }
         } else {
-          Object.assign(errors, formatZodIssues(result.error, "body"));
+          Object.assign(errors, formatZodIssues(result.error, 'body'))
         }
-        break;
+        break
       }
 
-      case "headers":
-      case "header": {
-        const { value, validated } = pickHeaders(schema, raw.headers);
+      case 'headers':
+      case 'header': {
+        const { value, validated } = pickHeaders(schema, raw.headers)
         if (!validated) {
-          parsed.headers = value as Record<string, string>;
-          break;
+          parsed.headers = value as Record<string, string>
+          break
         }
-        const result = schema.safeParse(value);
+        const result = schema.safeParse(value)
         if (result.success) {
-          parsed.headers = (result.data ?? {}) as Record<string, string>;
-          input[part] = result.data;
+          parsed.headers = (result.data ?? {}) as Record<string, string>
+          input[part] = result.data
         } else {
-          Object.assign(errors, formatZodIssues(result.error, part));
+          Object.assign(errors, formatZodIssues(result.error, part))
         }
-        break;
+        break
       }
     }
   }
 
   if (Object.keys(errors).length > 0) {
-    throw new ContractValidationException(errors);
+    throw new ContractValidationException(errors)
   }
 
-  parsed.input = input;
-  return parsed;
+  parsed.input = input
+  return parsed
 }
 
 function validateFlat(
@@ -176,36 +176,36 @@ function validateFlat(
    * where there is no body to distinguish from a path or a query, and `body.id`
    * would name a part of the request that does not exist.
    */
-  prefix?: string,
+  prefix?: string
 ): ParsedContractRequest {
   if (formData) {
     const { data, errors } = validateFormDataBody(
       requestSchema,
       raw.body,
       raw.files ?? {},
-      options,
-    );
+      options
+    )
     if (Object.keys(errors).length > 0) {
-      throw new ContractValidationException(errors);
+      throw new ContractValidationException(errors)
     }
-    return { isStructured: false, body: data, input: data };
+    return { isStructured: false, body: data, input: data }
   }
 
   // Flat inputs are sent by the client as the JSON body.
   const value = options.coerce
-    ? coerceInput(requestSchema, raw.body, "json")
-    : raw.body;
+    ? coerceInput(requestSchema, raw.body, 'json')
+    : raw.body
 
-  const result = parseWithEmptyBodyFallback(requestSchema, value);
+  const result = parseWithEmptyBodyFallback(requestSchema, value)
   if (!result.success) {
-    throw new ContractValidationException(formatZodIssues(result.error, prefix));
+    throw new ContractValidationException(formatZodIssues(result.error, prefix))
   }
 
   return {
     isStructured: false,
     body: result.data,
     input: result.data,
-  };
+  }
 }
 
 /**
@@ -227,34 +227,34 @@ function validateFormDataBody(
   bodySchema: z.ZodTypeAny,
   rawBody: unknown,
   files: Record<string, unknown>,
-  options: ValidateOptions,
+  options: ValidateOptions
 ): { data?: unknown; errors: Record<string, string[]> } {
-  const errors: Record<string, string[]> = {};
-  const fields = isRecord(rawBody) ? rawBody : {};
-  const shape = getObjectShape(bodySchema);
+  const errors: Record<string, string[]> = {}
+  const fields = isRecord(rawBody) ? rawBody : {}
+  const shape = getObjectShape(bodySchema)
 
   // Non-object body (rare): merge fields + files and validate as a whole.
   if (!shape) {
-    const merged = { ...fields, ...files };
+    const merged = { ...fields, ...files }
     const value = options.coerce
-      ? coerceInput(bodySchema, merged, "query")
-      : merged;
-    const result = bodySchema.safeParse(value);
-    if (result.success) return { data: result.data, errors };
-    Object.assign(errors, formatZodIssues(result.error, "body"));
-    return { errors };
+      ? coerceInput(bodySchema, merged, 'query')
+      : merged
+    const result = bodySchema.safeParse(value)
+    if (result.success) return { data: result.data, errors }
+    Object.assign(errors, formatZodIssues(result.error, 'body'))
+    return { errors }
   }
 
-  const out: Record<string, unknown> = {};
+  const out: Record<string, unknown> = {}
 
   for (const [key, fieldSchema] of Object.entries(shape)) {
-    const optional = fieldSchema.safeParse(undefined).success;
+    const optional = fieldSchema.safeParse(undefined).success
 
     if (isFileArraySchema(fieldSchema) || isFileSchema(fieldSchema)) {
-      const provided = files[key];
+      const provided = files[key]
       if (provided === undefined) {
-        if (!optional) errors[`body.${key}`] = ["Expected an uploaded file"];
-        continue;
+        if (!optional) errors[`body.${key}`] = ['Expected an uploaded file']
+        continue
       }
       out[key] = isFileArraySchema(fieldSchema)
         ? Array.isArray(provided)
@@ -262,29 +262,29 @@ function validateFormDataBody(
           : [provided]
         : Array.isArray(provided)
           ? provided[0]
-          : provided;
-      continue;
+          : provided
+      continue
     }
 
     // text field — string on the wire, same shape as a query param
-    const rawValue = fields[key];
+    const rawValue = fields[key]
     const value = options.coerce
-      ? coerceInput(fieldSchema, rawValue, "query")
-      : rawValue;
-    const result = fieldSchema.safeParse(value);
+      ? coerceInput(fieldSchema, rawValue, 'query')
+      : rawValue
+    const result = fieldSchema.safeParse(value)
     if (result.success) {
-      if (result.data !== undefined) out[key] = result.data;
+      if (result.data !== undefined) out[key] = result.data
     } else {
-      Object.assign(errors, formatZodIssues(result.error, `body.${key}`));
+      Object.assign(errors, formatZodIssues(result.error, `body.${key}`))
     }
   }
 
-  return { data: out, errors };
+  return { data: out, errors }
 }
 
 function isEmptyBody(value: unknown): boolean {
-  if (value === undefined || value === null) return true;
-  return isRecord(value) && Object.keys(value).length === 0;
+  if (value === undefined || value === null) return true
+  return isRecord(value) && Object.keys(value).length === 0
 }
 
 /**
@@ -294,16 +294,16 @@ function isEmptyBody(value: unknown): boolean {
  */
 function parseWithEmptyBodyFallback(
   schema: z.ZodTypeAny,
-  value: unknown,
+  value: unknown
 ): z.ZodSafeParseResult<unknown> {
-  const result = schema.safeParse(value);
-  if (result.success || !isEmptyBody(value)) return result;
+  const result = schema.safeParse(value)
+  if (result.success || !isEmptyBody(value)) return result
 
   for (const candidate of [undefined, {}]) {
-    const fallback = schema.safeParse(candidate);
-    if (fallback.success) return fallback;
+    const fallback = schema.safeParse(candidate)
+    if (fallback.success) return fallback
   }
-  return result;
+  return result
 }
 
 /**
@@ -316,28 +316,28 @@ function parseWithEmptyBodyFallback(
  */
 function pickHeaders(
   schema: z.ZodTypeAny,
-  rawHeaders: Record<string, unknown>,
+  rawHeaders: Record<string, unknown>
 ): { value: Record<string, string>; validated: boolean } {
-  const normalized: Record<string, string> = {};
+  const normalized: Record<string, string> = {}
   for (const [key, val] of Object.entries(rawHeaders)) {
-    if (val === undefined || val === null) continue;
+    if (val === undefined || val === null) continue
     normalized[key.toLowerCase()] = Array.isArray(val)
-      ? val.map(String).join(", ")
-      : String(val);
+      ? val.map(String).join(', ')
+      : String(val)
   }
 
-  const shape = getObjectShape(schema);
+  const shape = getObjectShape(schema)
   if (!shape) {
-    const type = getDefType(unwrapSchema(schema));
+    const type = getDefType(unwrapSchema(schema))
     // Only records of strings are meaningfully checkable; anything else
     // (or the permissive default) passes through unvalidated.
-    return { value: normalized, validated: type === "record" };
+    return { value: normalized, validated: type === 'record' }
   }
 
-  const picked: Record<string, string> = {};
+  const picked: Record<string, string> = {}
   for (const key of Object.keys(shape)) {
-    const match = normalized[key.toLowerCase()];
-    if (match !== undefined) picked[key] = match;
+    const match = normalized[key.toLowerCase()]
+    if (match !== undefined) picked[key] = match
   }
-  return { value: picked, validated: true };
+  return { value: picked, validated: true }
 }
